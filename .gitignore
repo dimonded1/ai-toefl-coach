@@ -1,31 +1,10 @@
-# Dependencies
-node_modules/
-*/node_modules/
-
-# Environment variables
+# Local secrets. Do not commit real API keys.
 .env
 backend/.env
 
-# Docker
-.dockerignore
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-
-# OS
+# Local OS/editor noise.
 .DS_Store
 Thumbs.db
-
-# Editor
 .vscode/settings.json
 .idea/
 *.swp
-
-# Build artifacts
-dist/
-build/
-
-# Coverage
-coverage/

@@ -20,7 +20,12 @@ An interactive TOEFL iBT preparation web app with a personalized AI study plan p
 Go to https://console.groq.com/keys → Create API key
 
 ### 2. Add your API key
-Edit `backend/.env`:
+Create `backend/.env` from the example:
+```bash
+cp backend/.env.example backend/.env
+```
+
+Then edit `backend/.env`:
 ```
 GROQ_API_KEY=your_actual_key_here
 PORT=3001
