@@ -19,6 +19,7 @@ async function callGemini(action, extraContext = null) {
       scores:           profile.scores,
       progress:         profile.progress
     },
+    studyReference: buildStudyReferenceSummary(),
     action,
     extraContext
   };
@@ -36,6 +37,23 @@ async function callGemini(action, extraContext = null) {
 
   const data = await resp.json();
   return data.result || "";
+}
+
+function buildStudyReferenceSummary() {
+  if (typeof TOEFL_REFERENCE_DB === "undefined") return null;
+
+  return {
+    exam: TOEFL_REFERENCE_DB.exam.name,
+    currentScoring: TOEFL_REFERENCE_DB.exam.formatAfter2026,
+    legacyScoring: TOEFL_REFERENCE_DB.exam.formatBefore2026,
+    rubrics: TOEFL_REFERENCE_DB.scoringRubrics,
+    calendar: TOEFL_REFERENCE_DB.studyCalendar,
+    legalResources: TOEFL_REFERENCE_DB.exam.officialResources.map(resource => ({
+      title: resource.title,
+      use: resource.use,
+      url: resource.url
+    }))
+  };
 }
 
 // ─── Study Plan ──────────────────────────────────

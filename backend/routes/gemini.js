@@ -8,7 +8,7 @@ const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 /**
  * POST /api/gemini/analyze
- * Body: { userProfile, action: "study_plan" | "score_gap" | "feedback" }
+ * Body: { userProfile, studyReference, action: "study_plan" | "score_gap" | "feedback" }
  */
 router.post("/analyze", async (req, res) => {
   const apiKey = process.env.GROQ_API_KEY;
@@ -19,16 +19,16 @@ router.post("/analyze", async (req, res) => {
     });
   }
 
-  const { userProfile, action, extraContext } = req.body;
+  const { userProfile, studyReference, action, extraContext } = req.body;
 
   if (!userProfile || !action) {
     return res.status(400).json({ error: "Missing userProfile or action" });
   }
 
   const prompts = {
-    study_plan: buildStudyPlanPrompt(userProfile),
-    score_gap:  buildScoreGapPrompt(userProfile),
-    feedback:   buildFeedbackPrompt(userProfile, extraContext)
+    study_plan: buildStudyPlanPrompt(userProfile, studyReference),
+    score_gap:  buildScoreGapPrompt(userProfile, studyReference),
+    feedback:   buildFeedbackPrompt(userProfile, extraContext, studyReference)
   };
 
   const prompt = prompts[action];
@@ -49,7 +49,7 @@ router.post("/analyze", async (req, res) => {
         model: GROQ_MODEL,
         messages: [{ role: "user", content: prompt }],
         temperature: 0.7,
-        max_tokens: 512,
+        max_tokens: 700,
         top_p: 0.9,
         stream: false
       })
@@ -75,7 +75,7 @@ router.post("/analyze", async (req, res) => {
 
 // ─── Prompt builders ────────────────────────────────────────────────────────
 
-function buildStudyPlanPrompt(profile) {
+function buildStudyPlanPrompt(profile, studyReference) {
   const { targetScore, currentPrediction, preparationDays, mistakes, totalTasks } = profile;
 
   const skillLines = Object.entries(mistakes || {}).map(([skill, m]) => {
@@ -95,15 +95,18 @@ Student Profile:
 Skill Error Rates:
 ${skillLines}
 
+Reference Data:
+${formatStudyReference(studyReference)}
+
 Task: Write a SHORT, actionable study plan for TODAY. Format it as:
 1. Priority focus (which 1-2 skills to work on today and why, 2 sentences)
 2. Today's tasks (5 bullet points, each max 1 line)
 3. One motivational sentence
 
-Be concise. Use English. Max 200 words.`;
+Use the reference data when relevant. Be concise. Use English. Max 220 words.`;
 }
 
-function buildScoreGapPrompt(profile) {
+function buildScoreGapPrompt(profile, studyReference) {
   const { targetScore, currentPrediction, scores } = profile;
   const gap = targetScore - currentPrediction;
 
@@ -123,6 +126,9 @@ Score Gap Analysis:
 Skill Scores (out of 30 each):
 ${scoreLines}
 
+Reference Data:
+${formatStudyReference(studyReference)}
+
 Task: Write a BRIEF score gap analysis. Format:
 1. Overall assessment (1-2 sentences)
 2. Biggest weakness and why it matters (2-3 sentences)
@@ -131,7 +137,7 @@ Task: Write a BRIEF score gap analysis. Format:
 Be direct and practical. Use English. Max 150 words.`;
 }
 
-function buildFeedbackPrompt(profile, context) {
+function buildFeedbackPrompt(profile, context, studyReference) {
   const { skill, userAnswer, taskType } = context || {};
   return `You are a TOEFL iBT examiner. Give brief feedback on this student response.
 
@@ -139,12 +145,40 @@ Task type: ${taskType || "general"}
 Skill: ${skill || "unknown"}
 Student answer: "${userAnswer || ""}"
 
+Relevant scoring criteria:
+${formatRubricForSkill(studyReference, skill)}
+
 Evaluate in 3 lines max:
 1. What's good
 2. What to improve
 3. Score estimate: Weak / Developing / Proficient / Strong
 
 Be encouraging but honest. English only. Max 80 words.`;
+}
+
+function formatStudyReference(ref) {
+  if (!ref) return "No local reference database was provided.";
+
+  const current = ref.currentScoring || {};
+  const legacy = ref.legacyScoring || {};
+  const calendar = Array.isArray(ref.calendar)
+    ? ref.calendar.map(w => `Week ${w.week}: ${w.focus}`).join("; ")
+    : "No calendar.";
+
+  return [
+    `Exam: ${ref.exam || "TOEFL iBT"}`,
+    `Current scoring: ${current.overallScore || "section-based TOEFL scoring"} (${current.effectiveDate || "current format date not provided"})`,
+    `Legacy/comparable score: ${legacy.totalScore || "0-120 if available"}`,
+    `Study calendar themes: ${calendar}`,
+    `Core rubrics: ${Object.keys(ref.rubrics || {}).join(", ")}`
+  ].join("\n");
+}
+
+function formatRubricForSkill(ref, skill) {
+  const key = String(skill || "").toLowerCase();
+  const rubrics = ref?.rubrics || {};
+  const items = rubrics[key] || rubrics.speaking || rubrics.writing || [];
+  return Array.isArray(items) ? items.map(item => `- ${item}`).join("\n") : "Use TOEFL clarity, organization, accuracy, and task fulfillment criteria.";
 }
 
 module.exports = router;
