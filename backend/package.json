@@ -1,7 +1,7 @@
 {
   "name": "ai-toefl-coach-backend",
   "version": "1.0.0",
-  "description": "Backend proxy for AI TOEFL Coach — routes Gemini API calls",
+  "description": "Backend proxy for AI TOEFL Coach — routes AI feedback and study-plan calls",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

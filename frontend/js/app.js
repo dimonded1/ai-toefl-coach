@@ -118,6 +118,9 @@ function renderDashboard() {
   renderSkillBars();
   renderWeakZones();
   renderTodayPlan();
+  renderHabitProgress();
+  renderSmartFocus();
+  renderMistakePreview();
 }
 
 function renderSkillBars() {
@@ -169,23 +172,156 @@ function renderTodayPlan() {
     const today = new Date().toDateString();
     const planDate = new Date(profile.lastAIPlanDate).toDateString();
     if (today === planDate) {
-      container.innerHTML = `<div class="feedback-box info" style="margin-bottom:12px;font-size:.8rem;">${profile.lastAIPlan.replace(/\n/g,"<br>")}</div>`;
+      container.innerHTML = renderPlanHtml(normalizeStudyPlan(profile.lastAIPlan, profile));
       return;
     }
   }
 
   // Use local plan
-  const plan = generateLocalStudyPlan(profile);
+  container.innerHTML = renderPlanHtml(normalizeStudyPlan(null, profile));
+}
+
+function renderHabitProgress() {
+  const container = document.getElementById("habitProgress");
+  if (!container) return;
+  const level = calcUserLevel(profile);
+  const next = xpForNextLevel(profile);
+  const prev = (level - 1) * 120;
+  const xp = profile.xp || 0;
+  const pct = Math.min(100, Math.round(((xp - prev) / Math.max(1, next - prev)) * 100));
+  const achievements = (profile.achievements || []).slice(-2);
+
   container.innerHTML = `
-    <div class="feedback-box info" style="margin-bottom:14px;font-size:.82rem;">${plan.explanation}</div>
-    ${plan.tasks.map((t, i) => `
+    <div class="habit-grid">
+      <div class="habit-stat"><div class="habit-value">${level}</div><div class="habit-label">Level</div></div>
+      <div class="habit-stat"><div class="habit-value">${profile.streak?.current || 0}</div><div class="habit-label">Day streak</div></div>
+      <div class="habit-stat"><div class="habit-value">${xp}</div><div class="habit-label">Total XP</div></div>
+      <div class="habit-stat"><div class="habit-value">${profile.streak?.best || 0}</div><div class="habit-label">Best streak</div></div>
+    </div>
+    <div class="xp-track"><div class="xp-fill" style="width:${pct}%"></div></div>
+    <div class="plan-why" style="margin-top:8px">${Math.max(0, next - xp)} XP to Level ${level + 1}</div>
+    <div class="achievement-list" style="margin-top:10px">
+      ${achievements.length ? achievements.map(a => `<div class="achievement-mini">🏆 ${a}</div>`).join("") : `<div class="placeholder-text" style="padding:8px 0">Earn achievements by practicing.</div>`}
+    </div>`;
+}
+
+function renderSmartFocus() {
+  const container = document.getElementById("smartFocus");
+  if (!container) return;
+  const plan = normalizeStudyPlan(null, profile);
+  container.innerHTML = `
+    <div class="smart-list">
+      ${plan.tasks.slice(0, 3).map(task => `
+        <div class="smart-item">
+          <strong>${SKILL_META[task.skill]?.icon || "🎯"} ${task.title}</strong>
+          <span>${task.reason}</span>
+        </div>`).join("")}
+    </div>`;
+}
+
+function renderMistakePreview() {
+  const container = document.getElementById("mistakePreview");
+  if (!container) return;
+  const mistakes = (profile.mistakeBank || []).filter(item => !item.mastered).slice(0, 4);
+  if (!mistakes.length) {
+    container.innerHTML = `<p class="placeholder-text" style="padding:8px 0">Wrong answers will appear here for review.</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="mistake-list">
+      ${mistakes.map(item => `
+        <div class="mistake-mini">
+          <strong>${SKILL_META[item.skill]?.icon || "•"} ${item.topic}</strong>
+          <span>${escapeHtml(item.prompt).slice(0, 86)}${item.prompt.length > 86 ? "..." : ""}</span>
+        </div>`).join("")}
+    </div>`;
+}
+
+function normalizeStudyPlan(rawPlan, currentProfile) {
+  const local = generateLocalStudyPlan(currentProfile);
+  const parsed = parseJsonFromAI(rawPlan);
+  const cleanedSummary = parsed?.summary || cleanAIText(rawPlan || local.explanation).split("\n").find(Boolean) || local.explanation;
+  const aiTasks = Array.isArray(parsed?.tasks) ? parsed.tasks : [];
+  const fallbackTasks = local.tasks.map(task => ({
+    skill: task.skill,
+    title: task.task,
+    reason: task.why,
+    minutes: task.skill === "vocabulary" ? 8 : 15,
+    type: task.skill === "speaking" || task.skill === "writing" ? "ai-feedback" : "drill"
+  }));
+
+  const tasks = normalizePlanTasks(aiTasks, fallbackTasks);
+  return {
+    summary: cleanedSummary,
+    tasks,
+    motivation: parsed?.motivation || "Small daily practice compounds into real score movement."
+  };
+}
+
+function normalizePlanTasks(aiTasks, fallbackTasks) {
+  const allowed = new Set(["reading","listening","speaking","writing","vocabulary"]);
+  const tasks = aiTasks.map(task => {
+    const skill = String(task.skill || "").toLowerCase();
+    if (!allowed.has(skill)) return null;
+    return {
+      skill,
+      title: cleanAIText(task.title || task.task || `Practice ${SKILL_META[skill].label}`),
+      reason: cleanAIText(task.reason || "Targets your current score gap."),
+      minutes: Number(task.minutes) || 12,
+      type: cleanAIText(task.type || "drill")
+    };
+  }).filter(Boolean);
+
+  fallbackTasks.forEach(task => {
+    if (tasks.length < 5 && !tasks.some(existing => existing.skill === task.skill)) tasks.push(task);
+  });
+
+  return tasks.slice(0, 5);
+}
+
+function renderPlanHtml(plan) {
+  return `
+    <div class="feedback-box info" style="margin-bottom:14px;font-size:.82rem;">${escapeHtml(plan.summary)}</div>
+    ${plan.tasks.map((task, i) => `
       <div class="plan-item">
         <div class="plan-num">${i + 1}</div>
         <div>
-          <div class="plan-text">${SKILL_META[t.skill].icon} ${t.task}</div>
-          <div class="plan-why">${t.why}</div>
+          <div class="plan-text">${SKILL_META[task.skill]?.icon || "🎯"} ${escapeHtml(task.title)}</div>
+          <div class="plan-why">${escapeHtml(task.reason)}</div>
+          <div class="plan-meta">
+            <span class="plan-pill">${escapeHtml(SKILL_META[task.skill]?.label || task.skill)}</span>
+            <span class="plan-pill">${task.minutes} min</span>
+            <span class="plan-pill">${escapeHtml(task.type)}</span>
+          </div>
         </div>
       </div>`).join("")}`;
+}
+
+function parseJsonFromAI(raw) {
+  if (!raw || typeof raw !== "string") return null;
+  try { return JSON.parse(raw); } catch {}
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) return null;
+  try { return JSON.parse(match[0]); } catch { return null; }
+}
+
+function cleanAIText(text) {
+  return String(text || "")
+    .replace(/\*\*/g, "")
+    .replace(/^\s*[*-]\s+/gm, "")
+    .replace(/#+\s*/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 async function refreshTodayAIPlan() {
@@ -194,19 +330,19 @@ async function refreshTodayAIPlan() {
   btn.textContent = "⏳ Generating...";
 
   const container = document.getElementById("todayPlan");
-  container.innerHTML = `<div class="ai-loading"><div class="spinner"></div> Asking Gemini AI...</div>`;
+  container.innerHTML = `<div class="ai-loading"><div class="spinner"></div> Building your structured AI plan...</div>`;
 
   try {
     const result = await fetchAIStudyPlan();
-    container.innerHTML = `<div class="feedback-box info" style="font-size:.85rem;line-height:1.6">${result.replace(/\n/g,"<br>")}</div>`;
+    container.innerHTML = renderPlanHtml(normalizeStudyPlan(result, profile));
     profile.lastAIPlan     = result;
     profile.lastAIPlanDate = new Date().toISOString();
     saveProfile(profile);
     showToast("✅ AI plan updated!", "success");
   } catch (err) {
     // Fallback to local
-    renderTodayPlan();
-    showToast(`⚠️ Gemini unavailable — using local plan. (${err.message})`, "error");
+    container.innerHTML = renderPlanHtml(normalizeStudyPlan(null, profile));
+    showToast(`⚠️ AI unavailable — using local plan. (${err.message})`, "error");
   }
 
   btn.disabled = false;
@@ -433,7 +569,7 @@ function renderSpeakingQ(q, container, skill) {
   });
 
   container.querySelector("#skipSpeakBtn").addEventListener("click", () => {
-    profile = recordAnswer(profile, skill, false);
+    profile = recordAnswer(profile, skill, false, q);
     advanceQuestion(skill);
   });
 
@@ -471,10 +607,10 @@ async function evaluateSpeaking(answer, q, container, skill) {
     </div>
     <div class="feedback-box ${isGood ? "correct" : "wrong"}" style="margin-top:10px">`;
 
-  // Try Gemini feedback
+  // Try AI feedback
   try {
-    const geminiFeedback = await fetchAnswerFeedback("Speaking", answer, q.taskType);
-    feedbackHtml += geminiFeedback.replace(/\n/g,"<br>");
+    const aiFeedback = await fetchAnswerFeedback("Speaking", answer, q.taskType);
+    feedbackHtml += renderCoachFeedback(aiFeedback);
   } catch {
     if (isGood) {
       feedbackHtml += `✅ Good response! You covered ${passed}/${total} criteria. ${passed < total ? "Try to also include: " + Object.entries(criteria).filter(([,v]) => !v).map(([k]) => k.replace("_"," ")).join(", ") + "." : ""}`;
@@ -488,9 +624,21 @@ async function evaluateSpeaking(answer, q, container, skill) {
   container.querySelector("#speakFeedback").innerHTML = feedbackHtml;
   container.querySelector("#nextBtn").style.display = "inline-block";
 
-  profile = recordAnswer(profile, skill, isGood);
+  profile = recordAnswer(profile, skill, isGood, q);
   btn.disabled = false;
   btn.textContent = "Submit Answer";
+}
+
+function renderCoachFeedback(rawFeedback) {
+  const parsed = parseJsonFromAI(rawFeedback);
+  if (parsed) {
+    return `
+      <strong>Good:</strong> ${escapeHtml(parsed.good || "You answered the task.")}<br>
+      <strong>Improve:</strong> ${escapeHtml(parsed.improve || "Add clearer support and transitions.")}<br>
+      <strong>Score:</strong> ${escapeHtml(parsed.score || "Developing")}
+      ${parsed.idealAnswer ? `<br><strong>Better version:</strong> ${escapeHtml(parsed.idealAnswer)}` : ""}`;
+  }
+  return cleanAIText(rawFeedback).split("\n").map(escapeHtml).join("<br>");
 }
 
 // ─── Option handler (MCQ) ─────────────────────────
@@ -504,7 +652,7 @@ function attachOptionHandlers(container, q, skill, isMiniTest) {
 
       if (!isMiniTest) {
         practiceState[skill].answered = true;
-        profile = recordAnswer(profile, skill, correct);
+        profile = recordAnswer(profile, skill, correct, q);
         updateStatBadges(skill);
       }
 
@@ -618,6 +766,7 @@ function renderMiniTestStart() {
     </div>`;
 
   document.getElementById("startMiniBtn").addEventListener("click", () => {
+    practiceState.minitest.questions = buildMiniTest();
     practiceState.minitest.idx     = 0;
     practiceState.minitest.answers = [];
     practiceState.minitest.started = true;
@@ -681,7 +830,7 @@ function renderMiniMCQ(q, container) {
     btn.addEventListener("click", () => {
       const chosen  = btn.dataset.val;
       const correct = chosen === q.correctAnswer;
-      state.answers.push({ skill: q.skill.toLowerCase(), correct });
+      state.answers.push({ skill: q.skill.toLowerCase(), correct, question: q });
 
       container.querySelectorAll(".option-btn").forEach(b => {
         b.disabled = true;
@@ -723,7 +872,7 @@ function renderMiniReading(q, container) {
   container.querySelectorAll(".option-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       const correct = btn.dataset.val === q.correctAnswer;
-      state.answers.push({ skill: "reading", correct });
+      state.answers.push({ skill: "reading", correct, question: q });
       container.querySelectorAll(".option-btn").forEach(b => {
         b.disabled = true;
         if (b.dataset.val === q.correctAnswer) b.classList.add("correct");
@@ -770,7 +919,7 @@ function renderMiniListening(q, container) {
   container.querySelectorAll(".option-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       const correct = btn.dataset.val === q.correctAnswer;
-      state.answers.push({ skill: "listening", correct });
+      state.answers.push({ skill: "listening", correct, question: q });
       container.querySelectorAll(".option-btn").forEach(b => {
         b.disabled = true;
         if (b.dataset.val === q.correctAnswer) b.classList.add("correct");
@@ -809,7 +958,7 @@ function renderMiniSpeaking(q, container) {
     const lower = ans.toLowerCase();
     const good  = ans.split(/\s+/).length >= 30 &&
                   /\b(because|since|i (agree|disagree)|i think)\b/.test(lower);
-    state.answers.push({ skill: "speaking", correct: good });
+    state.answers.push({ skill: "speaking", correct: good, question: q });
     container.querySelector("#feedback").innerHTML = `
       <div class="feedback-box ${good ? "correct" : "wrong"}">
         ${good ? "✅ Good response!" : "❌ Response too short or missing position/reason. Keep practicing!"}
@@ -820,7 +969,7 @@ function renderMiniSpeaking(q, container) {
   });
 
   container.querySelector("#miniSkipSpeak").addEventListener("click", () => {
-    state.answers.push({ skill: "speaking", correct: false });
+    state.answers.push({ skill: "speaking", correct: false, question: q });
     state.idx++;
     renderMiniQuestion();
   });
@@ -837,7 +986,7 @@ function renderMiniResults() {
     bySkill[a.skill].total++;
     if (a.correct) bySkill[a.skill].correct++;
     // Also update main profile
-    profile = recordAnswer(profile, a.skill, a.correct);
+    profile = recordAnswer(profile, a.skill, a.correct, a.question);
   });
 
   const totalCorrect = answers.filter(a => a.correct).length;
@@ -893,6 +1042,7 @@ function renderMiniResults() {
 
   document.getElementById("miniProgress").textContent = `Done`;
   content.querySelector("#retakeMiniBtn").addEventListener("click", () => {
+    state.questions = buildMiniTest();
     state.idx = 0; state.answers = [];
     renderMiniTestStart();
   });
@@ -906,28 +1056,18 @@ function initAIPlan() {
     const out = document.getElementById("studyPlanContent");
     btn.disabled = true;
     btn.textContent = "⏳ Generating...";
-    out.innerHTML = `<div class="ai-loading"><div class="spinner"></div> Asking Gemini AI for your personalized plan...</div>`;
+    out.innerHTML = `<div class="ai-loading"><div class="spinner"></div> Building your structured AI study plan...</div>`;
 
     try {
       const result = await fetchAIStudyPlan();
-      out.innerHTML = `<div style="white-space:pre-line;font-size:.875rem;line-height:1.7">${result}</div>`;
+      out.innerHTML = renderPlanHtml(normalizeStudyPlan(result, profile));
       profile.lastAIPlan     = result;
       profile.lastAIPlanDate = new Date().toISOString();
       saveProfile(profile);
       showToast("✅ AI plan ready!", "success");
     } catch (err) {
-      const local = generateLocalStudyPlan(profile);
-      out.innerHTML = `
-        <div class="feedback-box info" style="margin-bottom:12px">${local.explanation}</div>
-        ${local.tasks.map((t, i) => `
-          <div class="plan-item">
-            <div class="plan-num">${i + 1}</div>
-            <div>
-              <div class="plan-text">${SKILL_META[t.skill].icon} ${t.task}</div>
-              <div class="plan-why">${t.why}</div>
-            </div>
-          </div>`).join("")}`;
-      showToast(`⚠️ Using local plan (Gemini: ${err.message})`, "error");
+      out.innerHTML = renderPlanHtml(normalizeStudyPlan(null, profile));
+      showToast(`⚠️ Using local plan (AI: ${err.message})`, "error");
     }
 
     btn.disabled = false;
@@ -943,13 +1083,13 @@ function initAIPlan() {
     profile = loadProfile();
     const gapHtml = renderScoreGapVisual(profile);
     out.innerHTML = `<div class="gap-visual">${gapHtml}</div>
-      <div class="ai-loading" style="margin-top:12px"><div class="spinner"></div> Asking Gemini for gap analysis...</div>`;
+      <div class="ai-loading" style="margin-top:12px"><div class="spinner"></div> Running AI gap analysis...</div>`;
 
     try {
       const result = await fetchScoreGapAnalysis();
       out.innerHTML = `
         <div class="gap-visual">${gapHtml}</div>
-        <div class="feedback-box info" style="margin-top:12px;font-size:.85rem;white-space:pre-line">${result}</div>`;
+        ${renderGapAnalysisHtml(result, profile)}`;
       showToast("✅ Gap analysis complete!", "success");
     } catch {
       out.innerHTML = `<div class="gap-visual">${gapHtml}</div>
@@ -962,6 +1102,34 @@ function initAIPlan() {
     btn.disabled = false;
     btn.textContent = "🔍 Run AI Analysis";
   });
+}
+
+function renderGapAnalysisHtml(raw, currentProfile) {
+  const parsed = parseJsonFromAI(raw);
+  const weak = calcWeaknessScores(currentProfile)[0];
+  const fallback = {
+    overall: `Your current gap is ${Math.max(0, currentProfile.targetScore - calcPredictedScore(currentProfile))} points. The fastest improvement path is to reduce mistakes in ${SKILL_META[weak.skill].label}.`,
+    weakestSkill: weak.skill,
+    topActions: [
+      `Review mistakes in ${SKILL_META[weak.skill].label}`,
+      "Complete one timed mixed set",
+      "Redo missed questions after 24 hours"
+    ]
+  };
+  const analysis = parsed || fallback;
+  const actions = Array.isArray(analysis.topActions) ? analysis.topActions : fallback.topActions;
+
+  return `
+    <div class="feedback-box info" style="margin-top:12px;font-size:.85rem">
+      ${escapeHtml(cleanAIText(analysis.overall || fallback.overall))}
+    </div>
+    <div class="smart-list" style="margin-top:12px">
+      ${actions.slice(0, 3).map((action, index) => `
+        <div class="smart-item">
+          <strong>${index + 1}. ${escapeHtml(cleanAIText(action))}</strong>
+          <span>${escapeHtml(SKILL_META[analysis.weakestSkill]?.label || "Score gap")} improvement action</span>
+        </div>`).join("")}
+    </div>`;
 }
 
 function renderAIPlanSection() {
@@ -1028,6 +1196,52 @@ function renderAnalytics() {
             <span class="error-count">${w.mistakes}/${w.total}</span>
           </div>`;
       }).join("");
+
+  renderMistakeBankReview();
+  renderWeeklyReport();
+}
+
+function renderMistakeBankReview() {
+  const container = document.getElementById("mistakeBankReview");
+  if (!container) return;
+  const mistakes = (profile.mistakeBank || []).filter(item => !item.mastered).slice(0, 8);
+  if (!mistakes.length) {
+    container.innerHTML = `<p class="placeholder-text">No mistakes saved yet. Missed questions will become review cards.</p>`;
+    return;
+  }
+
+  container.innerHTML = mistakes.map(item => `
+    <div class="error-item" style="align-items:flex-start">
+      <span class="error-skill">${SKILL_META[item.skill]?.icon || "•"} ${SKILL_META[item.skill]?.label || item.skill}</span>
+      <div style="flex:1;font-size:.8rem;line-height:1.45">
+        <strong>${escapeHtml(item.topic)}</strong><br>
+        <span style="color:var(--muted)">${escapeHtml(item.prompt).slice(0, 150)}${item.prompt.length > 150 ? "..." : ""}</span>
+        ${item.correctAnswer ? `<br><span style="color:var(--success)">Correct: ${escapeHtml(item.correctAnswer)}</span>` : ""}
+      </div>
+      <span class="error-count">x${item.count}</span>
+    </div>`).join("");
+}
+
+function renderWeeklyReport() {
+  const container = document.getElementById("weeklyReport");
+  if (!container) return;
+  const weekAgo = Date.now() - 7 * 86400000;
+  const recent = (profile.activityLog || []).filter(item => new Date(item.date).getTime() >= weekAgo);
+  const correct = recent.filter(item => item.correct).length;
+  const xp = recent.reduce((sum, item) => sum + (item.xp || 0), 0);
+  const accuracy = recent.length ? Math.round((correct / recent.length) * 100) : 0;
+  const achievements = profile.achievements || [];
+
+  container.innerHTML = `
+    <div class="habit-grid">
+      <div class="habit-stat"><div class="habit-value">${recent.length}</div><div class="habit-label">Tasks this week</div></div>
+      <div class="habit-stat"><div class="habit-value">${accuracy}%</div><div class="habit-label">Weekly accuracy</div></div>
+      <div class="habit-stat"><div class="habit-value">${xp}</div><div class="habit-label">Weekly XP</div></div>
+      <div class="habit-stat"><div class="habit-value">${achievements.length}</div><div class="habit-label">Achievements</div></div>
+    </div>
+    <div class="achievement-list">
+      ${achievements.length ? achievements.map(a => `<div class="achievement-mini">🏆 ${escapeHtml(a)}</div>`).join("") : `<p class="placeholder-text">No achievements yet. Complete 10 tasks to unlock the first one.</p>`}
+    </div>`;
 }
 
 // ─── TOAST ───────────────────────────────────────

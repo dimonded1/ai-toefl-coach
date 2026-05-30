@@ -1,13 +1,14 @@
 # 🎓 AI TOEFL Coach
 
-An interactive TOEFL iBT preparation web app with a personalized AI study plan powered by Google Gemini.
+An interactive TOEFL iBT preparation web app with a personalized AI study plan powered by Groq.
 
 ## Features
 - 📊 Dashboard with predicted TOEFL score
 - 🎯 Goal setup (target score, prep time, level)
 - 📚 Vocabulary, Reading, Listening, Speaking, Writing practice
-- ⚡ Mini TOEFL Test (10 questions)
-- 🤖 AI Score Gap Analyzer + Study Plan (via Gemini API)
+- ⚡ Mini TOEFL Test (10 randomized questions)
+- 🤖 AI Score Gap Analyzer + structured Study Plan
+- 🧠 Mistake Bank, XP, streaks, achievements, and weekly progress
 - 📈 Results & Analytics
 - 💾 Progress saved in localStorage
 
@@ -15,13 +16,13 @@ An interactive TOEFL iBT preparation web app with a personalized AI study plan p
 
 ## Quick Start (Docker)
 
-### 1. Get a free Gemini API key
-Go to https://aistudio.google.com/app/apikey → Create API key (free tier)
+### 1. Get a Groq API key
+Go to https://console.groq.com/keys → Create API key
 
 ### 2. Add your API key
 Edit `backend/.env`:
 ```
-GEMINI_API_KEY=your_actual_key_here
+GROQ_API_KEY=your_actual_key_here
 PORT=3001
 ```
 
@@ -48,7 +49,7 @@ npm run dev   # nodemon for hot-reload
 
 **Frontend:**
 Open `frontend/index.html` directly in a browser.
-> ⚠️ Gemini API calls will fail from direct file open (CORS). Use a local server:
+> ⚠️ AI API calls will fail from direct file open (CORS). Use a local server:
 ```bash
 cd frontend
 npx serve .
@@ -62,16 +63,16 @@ npx serve .
 ai-toefl-coach/
 ├── backend/
 │   ├── server.js          # Express app
-│   ├── routes/gemini.js   # Gemini API proxy
+│   ├── routes/gemini.js   # AI API proxy
 │   ├── package.json
 │   └── Dockerfile
 ├── frontend/
 │   ├── index.html
 │   ├── css/style.css
 │   ├── js/
-│   │   ├── data.js        # Question bank
+│   │   ├── data.js        # TOEFL reference DB + question bank
 │   │   ├── profile.js     # User profile + scoring logic
-│   │   ├── aiPlan.js      # Gemini API calls + gap visualizer
+│   │   ├── aiPlan.js      # AI API calls + gap visualizer
 │   │   └── app.js         # Main app logic + UI
 │   ├── nginx.conf
 │   └── Dockerfile
@@ -85,5 +86,5 @@ ai-toefl-coach/
 ## Tech Stack
 - **Frontend:** HTML5, CSS3, Vanilla JS, localStorage
 - **Backend:** Node.js, Express
-- **AI:** Google Gemini 2.0 Flash Lite (free tier)
+- **AI:** Groq chat completions API
 - **Deploy:** Docker + nginx

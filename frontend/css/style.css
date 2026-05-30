@@ -179,6 +179,9 @@ body {
 .weak-card    { grid-column: span 2; }
 .plan-card    { grid-column: span 3; }
 .actions-card { grid-column: span 1; }
+.progress-card,
+.smart-card,
+.mistake-card { grid-column: span 1; }
 
 /* Skill bars */
 .skill-bar-row { margin-bottom: 12px; }
@@ -244,6 +247,72 @@ body {
 }
 .plan-text { color: var(--text); line-height: 1.4; }
 .plan-why  { color: var(--muted); font-size: .775rem; margin-top: 2px; }
+
+.plan-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.plan-pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(79,110,247,.12);
+  color: var(--accent);
+  border: 1px solid rgba(79,110,247,.35);
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.habit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.habit-stat {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+}
+.habit-value { font-size: 1.25rem; font-weight: 800; color: var(--accent); }
+.habit-label { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+.xp-track {
+  height: 8px;
+  background: var(--bg3);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: inherit;
+}
+.smart-list,
+.mistake-list,
+.achievement-list {
+  display: grid;
+  gap: 8px;
+}
+.smart-item,
+.mistake-mini,
+.achievement-mini {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: .82rem;
+  line-height: 1.4;
+}
+.smart-item strong,
+.mistake-mini strong { color: var(--text); }
+.smart-item span,
+.mistake-mini span { display: block; color: var(--muted); font-size: .74rem; margin-top: 3px; }
+.achievement-mini { color: var(--success); border-color: rgba(34,197,94,.4); }
 
 .placeholder-text { color: var(--muted); font-size: .875rem; text-align: center; padding: 20px 0; }
 
@@ -765,8 +834,8 @@ body {
   .main-content { margin-left: 0; }
   .hamburger { display: block; }
   .dashboard-grid { grid-template-columns: 1fr 1fr; }
-  .skills-card, .weak-card, .plan-card { grid-column: span 2; }
-  .actions-card { grid-column: span 2; }
+  .skills-card, .weak-card, .plan-card,
+  .actions-card, .progress-card, .smart-card, .mistake-card { grid-column: span 2; }
   .result-skill-grid { grid-template-columns: repeat(3, 1fr); }
   .aiplan-container, .analytics-container { grid-template-columns: 1fr; }
   .analytics-summary { grid-column: span 1; }
@@ -774,7 +843,8 @@ body {
 }
 @media (max-width: 560px) {
   .dashboard-grid { grid-template-columns: 1fr; }
-  .skills-card, .weak-card, .plan-card, .actions-card { grid-column: span 1; }
+  .skills-card, .weak-card, .plan-card, .actions-card,
+  .progress-card, .smart-card, .mistake-card { grid-column: span 1; }
   .score-card { padding: 16px; }
   .section { padding: 12px; }
 }

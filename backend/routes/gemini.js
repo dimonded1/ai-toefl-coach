@@ -98,12 +98,16 @@ ${skillLines}
 Reference Data:
 ${formatStudyReference(studyReference)}
 
-Task: Write a SHORT, actionable study plan for TODAY. Format it as:
-1. Priority focus (which 1-2 skills to work on today and why, 2 sentences)
-2. Today's tasks (5 bullet points, each max 1 line)
-3. One motivational sentence
+Task: Return ONLY valid minified JSON. No markdown, no asterisks, no headings outside JSON.
+Schema:
+{"summary":"1-2 short sentences","tasks":[{"skill":"reading|listening|speaking|writing|vocabulary","title":"short task","reason":"why this task matters","minutes":10,"type":"drill|timed|review|ai-feedback"}],"motivation":"one short sentence"}
 
-Use the reference data when relevant. Be concise. Use English. Max 220 words.`;
+Rules:
+- Always include exactly 5 tasks.
+- Distribute tasks across TOEFL skills based on weak zones and score gap.
+- Keep each title and reason practical, not generic.
+- Use the reference data when relevant.
+- English only.`;
 }
 
 function buildScoreGapPrompt(profile, studyReference) {
@@ -129,12 +133,11 @@ ${scoreLines}
 Reference Data:
 ${formatStudyReference(studyReference)}
 
-Task: Write a BRIEF score gap analysis. Format:
-1. Overall assessment (1-2 sentences)
-2. Biggest weakness and why it matters (2-3 sentences)
-3. Top 3 specific actions to close the gap (bullet points)
+Task: Return ONLY valid minified JSON. No markdown.
+Schema:
+{"overall":"1-2 sentence assessment","weakestSkill":"reading|listening|speaking|writing|vocabulary","breakdown":[{"skill":"reading","current":0,"target":0,"gap":0,"action":"short action"}],"topActions":["action 1","action 2","action 3"]}
 
-Be direct and practical. Use English. Max 150 words.`;
+Be direct and practical. English only.`;
 }
 
 function buildFeedbackPrompt(profile, context, studyReference) {
@@ -148,10 +151,9 @@ Student answer: "${userAnswer || ""}"
 Relevant scoring criteria:
 ${formatRubricForSkill(studyReference, skill)}
 
-Evaluate in 3 lines max:
-1. What's good
-2. What to improve
-3. Score estimate: Weak / Developing / Proficient / Strong
+Return ONLY valid minified JSON. No markdown.
+Schema:
+{"good":"what works","improve":"what to improve","score":"Weak|Developing|Proficient|Strong","idealAnswer":"short improved answer or structure"}
 
 Be encouraging but honest. English only. Max 80 words.`;
 }

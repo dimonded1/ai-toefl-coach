@@ -39,6 +39,17 @@ const DEFAULT_PROFILE = {
   // History for mini test
   miniTestHistory: [],
 
+  // Habit and progress tracking
+  xp: 0,
+  streak: {
+    current: 0,
+    best: 0,
+    lastActiveDate: null
+  },
+  activityLog: [],
+  mistakeBank: [],
+  achievements: [],
+
   // AI plan cache
   lastAIPlan: null,
   lastAIPlanDate: null
@@ -153,21 +164,101 @@ function getStrongestSkills(profile) {
  * @param {boolean} isCorrect
  * @returns updated profile
  */
-function recordAnswer(profile, skill, isCorrect) {
+function recordAnswer(profile, skill, isCorrect, question = null) {
   const s = skill.toLowerCase();
   profile.totalTasks[s] = (profile.totalTasks[s] || 0) + 1;
   if (isCorrect) {
     profile.correct[s] = (profile.correct[s] || 0) + 1;
   } else {
     profile.mistakes[s] = (profile.mistakes[s] || 0) + 1;
+    recordMistake(profile, s, question);
   }
 
+  updateHabitProgress(profile, s, isCorrect);
   if (["reading","listening","speaking","writing"].includes(s)) {
     updateSkillScore(profile, s);
   }
   updateProgress(profile, s);
   saveProfile(profile);
   return profile;
+}
+
+function recordMistake(profile, skill, question) {
+  if (!question) return profile;
+  profile.mistakeBank = profile.mistakeBank || [];
+  const id = question.id || `${skill}-${Date.now()}`;
+  const existing = profile.mistakeBank.find(item => item.id === id);
+  if (existing) {
+    existing.count += 1;
+    existing.lastSeen = new Date().toISOString();
+    return profile;
+  }
+
+  profile.mistakeBank.unshift({
+    id,
+    skill,
+    topic: question.topic || "General",
+    difficulty: question.difficulty || "medium",
+    prompt: question.question || question.prompt || question.lectureTitle || "Open response task",
+    correctAnswer: question.correctAnswer || null,
+    count: 1,
+    mastered: false,
+    lastSeen: new Date().toISOString()
+  });
+
+  profile.mistakeBank = profile.mistakeBank.slice(0, 80);
+  return profile;
+}
+
+function updateHabitProgress(profile, skill, isCorrect) {
+  const today = new Date().toISOString().slice(0, 10);
+  const streak = profile.streak || { current: 0, best: 0, lastActiveDate: null };
+
+  if (streak.lastActiveDate !== today) {
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    streak.current = streak.lastActiveDate === yesterday ? streak.current + 1 : 1;
+    streak.best = Math.max(streak.best || 0, streak.current);
+    streak.lastActiveDate = today;
+  }
+  profile.streak = streak;
+
+  profile.xp = (profile.xp || 0) + (isCorrect ? 12 : 5);
+  profile.activityLog = profile.activityLog || [];
+  profile.activityLog.push({
+    date: new Date().toISOString(),
+    skill,
+    correct: isCorrect,
+    xp: isCorrect ? 12 : 5
+  });
+  profile.activityLog = profile.activityLog.slice(-300);
+
+  updateAchievements(profile);
+  return profile;
+}
+
+function updateAchievements(profile) {
+  const earned = new Set(profile.achievements || []);
+  const total = Object.values(profile.totalTasks || {}).reduce((sum, value) => sum + value, 0);
+  const correct = Object.values(profile.correct || {}).reduce((sum, value) => sum + value, 0);
+
+  if (total >= 10) earned.add("First 10 Tasks");
+  if (total >= 50) earned.add("Practice Engine");
+  if ((profile.streak?.current || 0) >= 3) earned.add("3-Day Streak");
+  if ((profile.xp || 0) >= 500) earned.add("500 XP");
+  if (total >= 20 && correct / total >= 0.8) earned.add("80% Accuracy");
+
+  profile.achievements = Array.from(earned);
+  return profile;
+}
+
+function calcUserLevel(profile) {
+  const xp = profile.xp || 0;
+  return Math.max(1, Math.floor(xp / 120) + 1);
+}
+
+function xpForNextLevel(profile) {
+  const level = calcUserLevel(profile);
+  return level * 120;
 }
 
 // ─── DAYS REMAINING ──────────────────────────────
@@ -216,6 +307,11 @@ function generateLocalStudyPlan(profile) {
       skill: "reading",
       task: "Read one academic passage and answer all questions",
       why: "Reading comprehension underpins Writing and Listening"
+    },
+    {
+      skill: "writing",
+      task: "Build one TOEFL paragraph with a clear claim and support",
+      why: "Writing structure improves both essays and academic discussion tasks"
     }
   ];
 
