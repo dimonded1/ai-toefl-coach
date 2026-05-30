@@ -1,0 +1,97 @@
+// ═══════════════════════════════════════════════
+//  AI TOEFL Coach — Gemini API integration
+// ═══════════════════════════════════════════════
+
+// In Docker the frontend is served by nginx which proxies /api/ → backend:3001
+// In local dev (open file directly) we fall back to localhost:3001
+const API_BASE = "/api/gemini";
+
+async function callGemini(action, extraContext = null) {
+  const profile = loadProfile();
+
+  const body = {
+    userProfile: {
+      targetScore:      profile.targetScore,
+      currentPrediction: calcPredictedScore(profile),
+      preparationDays:  daysRemaining(profile),
+      mistakes:         profile.mistakes,
+      totalTasks:       profile.totalTasks,
+      scores:           profile.scores,
+      progress:         profile.progress
+    },
+    action,
+    extraContext
+  };
+
+  const resp = await fetch(API_BASE + "/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ error: "Network error" }));
+    throw new Error(err.error || `HTTP ${resp.status}`);
+  }
+
+  const data = await resp.json();
+  return data.result || "";
+}
+
+// ─── Study Plan ──────────────────────────────────
+
+async function fetchAIStudyPlan() {
+  return callGemini("study_plan");
+}
+
+// ─── Score Gap ────────────────────────────────────
+
+async function fetchScoreGapAnalysis() {
+  return callGemini("score_gap");
+}
+
+// ─── Speaking / Writing feedback ─────────────────
+
+async function fetchAnswerFeedback(skill, userAnswer, taskType) {
+  return callGemini("feedback", { skill, userAnswer, taskType });
+}
+
+// ─── RENDER: Score Gap Visual ────────────────────
+
+function renderScoreGapVisual(profile) {
+  const target  = profile.targetScore;
+  const current = calcPredictedScore(profile);
+  const skills  = ["reading","listening","speaking","writing"];
+
+  const targetPerSkill = Math.round(target / 4);
+
+  let html = `
+    <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-bottom:12px;">
+      <span>Current: <strong style="color:var(--accent)">${current}</strong></span>
+      <span>Target: <strong style="color:var(--success)">${target}</strong></span>
+      <span>Gap: <strong style="color:var(--warning)">-${Math.max(0, target - current)}</strong></span>
+    </div>`;
+
+  skills.forEach(skill => {
+    const curr  = profile.scores[skill];
+    const tgt   = targetPerSkill;
+    const gap   = Math.max(0, tgt - curr);
+    const pct   = Math.min(100, Math.round((curr / 30) * 100));
+    const tgtPct = Math.min(100, Math.round((tgt / 30) * 100));
+    const meta  = SKILL_META[skill];
+
+    html += `
+      <div class="gap-row">
+        <span class="gap-row-label">${meta.icon} ${meta.label}</span>
+        <div class="gap-track">
+          <div class="gap-current" style="width:${pct}%;background:${meta.color}"></div>
+          <div class="gap-target-marker" style="left:${tgtPct}%;right:unset;width:3px"></div>
+        </div>
+        <span class="gap-numbers">${curr}/<span style="color:var(--muted)">${tgt}</span>
+          ${gap > 0 ? `<span class="gap-plus"> +${gap}</span>` : ' <span style="color:var(--success)">✓</span>'}
+        </span>
+      </div>`;
+  });
+
+  return html;
+}

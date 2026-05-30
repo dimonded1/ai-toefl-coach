@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI TOEFL Coach</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon">🎓</span>
+    <span class="logo-text">AI TOEFL Coach</span>
+  </div>
+  <ul class="sidebar-nav">
+    <li><a href="#" class="nav-link active" data-section="dashboard">📊 Dashboard</a></li>
+    <li><a href="#" class="nav-link" data-section="goal">🎯 Goal Setup</a></li>
+    <li><a href="#" class="nav-link" data-section="vocabulary">📚 Vocabulary</a></li>
+    <li><a href="#" class="nav-link" data-section="reading">📖 Reading</a></li>
+    <li><a href="#" class="nav-link" data-section="listening">🎧 Listening</a></li>
+    <li><a href="#" class="nav-link" data-section="speaking">🎤 Speaking</a></li>
+    <li><a href="#" class="nav-link" data-section="writing">✍️ Writing</a></li>
+    <li><a href="#" class="nav-link" data-section="minitest">⚡ Mini TOEFL Test</a></li>
+    <li><a href="#" class="nav-link" data-section="aiplan">🤖 AI Study Plan</a></li>
+    <li><a href="#" class="nav-link" data-section="analytics">📈 Results & Analytics</a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <button class="btn-reset" id="resetBtn">↺ Reset Progress</button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════ MAIN CONTENT ═══════════════════════ -->
+<main class="main-content">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <button class="hamburger" id="hamburger">☰</button>
+    <h1 class="page-title" id="pageTitle">Dashboard</h1>
+    <div class="topbar-right">
+      <span class="score-badge" id="topbarScore">TOEFL: <strong id="topScore">--</strong></span>
+    </div>
+  </header>
+
+  <!-- ─── SECTION: DASHBOARD ─── -->
+  <section class="section active" id="section-dashboard">
+    <div class="dashboard-grid">
+
+      <!-- Score Cards Row -->
+      <div class="card score-card target-card">
+        <div class="score-label">Target Score</div>
+        <div class="score-value" id="dashTarget">--</div>
+        <div class="score-sub">TOEFL iBT</div>
+      </div>
+      <div class="card score-card current-card">
+        <div class="score-label">Current Prediction</div>
+        <div class="score-value" id="dashCurrent">--</div>
+        <div class="score-sub">Predicted</div>
+      </div>
+      <div class="card score-card gap-card">
+        <div class="score-label">Score Gap</div>
+        <div class="score-value" id="dashGap">--</div>
+        <div class="score-sub">Points to goal</div>
+      </div>
+      <div class="card score-card days-card">
+        <div class="score-label">Days Left</div>
+        <div class="score-value" id="dashDays">--</div>
+        <div class="score-sub">Preparation time</div>
+      </div>
+
+      <!-- Skills Progress -->
+      <div class="card skills-card">
+        <h2 class="card-title">Skills Progress</h2>
+        <div class="skill-bars" id="skillBars"></div>
+      </div>
+
+      <!-- Weak Skills -->
+      <div class="card weak-card">
+        <h2 class="card-title">⚠️ Weak Zones</h2>
+        <div class="weak-list" id="weakList"></div>
+      </div>
+
+      <!-- Today's Plan -->
+      <div class="card plan-card">
+        <h2 class="card-title">📅 Today's Study Plan</h2>
+        <div class="today-plan" id="todayPlan"></div>
+        <button class="btn-primary btn-full" id="refreshAIBtn">🤖 Refresh AI Plan</button>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card actions-card">
+        <h2 class="card-title">Quick Practice</h2>
+        <div class="quick-actions">
+          <button class="btn-skill" data-section="vocabulary">📚 Vocabulary</button>
+          <button class="btn-skill" data-section="reading">📖 Reading</button>
+          <button class="btn-skill" data-section="listening">🎧 Listening</button>
+          <button class="btn-skill" data-section="speaking">🎤 Speaking</button>
+          <button class="btn-skill" data-section="writing">✍️ Writing</button>
+          <button class="btn-skill" data-section="minitest">⚡ Mini Test</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── SECTION: GOAL SETUP ─── -->
+  <section class="section" id="section-goal">
+    <div class="form-container">
+      <div class="card form-card">
+        <h2 class="card-title">🎯 Set Your TOEFL Goal</h2>
+        <p class="form-desc">Configure your profile to get a personalized study plan.</p>
+
+        <div class="form-group">
+          <label>Exam Type</label>
+          <div class="radio-group">
+            <label class="radio-option selected"><input type="radio" name="exam" value="TOEFL iBT" checked /> TOEFL iBT</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Target Score</label>
+          <div class="btn-group" id="targetScoreGroup">
+            <button class="btn-option" data-val="70">70</button>
+            <button class="btn-option" data-val="80">80</button>
+            <button class="btn-option selected" data-val="95">95</button>
+            <button class="btn-option" data-val="100">100</button>
+            <button class="btn-option" data-val="110">110</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Preparation Time</label>
+          <div class="btn-group" id="prepDaysGroup">
+            <button class="btn-option" data-val="30">30 days</button>
+            <button class="btn-option selected" data-val="60">60 days</button>
+            <button class="btn-option" data-val="90">90 days</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Current Level</label>
+          <div class="btn-group" id="levelGroup">
+            <button class="btn-option" data-val="beginner">Beginner</button>
+            <button class="btn-option selected" data-val="intermediate">Intermediate</button>
+            <button class="btn-option" data-val="advanced">Advanced</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Study Goal</label>
+          <div class="btn-group" id="goalGroup">
+            <button class="btn-option selected" data-val="study abroad">Study Abroad</button>
+            <button class="btn-option" data-val="work">Work</button>
+            <button class="btn-option" data-val="immigration">Immigration</button>
+          </div>
+        </div>
+
+        <button class="btn-primary btn-full" id="saveGoalBtn">💾 Save & Start Preparation</button>
+        <div class="success-msg hidden" id="goalSaved">✅ Profile saved! Go to Dashboard to start.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION: VOCABULARY ─── -->
+  <section class="section" id="section-vocabulary">
+    <div class="practice-container">
+      <div class="card practice-card">
+        <div class="practice-header">
+          <h2>📚 Vocabulary Practice</h2>
+          <div class="practice-stats">
+            <span class="stat-badge" id="vocabProgress">0 / 0</span>
+            <span class="stat-badge weak-badge" id="vocabMistakes">Mistakes: 0</span>
+          </div>
+        </div>
+        <div id="vocabContent" class="question-area"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION: READING ─── -->
+  <section class="section" id="section-reading">
+    <div class="practice-container">
+      <div class="card practice-card">
+        <div class="practice-header">
+          <h2>📖 Reading Practice</h2>
+          <div class="practice-stats">
+            <span class="stat-badge" id="readProgress">0 / 0</span>
+            <span class="stat-badge weak-badge" id="readMistakes">Mistakes: 0</span>
+          </div>
+        </div>
+        <div id="readContent" class="question-area"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION: LISTENING ─── -->
+  <section class="section" id="section-listening">
+    <div class="practice-container">
+      <div class="card practice-card">
+        <div class="practice-header">
+          <h2>🎧 Listening Practice</h2>
+          <div class="practice-stats">
+            <span class="stat-badge" id="listenProgress">0 / 0</span>
+            <span class="stat-badge weak-badge" id="listenMistakes">Mistakes: 0</span>
+          </div>
+        </div>
+        <div id="listenContent" class="question-area"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION: SPEAKING ─── -->
+  <section class="section" id="section-speaking">
+    <div class="practice-container">
+      <div class="card practice-card">
+        <div class="practice-header">
+          <h2>🎤 Speaking Practice</h2>
+          <div class="practice-stats">
+            <span class="stat-badge" id="speakProgress">0 / 0</span>
+            <span class="stat-badge weak-badge" id="speakMistakes">Mistakes: 0</span>
+          </div>
+        </div>
+        <div id="speakContent" class="question-area"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION: WRITING ─── -->
+  <section class="section" id="section-writing">
+    <div class="practice-container">
+      <div class="card practice-card">
+        <div class="practice-header">
+          <h2>✍️ Writing Practice</h2>
+          <div class="practice-stats">
+            <span class="stat-badge" id="writeProgress">0 / 0</span>
+            <span class="stat-badge weak-badge" id="writeMistakes">Mistakes: 0</span>
+          </div>
+        </div>
+        <div id="writeContent" class="question-area"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION: MINI TEST ─── -->
+  <section class="section" id="section-minitest">
+    <div class="practice-container">
+      <div class="card practice-card" id="miniTestCard">
+        <div class="practice-header">
+          <h2>⚡ Mini TOEFL Test</h2>
+          <div class="practice-stats">
+            <span class="stat-badge" id="miniProgress">0 / 10</span>
+          </div>
+        </div>
+        <div id="miniContent" class="question-area"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION: AI STUDY PLAN ─── -->
+  <section class="section" id="section-aiplan">
+    <div class="aiplan-container">
+
+      <div class="card aiplan-card">
+        <h2 class="card-title">🤖 AI Score Gap Analyzer</h2>
+        <div id="scoreGapContent" class="gap-analysis">
+          <div class="gap-visual" id="gapVisual"></div>
+        </div>
+        <button class="btn-primary" id="analyzeGapBtn">🔍 Run AI Analysis</button>
+      </div>
+
+      <div class="card aiplan-card">
+        <h2 class="card-title">📋 Your Personalized Study Plan</h2>
+        <div id="studyPlanContent" class="study-plan-content">
+          <p class="placeholder-text">Click "Generate Study Plan" to get your personalized recommendations.</p>
+        </div>
+        <button class="btn-primary" id="generatePlanBtn">✨ Generate Study Plan</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── SECTION: ANALYTICS ─── -->
+  <section class="section" id="section-analytics">
+    <div class="analytics-container">
+
+      <div class="card analytics-summary">
+        <h2 class="card-title">📈 Performance Summary</h2>
+        <div id="analyticsSummary" class="summary-grid"></div>
+      </div>
+
+      <div class="card analytics-chart">
+        <h2 class="card-title">📊 Skill Breakdown</h2>
+        <div id="skillChart" class="chart-area"></div>
+      </div>
+
+      <div class="card analytics-mistakes">
+        <h2 class="card-title">❌ Error Analysis</h2>
+        <div id="errorAnalysis" class="error-list"></div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══════════════════════ TOAST NOTIFICATION ═══════════════════════ -->
+<div class="toast hidden" id="toast"></div>
+
+<!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
+<script src="js/data.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/aiPlan.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
