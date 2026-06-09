@@ -136,7 +136,7 @@ function renderSkillBars() {
           <span class="skill-bar-pct">${pct}%</span>
         </div>
         <div class="skill-bar-track">
-          <div class="skill-bar-fill ${meta.fillClass}" style="width:${pct}%"></div>
+          <div class="skill-bar-fill ${meta.fillClass} ${percentClass("w", pct)}"></div>
         </div>
       </div>`;
   }).join("");
@@ -198,10 +198,10 @@ function renderHabitProgress() {
       <div class="habit-stat"><div class="habit-value">${xp}</div><div class="habit-label">Total XP</div></div>
       <div class="habit-stat"><div class="habit-value">${profile.streak?.best || 0}</div><div class="habit-label">Best streak</div></div>
     </div>
-    <div class="xp-track"><div class="xp-fill" style="width:${pct}%"></div></div>
-    <div class="plan-why" style="margin-top:8px">${Math.max(0, next - xp)} XP to Level ${level + 1}</div>
-    <div class="achievement-list" style="margin-top:10px">
-      ${achievements.length ? achievements.map(a => `<div class="achievement-mini">🏆 ${a}</div>`).join("") : `<div class="placeholder-text" style="padding:8px 0">Earn achievements by practicing.</div>`}
+    <div class="xp-track"><div class="xp-fill ${percentClass("w", pct)}"></div></div>
+    <div class="plan-why plan-why-spaced">${Math.max(0, next - xp)} XP to Level ${level + 1}</div>
+    <div class="achievement-list achievement-list-spaced">
+      ${achievements.length ? achievements.map(a => `<div class="achievement-mini">🏆 ${a}</div>`).join("") : `<div class="placeholder-text placeholder-text-compact">Earn achievements by practicing.</div>`}
     </div>`;
 }
 
@@ -224,7 +224,7 @@ function renderMistakePreview() {
   if (!container) return;
   const mistakes = (profile.mistakeBank || []).filter(item => !item.mastered).slice(0, 4);
   if (!mistakes.length) {
-    container.innerHTML = `<p class="placeholder-text" style="padding:8px 0">Wrong answers will appear here for review.</p>`;
+    container.innerHTML = `<p class="placeholder-text placeholder-text-compact">Wrong answers will appear here for review.</p>`;
     return;
   }
 
@@ -282,7 +282,7 @@ function normalizePlanTasks(aiTasks, fallbackTasks) {
 
 function renderPlanHtml(plan) {
   return `
-    <div class="feedback-box info" style="margin-bottom:14px;font-size:.82rem;">${escapeHtml(plan.summary)}</div>
+    <div class="feedback-box info plan-summary">${escapeHtml(plan.summary)}</div>
     ${plan.tasks.map((task, i) => `
       <div class="plan-item">
         <div class="plan-num">${i + 1}</div>
@@ -465,10 +465,10 @@ function renderMCQ(q, container, skill) {
           <span class="option-letter">${letters[i]}</span> ${opt}
         </button></li>`).join("")}
     </ul>
-    <div id="feedback" style="margin-top:12px"></div>
+    <div class="feedback-slot" id="feedback"></div>
     <div class="question-nav">
       <span class="q-counter">${SKILL_META[skill].label} · Q${practiceState[skill].idx + 1} of ${practiceState[skill].questions.length}</span>
-      <button class="btn-primary" id="nextBtn" style="display:none">Next →</button>
+      <button class="btn-primary hidden" id="nextBtn">Next →</button>
     </div>`;
 
   attachOptionHandlers(container, q, skill, false);
@@ -492,7 +492,7 @@ function renderReadingQ(q, container, skill) {
     <div id="feedback"></div>
     <div class="question-nav">
       <span class="q-counter">Reading · Q${practiceState[skill].idx + 1} of ${practiceState[skill].questions.length}</span>
-      <button class="btn-primary" id="nextBtn" style="display:none">Next →</button>
+      <button class="btn-primary hidden" id="nextBtn">Next →</button>
     </div>`;
 
   attachOptionHandlers(container, q, skill, false);
@@ -504,9 +504,9 @@ function renderListeningQ(q, container, skill) {
   const letters = ["A","B","C","D"];
 
   container.innerHTML = `
-    <div class="passage-box" style="margin-bottom:12px;">
+    <div class="passage-box passage-box-compact">
       <div class="passage-label">🎧 ${q.lectureTitle}</div>
-      <div id="lectureText" style="display:none;margin-top:10px;line-height:1.7">${q.lectureText}</div>
+      <div class="lecture-text hidden" id="lectureText">${q.lectureText}</div>
     </div>
     <button class="play-btn ${state.played ? "played" : ""}" id="playBtn">
       ${state.played ? "✅ Lecture Played" : "▶ Play Lecture"}
@@ -521,21 +521,21 @@ function renderListeningQ(q, container, skill) {
     <div id="feedback"></div>
     <div class="question-nav">
       <span class="q-counter">Listening · Q${state.idx + 1} of ${state.questions.length}</span>
-      <button class="btn-primary" id="nextBtn" style="display:none">Next →</button>
+      <button class="btn-primary hidden" id="nextBtn">Next →</button>
     </div>`;
 
   // Play button reveals text and unlocks options
   container.querySelector("#playBtn").addEventListener("click", function() {
     this.classList.add("played");
     this.textContent = "✅ Lecture Played";
-    container.querySelector("#lectureText").style.display = "block";
+    container.querySelector("#lectureText").classList.remove("hidden");
     state.played = true;
     container.querySelectorAll(".option-btn").forEach(b => b.disabled = false);
   });
 
   // If already played, show text
   if (state.played) {
-    container.querySelector("#lectureText").style.display = "block";
+    container.querySelector("#lectureText").classList.remove("hidden");
   }
 
   attachOptionHandlers(container, q, skill, false);
@@ -545,18 +545,18 @@ function renderListeningQ(q, container, skill) {
 function renderSpeakingQ(q, container, skill) {
   const state = practiceState[skill];
   container.innerHTML = `
-    <div class="passage-label" style="margin-bottom:8px">🎤 ${q.taskType}</div>
+    <div class="passage-label">🎤 ${q.taskType}</div>
     <div class="speaking-prompt">${q.prompt}</div>
     <div class="speaking-tip">💡 Aim for ~60 seconds of speech. Include: position, reason, example, and a conclusion.</div>
     <textarea class="answer-textarea" id="speakAnswer" placeholder="Type your spoken response here..."></textarea>
-    <div style="display:flex;gap:10px;margin-bottom:12px">
+    <div class="button-row button-row-spaced">
       <button class="btn-primary" id="submitSpeakBtn">Submit Answer</button>
       <button class="btn-secondary" id="skipSpeakBtn">Skip</button>
     </div>
     <div id="speakFeedback"></div>
     <div class="question-nav">
       <span class="q-counter">Speaking · Q${state.idx + 1} of ${state.questions.length}</span>
-      <button class="btn-primary" id="nextBtn" style="display:none">Next →</button>
+      <button class="btn-primary hidden" id="nextBtn">Next →</button>
     </div>`;
 
   container.querySelector("#submitSpeakBtn").addEventListener("click", async () => {
@@ -605,7 +605,7 @@ async function evaluateSpeaking(answer, q, container, skill) {
           ${v ? "✓" : "✗"} ${k.replace("_"," ")}
         </span>`).join("")}
     </div>
-    <div class="feedback-box ${isGood ? "correct" : "wrong"}" style="margin-top:10px">`;
+    <div class="feedback-box ${isGood ? "correct" : "wrong"} feedback-box-tight">`;
 
   // Try AI feedback
   try {
@@ -622,7 +622,7 @@ async function evaluateSpeaking(answer, q, container, skill) {
 
   feedbackHtml += `</div>`;
   container.querySelector("#speakFeedback").innerHTML = feedbackHtml;
-  container.querySelector("#nextBtn").style.display = "inline-block";
+  container.querySelector("#nextBtn").classList.remove("hidden");
 
   profile = recordAnswer(profile, skill, isGood, q);
   btn.disabled = false;
@@ -675,7 +675,7 @@ function attachOptionHandlers(container, q, skill, isMiniTest) {
 
       // Show Next button
       const nextBtn = container.querySelector("#nextBtn");
-      if (nextBtn) nextBtn.style.display = "inline-block";
+      if (nextBtn) nextBtn.classList.remove("hidden");
 
       if (isMiniTest) return; // mini test handles its own next
 
@@ -722,16 +722,16 @@ function renderSectionDone(skill, container) {
           <div class="done-stat-label">Correct</div>
         </div>
         <div>
-          <div class="done-stat-val" style="color:var(--danger)">${errors}</div>
+          <div class="done-stat-val done-stat-danger">${errors}</div>
           <div class="done-stat-label">Mistakes</div>
         </div>
         <div>
-          <div class="done-stat-val" style="color:var(--warning)">${pct}%</div>
+          <div class="done-stat-val done-stat-warning">${pct}%</div>
           <div class="done-stat-label">Accuracy</div>
         </div>
       </div>
       <button class="btn-primary" id="restartBtn">🔄 Restart Section</button>
-      <button class="btn-secondary" style="margin-left:10px" id="goAIPlanBtn">🤖 View AI Plan</button>
+      <button class="btn-secondary btn-adjacent" id="goAIPlanBtn">🤖 View AI Plan</button>
     </div>`;
 
   container.querySelector("#restartBtn").addEventListener("click", () => {
@@ -812,7 +812,7 @@ function renderMiniMCQ(q, container) {
   const letters = ["A","B","C","D"];
   const state   = practiceState.minitest;
   container.innerHTML = `
-    <div class="passage-label" style="margin-bottom:8px">${SKILL_META[q.skill.toLowerCase()].icon} ${q.skill} · Question ${state.idx + 1}</div>
+    <div class="passage-label">${SKILL_META[q.skill.toLowerCase()].icon} ${q.skill} · Question ${state.idx + 1}</div>
     <div class="question-text">${q.question.replace(/\n/g,"<br>")}</div>
     <ul class="options-list">
       ${q.options.map((opt, i) => `
@@ -823,7 +823,7 @@ function renderMiniMCQ(q, container) {
     <div id="feedback"></div>
     <div class="question-nav">
       <span class="q-counter">Q${state.idx + 1} / ${state.questions.length}</span>
-      <button class="btn-primary" id="nextBtn" style="display:none">Next →</button>
+      <button class="btn-primary hidden" id="nextBtn">Next →</button>
     </div>`;
 
   container.querySelectorAll(".option-btn").forEach(btn => {
@@ -844,7 +844,7 @@ function renderMiniMCQ(q, container) {
         </div>`;
 
       const nextBtn = container.querySelector("#nextBtn");
-      nextBtn.style.display = "inline-block";
+      nextBtn.classList.remove("hidden");
       nextBtn.addEventListener("click", () => { state.idx++; renderMiniQuestion(); }, { once: true });
     });
   });
@@ -866,7 +866,7 @@ function renderMiniReading(q, container) {
     <div id="feedback"></div>
     <div class="question-nav">
       <span class="q-counter">Q${state.idx + 1} / ${state.questions.length}</span>
-      <button class="btn-primary" id="nextBtn" style="display:none">Next →</button>
+      <button class="btn-primary hidden" id="nextBtn">Next →</button>
     </div>`;
 
   container.querySelectorAll(".option-btn").forEach(btn => {
@@ -883,7 +883,7 @@ function renderMiniReading(q, container) {
           ${correct ? "✅ Correct!" : `❌ Correct: <strong>${q.correctAnswer}</strong>`}
         </div>`;
       const nb = container.querySelector("#nextBtn");
-      nb.style.display = "inline-block";
+      nb.classList.remove("hidden");
       nb.addEventListener("click", () => { state.idx++; renderMiniQuestion(); }, { once: true });
     });
   });
@@ -894,7 +894,7 @@ function renderMiniListening(q, container) {
   const letters = ["A","B","C","D"];
   container.innerHTML = `
     <div class="passage-label">🎧 ${q.lectureTitle}</div>
-    <div class="passage-box" id="miniLectureBox" style="display:none">${q.lectureText}</div>
+    <div class="passage-box hidden" id="miniLectureBox">${q.lectureText}</div>
     <button class="play-btn" id="miniPlayBtn">▶ Play Lecture</button>
     <div class="question-text">${q.question}</div>
     <ul class="options-list" id="miniOpts">
@@ -906,13 +906,13 @@ function renderMiniListening(q, container) {
     <div id="feedback"></div>
     <div class="question-nav">
       <span class="q-counter">Q${state.idx + 1} / ${state.questions.length}</span>
-      <button class="btn-primary" id="nextBtn" style="display:none">Next →</button>
+      <button class="btn-primary hidden" id="nextBtn">Next →</button>
     </div>`;
 
   container.querySelector("#miniPlayBtn").addEventListener("click", function() {
     this.classList.add("played");
     this.textContent = "✅ Played";
-    container.querySelector("#miniLectureBox").style.display = "block";
+    container.querySelector("#miniLectureBox").classList.remove("hidden");
     container.querySelectorAll(".option-btn").forEach(b => b.disabled = false);
   });
 
@@ -930,7 +930,7 @@ function renderMiniListening(q, container) {
           ${correct ? "✅ Correct!" : `❌ Correct: <strong>${q.correctAnswer}</strong>`}
         </div>`;
       const nb = container.querySelector("#nextBtn");
-      nb.style.display = "inline-block";
+      nb.classList.remove("hidden");
       nb.addEventListener("click", () => { state.idx++; renderMiniQuestion(); }, { once: true });
     });
   });
@@ -943,14 +943,14 @@ function renderMiniSpeaking(q, container) {
     <div class="speaking-prompt">${q.prompt}</div>
     <div class="speaking-tip">💡 Write your 60-second spoken response.</div>
     <textarea class="answer-textarea" id="miniSpeakAnswer" placeholder="Type your response..."></textarea>
-    <div style="display:flex;gap:10px">
+    <div class="button-row">
       <button class="btn-primary" id="miniSubmitSpeak">Submit</button>
       <button class="btn-secondary" id="miniSkipSpeak">Skip</button>
     </div>
-    <div id="feedback" style="margin-top:12px"></div>
+    <div class="feedback-slot" id="feedback"></div>
     <div class="question-nav">
       <span class="q-counter">Q${state.idx + 1} / ${state.questions.length}</span>
-      <button class="btn-primary" id="nextBtn" style="display:none">Next →</button>
+      <button class="btn-primary hidden" id="nextBtn">Next →</button>
     </div>`;
 
   container.querySelector("#miniSubmitSpeak").addEventListener("click", () => {
@@ -964,7 +964,7 @@ function renderMiniSpeaking(q, container) {
         ${good ? "✅ Good response!" : "❌ Response too short or missing position/reason. Keep practicing!"}
       </div>`;
     const nb = container.querySelector("#nextBtn");
-    nb.style.display = "inline-block";
+    nb.classList.remove("hidden");
     nb.addEventListener("click", () => { state.idx++; renderMiniQuestion(); }, { once: true });
   });
 
@@ -1007,7 +1007,7 @@ function renderMiniResults() {
       <div class="mini-result-header">
         <div class="mini-result-score">${totalCorrect}/10</div>
         <div class="mini-result-label">Correct Answers</div>
-        <div style="margin-top:10px;font-size:1rem;color:var(--accent)">
+        <div class="mini-result-prediction">
           Predicted TOEFL: <strong>${predicted}</strong>
         </div>
       </div>
@@ -1022,19 +1022,19 @@ function renderMiniResults() {
             <div class="result-skill-card">
               <div class="result-skill-name">${meta.icon} ${meta.label}</div>
               <div class="result-skill-score ${cls}">${d.correct}/${d.total}</div>
-              <div style="font-size:.7rem;color:var(--muted)">${pct}%</div>
+              <div class="result-skill-pct">${pct}%</div>
             </div>`;
         }).join("")}
       </div>
 
       ${weakest ? `
-        <div class="feedback-box info" style="margin:16px 0">
+        <div class="feedback-box info mini-insight">
           <strong>🤖 AI Insight:</strong> Your weakest section was
           <strong>${SKILL_META[weakest]?.label}</strong>.
           ${generateLocalStudyPlan(profile).explanation}
         </div>` : ""}
 
-      <div style="display:flex;gap:10px;justify-content:center">
+      <div class="button-row button-row-center">
         <button class="btn-primary" id="retakeMiniBtn">🔄 Retake Test</button>
         <button class="btn-secondary" id="viewPlanBtn">📋 View AI Plan</button>
       </div>
@@ -1083,7 +1083,7 @@ function initAIPlan() {
     profile = loadProfile();
     const gapHtml = renderScoreGapVisual(profile);
     out.innerHTML = `<div class="gap-visual">${gapHtml}</div>
-      <div class="ai-loading" style="margin-top:12px"><div class="spinner"></div> Running AI gap analysis...</div>`;
+      <div class="ai-loading ai-loading-spaced"><div class="spinner"></div> Running AI gap analysis...</div>`;
 
     try {
       const result = await fetchScoreGapAnalysis();
@@ -1093,7 +1093,7 @@ function initAIPlan() {
       showToast("✅ Gap analysis complete!", "success");
     } catch {
       out.innerHTML = `<div class="gap-visual">${gapHtml}</div>
-        <div class="feedback-box info" style="margin-top:12px;font-size:.85rem">
+        <div class="feedback-box info gap-fallback">
           Gap of ${Math.max(0, profile.targetScore - calcPredictedScore(profile))} points.
           Focus on your weakest skills to close the gap fastest.
         </div>`;
@@ -1120,10 +1120,10 @@ function renderGapAnalysisHtml(raw, currentProfile) {
   const actions = Array.isArray(analysis.topActions) ? analysis.topActions : fallback.topActions;
 
   return `
-    <div class="feedback-box info" style="margin-top:12px;font-size:.85rem">
+    <div class="feedback-box info gap-fallback">
       ${escapeHtml(cleanAIText(analysis.overall || fallback.overall))}
     </div>
-    <div class="smart-list" style="margin-top:12px">
+    <div class="smart-list smart-list-spaced">
       ${actions.slice(0, 3).map((action, index) => `
         <div class="smart-item">
           <strong>${index + 1}. ${escapeHtml(cleanAIText(action))}</strong>
@@ -1151,14 +1151,13 @@ function renderAnalytics() {
     const total   = profile.totalTasks[skill] || 0;
     const pct     = total > 0 ? Math.round((correct / total) * 100) : 0;
     const meta    = SKILL_META[skill];
-    const color   = meta.color;
     return `
       <div class="summary-card">
         <div class="summary-skill">${meta.icon} ${meta.label}</div>
-        <div class="summary-score" style="color:${color}">${pct}%</div>
+        <div class="summary-score text-${skill}">${pct}%</div>
         <div class="summary-label">${correct}/${total} correct</div>
         <div class="summary-bar">
-          <div class="summary-fill" style="width:${pct}%;background:${color}"></div>
+          <div class="summary-fill fill-${skill} ${percentClass("w", pct)}"></div>
         </div>
       </div>`;
   }).join("");
@@ -1171,7 +1170,7 @@ function renderAnalytics() {
       <div class="bar-chart-row">
         <span class="bar-chart-label">${meta.icon} ${meta.label}</span>
         <div class="bar-chart-track">
-          <div class="bar-chart-fill" style="width:${pct}%;background:${meta.color}">${pct > 12 ? pct + "%" : ""}</div>
+          <div class="bar-chart-fill fill-${skill} ${percentClass("w", pct)}">${pct > 12 ? pct + "%" : ""}</div>
         </div>
         <span class="bar-chart-pct">${pct}%</span>
       </div>`;
@@ -1189,7 +1188,7 @@ function renderAnalytics() {
             <span class="error-skill">${meta.icon} ${meta.label}</span>
             <div class="error-bar-wrap">
               <div class="error-bar-track">
-                <div class="error-bar-fill" style="width:${errPct}%"></div>
+                <div class="error-bar-fill ${percentClass("w", errPct)}"></div>
               </div>
             </div>
             <span class="error-pct">${errPct}%</span>
@@ -1211,12 +1210,12 @@ function renderMistakeBankReview() {
   }
 
   container.innerHTML = mistakes.map(item => `
-    <div class="error-item" style="align-items:flex-start">
+    <div class="error-item error-item-start">
       <span class="error-skill">${SKILL_META[item.skill]?.icon || "•"} ${SKILL_META[item.skill]?.label || item.skill}</span>
-      <div style="flex:1;font-size:.8rem;line-height:1.45">
+      <div class="mistake-detail">
         <strong>${escapeHtml(item.topic)}</strong><br>
-        <span style="color:var(--muted)">${escapeHtml(item.prompt).slice(0, 150)}${item.prompt.length > 150 ? "..." : ""}</span>
-        ${item.correctAnswer ? `<br><span style="color:var(--success)">Correct: ${escapeHtml(item.correctAnswer)}</span>` : ""}
+        <span class="mistake-prompt">${escapeHtml(item.prompt).slice(0, 150)}${item.prompt.length > 150 ? "..." : ""}</span>
+        ${item.correctAnswer ? `<br><span class="mistake-correct">Correct: ${escapeHtml(item.correctAnswer)}</span>` : ""}
       </div>
       <span class="error-count">x${item.count}</span>
     </div>`).join("");
