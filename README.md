@@ -54,7 +54,7 @@ npm run dev   # nodemon for hot-reload
 
 **Frontend:**
 Open `frontend/index.html` directly in a browser.
-> ⚠️ AI API calls will fail from direct file open (CORS). Use a local server:
+> For AI API calls, run the backend on `localhost:3001`. The frontend uses the nginx `/api/` proxy in Docker, and calls `localhost:3001` directly when opened via `file://` or `localhost:3000`.
 ```bash
 cd frontend
 npx serve .
@@ -73,13 +73,16 @@ ai-toefl-coach/
 │   └── Dockerfile
 ├── frontend/
 │   ├── index.html
-│   ├── css/style.css
-│   ├── js/
-│   │   ├── data.js        # TOEFL reference DB + question bank
-│   │   ├── profile.js     # User profile + scoring logic
-│   │   ├── aiPlan.js      # AI API calls + gap visualizer
-│   │   └── app.js         # Main app logic + UI
+│   ├── src/
+│   │   ├── styles/
+│   │   │   └── main.css   # Dashboard theme and responsive layout
+│   │   └── scripts/
+│   │       ├── data.js    # TOEFL reference DB + question bank
+│   │       ├── profile.js # User profile + scoring logic
+│   │       ├── aiPlan.js  # AI API calls + gap visualizer
+│   │       └── app.js     # Main app logic + UI
 │   ├── nginx.conf
+│   ├── .dockerignore
 │   └── Dockerfile
 ├── docker-compose.yml
 ├── .gitignore

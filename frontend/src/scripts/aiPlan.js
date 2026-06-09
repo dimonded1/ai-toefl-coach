@@ -2,9 +2,14 @@
 //  AI TOEFL Coach — Gemini API integration
 // ═══════════════════════════════════════════════
 
-// In Docker the frontend is served by nginx which proxies /api/ → backend:3001
-// In local dev (open file directly) we fall back to localhost:3001
-const API_BASE = "/api/gemini";
+// Docker/nginx proxies /api/. Static local dev calls backend directly.
+const API_BASE = (() => {
+  const localStaticHosts = new Set(["localhost:3000", "127.0.0.1:3000"]);
+  if (window.location.protocol === "file:" || localStaticHosts.has(window.location.host)) {
+    return "http://localhost:3001/api/gemini";
+  }
+  return "/api/gemini";
+})();
 
 async function callGemini(action, extraContext = null) {
   const profile = loadProfile();
