@@ -11,6 +11,11 @@ const API_BASE = (() => {
   return "/api/gemini";
 })();
 
+function percentClass(prefix, value) {
+  const pct = Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+  return `${prefix}-${pct}`;
+}
+
 async function callGemini(action, extraContext = null) {
   const profile = loadProfile();
 
@@ -89,10 +94,10 @@ function renderScoreGapVisual(profile) {
   const targetPerSkill = Math.round(target / 4);
 
   let html = `
-    <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-bottom:12px;">
-      <span>Current: <strong style="color:var(--accent)">${current}</strong></span>
-      <span>Target: <strong style="color:var(--success)">${target}</strong></span>
-      <span>Gap: <strong style="color:var(--warning)">-${Math.max(0, target - current)}</strong></span>
+    <div class="gap-summary">
+      <span>Current: <strong class="text-accent">${current}</strong></span>
+      <span>Target: <strong class="text-success">${target}</strong></span>
+      <span>Gap: <strong class="text-warning">-${Math.max(0, target - current)}</strong></span>
     </div>`;
 
   skills.forEach(skill => {
@@ -107,11 +112,11 @@ function renderScoreGapVisual(profile) {
       <div class="gap-row">
         <span class="gap-row-label">${meta.icon} ${meta.label}</span>
         <div class="gap-track">
-          <div class="gap-current" style="width:${pct}%;background:${meta.color}"></div>
-          <div class="gap-target-marker" style="left:${tgtPct}%;right:unset;width:3px"></div>
+          <div class="gap-current fill-${skill} ${percentClass("w", pct)}"></div>
+          <div class="gap-target-marker ${percentClass("left", tgtPct)}"></div>
         </div>
-        <span class="gap-numbers">${curr}/<span style="color:var(--muted)">${tgt}</span>
-          ${gap > 0 ? `<span class="gap-plus"> +${gap}</span>` : ' <span style="color:var(--success)">✓</span>'}
+        <span class="gap-numbers">${curr}/<span class="text-muted">${tgt}</span>
+          ${gap > 0 ? `<span class="gap-plus"> +${gap}</span>` : ' <span class="text-success">✓</span>'}
         </span>
       </div>`;
   });
