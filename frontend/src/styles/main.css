@@ -154,17 +154,120 @@ body {
 }
 
 /* ═══════════════ DASHBOARD ═══════════════ */
-.dashboard-grid {
+.dashboard-shell {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.05fr) minmax(320px, 1.35fr);
+  gap: 16px;
+  max-width: 1180px;
+}
+
+.score-cockpit {
+  display: grid;
+  gap: 18px;
+}
+
+.cockpit-main {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18px;
+  align-items: end;
+}
+
+.cockpit-score {
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: .95;
+  color: var(--success);
+}
+
+.cockpit-gap {
+  min-width: 110px;
+  text-align: right;
+}
+
+.gap-value {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--warning);
+}
+
+.cockpit-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.metric-tile {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.metric-value {
+  margin-top: 6px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.today-focus-card {
+  display: grid;
+  align-content: start;
+}
+
+.card-kicker {
+  margin-bottom: 8px;
+  color: var(--accent);
+  font-size: .72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.focus-title {
+  font-size: 1.45rem;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+
+.focus-reason {
+  color: var(--muted);
+  font-size: .92rem;
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+
+.focus-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.compact-plan {
+  border-top: 1px solid var(--border);
+  margin-top: 2px;
+  padding-top: 8px;
+}
+
+.compact-plan .plan-item:nth-of-type(n+4) {
+  display: none;
+}
+
+.evidence-grid {
+  grid-column: span 2;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 }
 
-/* Score cards */
-.score-card {
-  text-align: center;
-  padding: 24px 16px;
+.evidence-card {
+  min-width: 0;
 }
+
+/* Legacy dashboard card spans kept for compatibility. */
 .score-label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
 .score-value { font-size: 2.2rem; font-weight: 700; line-height: 1; margin-bottom: 4px; }
 .score-sub   { font-size: .75rem; color: var(--muted); }
@@ -556,6 +659,143 @@ body {
   text-align: left;
 }
 .btn-skill:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ═══════════════ HUB SCREENS ═══════════════ */
+.hub-container {
+  max-width: 1040px;
+}
+
+.hub-header {
+  margin-bottom: 18px;
+}
+
+.hub-header h2 {
+  font-size: 1.4rem;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+
+.hub-header p {
+  color: var(--muted);
+  font-size: .92rem;
+}
+
+.practice-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.hub-card {
+  display: grid;
+  gap: 8px;
+  min-height: 150px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+
+.hub-card:hover {
+  background: var(--bg3);
+  border-color: var(--accent);
+}
+
+.hub-card:active { transform: translateY(1px); }
+.hub-card.featured { border-color: rgba(79,110,247,.55); }
+
+.hub-icon { font-size: 1.45rem; }
+.hub-title { font-size: 1rem; font-weight: 800; }
+.hub-copy,
+.hub-meta {
+  color: var(--muted);
+  font-size: .8rem;
+  line-height: 1.4;
+}
+
+.hub-bar {
+  height: 7px;
+  background: var(--bg3);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.hub-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.mistakes-hub {
+  display: grid;
+  grid-template-columns: minmax(260px, .8fr) minmax(320px, 1.2fr);
+  gap: 16px;
+}
+
+.mistakes-panel {
+  min-width: 0;
+}
+
+.mistake-focus-list,
+.mistake-review-list {
+  display: grid;
+  gap: 10px;
+}
+
+.mistake-focus-row,
+.mistake-review-card {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .15s, background .15s;
+}
+
+.mistake-focus-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  padding: 12px 14px;
+}
+
+.mistake-focus-row small {
+  grid-column: span 2;
+  color: var(--muted);
+}
+
+.mistake-review-card {
+  display: grid;
+  gap: 5px;
+  padding: 13px 14px;
+  line-height: 1.45;
+}
+
+.mistake-review-card span,
+.mistake-review-card small {
+  color: var(--muted);
+  font-size: .8rem;
+}
+
+.mistake-review-skill {
+  color: var(--accent);
+  font-size: .75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.mistake-focus-row:hover,
+.mistake-review-card:hover {
+  background: var(--bg2);
+  border-color: var(--accent);
+}
 
 /* ═══════════════ BUTTONS ═══════════════ */
 .btn-primary {
@@ -1099,18 +1339,29 @@ body {
   .sidebar.open { transform: translateX(0); }
   .main-content { margin-left: 0; }
   .hamburger { display: block; }
+  .dashboard-shell { grid-template-columns: 1fr; }
+  .evidence-grid { grid-column: span 1; grid-template-columns: 1fr 1fr; }
   .dashboard-grid { grid-template-columns: 1fr 1fr; }
   .skills-card, .weak-card, .plan-card,
   .actions-card, .progress-card, .smart-card, .mistake-card { grid-column: span 2; }
+  .practice-hub-grid { grid-template-columns: 1fr 1fr; }
+  .mistakes-hub { grid-template-columns: 1fr; }
   .result-skill-grid { grid-template-columns: repeat(3, 1fr); }
   .aiplan-container, .analytics-container { grid-template-columns: 1fr; }
   .analytics-summary { grid-column: span 1; }
   .summary-grid { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 560px) {
+  .cockpit-main,
+  .cockpit-metrics,
+  .evidence-grid,
+  .practice-hub-grid { grid-template-columns: 1fr; }
+  .cockpit-gap { text-align: left; }
+  .cockpit-score { font-size: 3.2rem; }
   .dashboard-grid { grid-template-columns: 1fr; }
   .skills-card, .weak-card, .plan-card, .actions-card,
   .progress-card, .smart-card, .mistake-card { grid-column: span 1; }
   .score-card { padding: 16px; }
   .section { padding: 12px; }
+  .button-row { flex-direction: column; }
 }

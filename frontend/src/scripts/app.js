@@ -5,6 +5,17 @@
 // ─── State ───────────────────────────────────────
 let profile = loadProfile();
 
+const PAGE_TITLES = {
+  dashboard: "Dashboard",
+  practice: "Practice",
+  mistakes: "Mistakes",
+  aiplan: "Study Plan",
+  analytics: "Analytics",
+  goal: "Profile"
+};
+
+const PRACTICE_SECTIONS = ["vocabulary","reading","listening","speaking","writing","minitest"];
+
 // Per-section question state
 const practiceState = {
   vocabulary: { idx: 0, questions: [], answered: false },
@@ -54,17 +65,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ─── NAVIGATION ──────────────────────────────────
 function initNavigation() {
-  document.querySelectorAll(".nav-link").forEach(link => {
-    link.addEventListener("click", e => {
-      e.preventDefault();
-      navigateTo(link.dataset.section);
-      // Close sidebar on mobile
-      document.getElementById("sidebar").classList.remove("open");
-    });
-  });
-
-  document.querySelectorAll(".btn-skill").forEach(btn => {
-    btn.addEventListener("click", () => navigateTo(btn.dataset.section));
+  document.addEventListener("click", e => {
+    const trigger = e.target.closest("[data-section]");
+    if (!trigger) return;
+    e.preventDefault();
+    navigateTo(trigger.dataset.section);
+    document.getElementById("sidebar").classList.remove("open");
   });
 
   document.getElementById("hamburger").addEventListener("click", () => {
@@ -72,10 +78,15 @@ function initNavigation() {
   });
 }
 
+function getNavSection(section) {
+  if (PRACTICE_SECTIONS.includes(section)) return "practice";
+  return section;
+}
+
 function navigateTo(section) {
   // Update sidebar
   document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
-  const activeLink = document.querySelector(`.nav-link[data-section="${section}"]`);
+  const activeLink = document.querySelector(`.nav-link[data-section="${getNavSection(section)}"]`);
   if (activeLink) activeLink.classList.add("active");
 
   // Show section
@@ -84,10 +95,12 @@ function navigateTo(section) {
   if (el) el.classList.add("active");
 
   // Page title
-  document.getElementById("pageTitle").textContent = SECTION_TITLES[section] || section;
+  document.getElementById("pageTitle").textContent = PAGE_TITLES[section] || SECTION_TITLES[section] || section;
 
   // Refresh content on navigate
   if (section === "dashboard") renderDashboard();
+  if (section === "practice")  renderPracticeHub();
+  if (section === "mistakes")  renderMistakesSection();
   if (section === "analytics") renderAnalytics();
   if (section === "aiplan")    renderAIPlanSection();
   if (["vocabulary","reading","listening","speaking","writing"].includes(section)) {
@@ -99,6 +112,10 @@ function navigateTo(section) {
 function initDashboard() {
   document.getElementById("refreshAIBtn").addEventListener("click", async () => {
     await refreshTodayAIPlan();
+  });
+  document.getElementById("startFocusBtn").addEventListener("click", () => {
+    const section = document.getElementById("startFocusBtn").dataset.section || "minitest";
+    navigateTo(section);
   });
   renderDashboard();
 }
@@ -114,13 +131,61 @@ function renderDashboard() {
   document.getElementById("dashGap").textContent     = gap;
   document.getElementById("dashDays").textContent    = days;
   document.getElementById("topScore").textContent    = predicted;
+  document.getElementById("dashTasks").textContent    = totalCompletedTasks(profile);
 
   renderSkillBars();
   renderWeakZones();
   renderTodayPlan();
+  renderPrimaryFocus();
   renderHabitProgress();
-  renderSmartFocus();
   renderMistakePreview();
+}
+
+function totalCompletedTasks(currentProfile) {
+  return Object.values(currentProfile.totalTasks || {}).reduce((sum, value) => sum + (value || 0), 0);
+}
+
+function getPrimaryFocus(currentProfile) {
+  const totalTasks = totalCompletedTasks(currentProfile);
+  if (totalTasks === 0) {
+    return {
+      section: "minitest",
+      skill: "minitest",
+      title: "Run a 10-question diagnostic",
+      reason: "Start with a mixed mini test so the coach can find your first weak zones.",
+      meta: ["10 questions", "Mixed skills", "Diagnostic"]
+    };
+  }
+
+  const plan = normalizeStudyPlan(null, currentProfile);
+  const task = plan.tasks[0];
+  if (!task) {
+    return {
+      section: "practice",
+      skill: "practice",
+      title: "Choose a focused practice set",
+      reason: "Keep daily practice moving while your data builds up.",
+      meta: ["Practice", "Daily loop"]
+    };
+  }
+
+  return {
+    section: task.skill,
+    skill: task.skill,
+    title: task.title,
+    reason: task.reason,
+    meta: [SKILL_META[task.skill]?.label || task.skill, `${task.minutes} min`, task.type]
+  };
+}
+
+function renderPrimaryFocus() {
+  const focus = getPrimaryFocus(profile);
+  document.getElementById("primaryFocusTitle").textContent = focus.title;
+  document.getElementById("primaryFocusReason").textContent = focus.reason;
+  document.getElementById("primaryFocusMeta").innerHTML = focus.meta
+    .map(item => `<span class="plan-pill">${escapeHtml(item)}</span>`)
+    .join("");
+  document.getElementById("startFocusBtn").dataset.section = focus.section;
 }
 
 function renderSkillBars() {
@@ -235,6 +300,82 @@ function renderMistakePreview() {
           <strong>${SKILL_META[item.skill]?.icon || "•"} ${item.topic}</strong>
           <span>${escapeHtml(item.prompt).slice(0, 86)}${item.prompt.length > 86 ? "..." : ""}</span>
         </div>`).join("")}
+    </div>`;
+}
+
+function renderPracticeHub() {
+  const container = document.getElementById("practiceHub");
+  if (!container) return;
+
+  profile = loadProfile();
+  const skills = ["reading","listening","speaking","writing","vocabulary"];
+  const cards = skills.map(skill => {
+    const meta = SKILL_META[skill];
+    const correct = profile.correct[skill] || 0;
+    const total = profile.totalTasks[skill] || 0;
+    const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+    const mistakes = profile.mistakes[skill] || 0;
+
+    return `
+      <button class="hub-card practice-hub-card" data-section="${skill}">
+        <span class="hub-icon">${meta.icon}</span>
+        <span class="hub-title">${meta.label}</span>
+        <span class="hub-copy">${total ? `${correct}/${total} correct` : "Start a skill set"}</span>
+        <span class="hub-bar"><span class="hub-bar-fill fill-${skill} ${percentClass("w", pct)}"></span></span>
+        <span class="hub-meta">${pct}% accuracy · ${mistakes} mistakes</span>
+      </button>`;
+  });
+
+  cards.push(`
+    <button class="hub-card practice-hub-card featured" data-section="minitest">
+      <span class="hub-icon">⚡</span>
+      <span class="hub-title">Mini TOEFL Test</span>
+      <span class="hub-copy">Mixed diagnostic across all skills</span>
+      <span class="hub-meta">10 questions · score update</span>
+    </button>`);
+
+  container.innerHTML = cards.join("");
+}
+
+function renderMistakesSection() {
+  const container = document.getElementById("mistakesHub");
+  if (!container) return;
+
+  profile = loadProfile();
+  const weak = calcWeaknessScores(profile).filter(item => item.total > 0);
+  const mistakes = (profile.mistakeBank || []).filter(item => !item.mastered);
+
+  const weakHtml = weak.length
+    ? weak.slice(0, 5).map(item => {
+        const meta = SKILL_META[item.skill];
+        const errPct = Math.round(item.score * 100);
+        return `
+          <button class="mistake-focus-row" data-section="${item.skill}">
+            <span>${meta.icon} ${meta.label}</span>
+            <strong>${errPct}% errors</strong>
+            <small>${item.mistakes}/${item.total} missed</small>
+          </button>`;
+      }).join("")
+    : `<p class="placeholder-text">Complete practice tasks to build your weak-zone list.</p>`;
+
+  const mistakesHtml = mistakes.length
+    ? mistakes.slice(0, 10).map(item => `
+        <button class="mistake-review-card" data-section="${item.skill}">
+          <span class="mistake-review-skill">${SKILL_META[item.skill]?.icon || "•"} ${SKILL_META[item.skill]?.label || item.skill}</span>
+          <strong>${escapeHtml(item.topic)}</strong>
+          <span>${escapeHtml(item.prompt).slice(0, 160)}${item.prompt.length > 160 ? "..." : ""}</span>
+          ${item.correctAnswer ? `<small>Correct: ${escapeHtml(item.correctAnswer)}</small>` : ""}
+        </button>`).join("")
+    : `<p class="placeholder-text">Missed questions will appear here after practice.</p>`;
+
+  container.innerHTML = `
+    <div class="card mistakes-panel">
+      <h2 class="card-title">Weak Zones</h2>
+      <div class="mistake-focus-list">${weakHtml}</div>
+    </div>
+    <div class="card mistakes-panel">
+      <h2 class="card-title">Review Bank</h2>
+      <div class="mistake-review-list">${mistakesHtml}</div>
     </div>`;
 }
 

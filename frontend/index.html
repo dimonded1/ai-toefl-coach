@@ -16,15 +16,11 @@
   </div>
   <ul class="sidebar-nav">
     <li><a href="#" class="nav-link active" data-section="dashboard">📊 Dashboard</a></li>
-    <li><a href="#" class="nav-link" data-section="goal">🎯 Goal Setup</a></li>
-    <li><a href="#" class="nav-link" data-section="vocabulary">📚 Vocabulary</a></li>
-    <li><a href="#" class="nav-link" data-section="reading">📖 Reading</a></li>
-    <li><a href="#" class="nav-link" data-section="listening">🎧 Listening</a></li>
-    <li><a href="#" class="nav-link" data-section="speaking">🎤 Speaking</a></li>
-    <li><a href="#" class="nav-link" data-section="writing">✍️ Writing</a></li>
-    <li><a href="#" class="nav-link" data-section="minitest">⚡ Mini TOEFL Test</a></li>
-    <li><a href="#" class="nav-link" data-section="aiplan">🤖 AI Study Plan</a></li>
-    <li><a href="#" class="nav-link" data-section="analytics">📈 Results & Analytics</a></li>
+    <li><a href="#" class="nav-link" data-section="practice">📚 Practice</a></li>
+    <li><a href="#" class="nav-link" data-section="mistakes">🧠 Mistakes</a></li>
+    <li><a href="#" class="nav-link" data-section="aiplan">🤖 Study Plan</a></li>
+    <li><a href="#" class="nav-link" data-section="analytics">📈 Analytics</a></li>
+    <li><a href="#" class="nav-link" data-section="goal">🎯 Profile</a></li>
   </ul>
   <div class="sidebar-footer">
     <button class="btn-reset" id="resetBtn">↺ Reset Progress</button>
@@ -45,77 +41,81 @@
 
   <!-- ─── SECTION: DASHBOARD ─── -->
   <section class="section active" id="section-dashboard">
-    <div class="dashboard-grid">
+    <div class="dashboard-shell">
 
-      <!-- Score Cards Row -->
-      <div class="card score-card target-card">
-        <div class="score-label">Target Score</div>
-        <div class="score-value" id="dashTarget">--</div>
-        <div class="score-sub">TOEFL iBT</div>
-      </div>
-      <div class="card score-card current-card">
-        <div class="score-label">Current Prediction</div>
-        <div class="score-value" id="dashCurrent">--</div>
-        <div class="score-sub">Predicted</div>
-      </div>
-      <div class="card score-card gap-card">
-        <div class="score-label">Score Gap</div>
-        <div class="score-value" id="dashGap">--</div>
-        <div class="score-sub">Points to goal</div>
-      </div>
-      <div class="card score-card days-card">
-        <div class="score-label">Days Left</div>
-        <div class="score-value" id="dashDays">--</div>
-        <div class="score-sub">Preparation time</div>
-      </div>
-
-      <!-- Skills Progress -->
-      <div class="card skills-card">
-        <h2 class="card-title">Skills Progress</h2>
-        <div class="skill-bars" id="skillBars"></div>
-      </div>
-
-      <!-- Weak Skills -->
-      <div class="card weak-card">
-        <h2 class="card-title">⚠️ Weak Zones</h2>
-        <div class="weak-list" id="weakList"></div>
-      </div>
-
-      <!-- Today's Plan -->
-      <div class="card plan-card">
-        <h2 class="card-title">📅 Today's Study Plan</h2>
-        <div class="today-plan" id="todayPlan"></div>
-        <button class="btn-primary btn-full" id="refreshAIBtn">🤖 Refresh AI Plan</button>
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="card actions-card">
-        <h2 class="card-title">Quick Practice</h2>
-        <div class="quick-actions">
-          <button class="btn-skill" data-section="vocabulary">📚 Vocabulary</button>
-          <button class="btn-skill" data-section="reading">📖 Reading</button>
-          <button class="btn-skill" data-section="listening">🎧 Listening</button>
-          <button class="btn-skill" data-section="speaking">🎤 Speaking</button>
-          <button class="btn-skill" data-section="writing">✍️ Writing</button>
-          <button class="btn-skill" data-section="minitest">⚡ Mini Test</button>
+      <div class="card score-cockpit">
+        <div class="cockpit-main">
+          <div>
+            <div class="score-label">Current Prediction</div>
+            <div class="cockpit-score" id="dashCurrent">--</div>
+            <div class="score-sub">Predicted TOEFL iBT</div>
+          </div>
+          <div class="cockpit-gap">
+            <div class="score-label">Score Gap</div>
+            <div class="gap-value" id="dashGap">--</div>
+            <div class="score-sub">Points to goal</div>
+          </div>
+        </div>
+        <div class="cockpit-metrics">
+          <div class="metric-tile">
+            <div class="score-label">Target</div>
+            <div class="metric-value" id="dashTarget">--</div>
+          </div>
+          <div class="metric-tile">
+            <div class="score-label">Days Left</div>
+            <div class="metric-value" id="dashDays">--</div>
+          </div>
+          <div class="metric-tile">
+            <div class="score-label">Activity</div>
+            <div class="metric-value" id="dashTasks">--</div>
+          </div>
         </div>
       </div>
 
-      <div class="card progress-card">
-        <h2 class="card-title">🔥 Progress System</h2>
-        <div id="habitProgress"></div>
+      <div class="card today-focus-card">
+        <div class="card-kicker">Today Focus</div>
+        <h2 class="focus-title" id="primaryFocusTitle">Start with a diagnostic task</h2>
+        <p class="focus-reason" id="primaryFocusReason">Complete practice to reveal your weak zones.</p>
+        <div class="focus-meta" id="primaryFocusMeta"></div>
+        <div class="button-row button-row-spaced">
+          <button class="btn-primary" id="startFocusBtn">Start focus session</button>
+          <button class="btn-secondary" id="refreshAIBtn">Refresh AI Plan</button>
+        </div>
+        <div class="today-plan compact-plan" id="todayPlan"></div>
       </div>
 
-      <div class="card smart-card">
-        <h2 class="card-title">🎯 What to Improve Today</h2>
-        <div id="smartFocus"></div>
-      </div>
+      <div class="evidence-grid">
+        <div class="card evidence-card skills-card">
+          <h2 class="card-title">Skills Progress</h2>
+          <div class="skill-bars" id="skillBars"></div>
+        </div>
 
-      <div class="card mistake-card">
-        <h2 class="card-title">🧠 Mistake Bank</h2>
-        <div id="mistakePreview"></div>
-      </div>
+        <div class="card evidence-card weak-card">
+          <h2 class="card-title">Weak Zones</h2>
+          <div class="weak-list" id="weakList"></div>
+        </div>
 
+        <div class="card evidence-card progress-card">
+          <h2 class="card-title">Progress System</h2>
+          <div id="habitProgress"></div>
+        </div>
+
+        <div class="card evidence-card mistake-card">
+          <h2 class="card-title">Mistake Bank</h2>
+          <div id="mistakePreview"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION: PRACTICE HUB ─── -->
+  <section class="section" id="section-practice">
+    <div class="hub-container">
+      <div class="hub-header">
+        <h2>Practice</h2>
+        <p>Choose a focused TOEFL skill set or start a mixed mini test.</p>
+      </div>
+      <div class="practice-hub-grid" id="practiceHub"></div>
     </div>
   </section>
 
@@ -123,8 +123,8 @@
   <section class="section" id="section-goal">
     <div class="form-container">
       <div class="card form-card">
-        <h2 class="card-title">🎯 Set Your TOEFL Goal</h2>
-        <p class="form-desc">Configure your profile to get a personalized study plan.</p>
+        <h2 class="card-title">🎯 Profile & TOEFL Goal</h2>
+        <p class="form-desc">Adjust your target, timeline, level, and study purpose.</p>
 
         <div class="form-group">
           <label>Exam Type</label>
@@ -292,6 +292,17 @@
         <button class="btn-primary" id="generatePlanBtn">✨ Generate Study Plan</button>
       </div>
 
+    </div>
+  </section>
+
+  <!-- ─── SECTION: MISTAKES ─── -->
+  <section class="section" id="section-mistakes">
+    <div class="hub-container">
+      <div class="hub-header">
+        <h2>Mistakes</h2>
+        <p>Review missed tasks and decide what to repair first.</p>
+      </div>
+      <div class="mistakes-hub" id="mistakesHub"></div>
     </div>
   </section>
 
