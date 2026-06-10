@@ -1,6 +1,4 @@
-// ═══════════════════════════════════════════════
-//  AI TOEFL Coach — Gemini API integration
-// ═══════════════════════════════════════════════
+// AI TOEFL Coach - AI API integration
 
 // Docker/nginx proxies /api/. Static local dev calls backend directly.
 const API_BASE = (() => {
@@ -117,7 +115,7 @@ function renderScoreGapVisual(profile) {
 
     html += `
       <div class="gap-row">
-        <span class="gap-row-label">${meta.icon} ${meta.label}</span>
+        <span class="gap-row-label">${meta.label}</span>
         <div class="gap-track">
           <div class="gap-current fill-${skill} ${percentClass("w", pct)}"></div>
           <div class="gap-target-marker ${percentClass("left", tgtPct)}"></div>
