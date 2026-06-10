@@ -160,13 +160,6 @@ function renderDashboard() {
   const gap       = Math.max(0, profile.targetScore - predicted);
   const days      = daysRemaining(profile);
 
-  document.getElementById("dashTarget").textContent  = profile.targetScore;
-  document.getElementById("dashCurrent").textContent = predicted;
-  document.getElementById("dashGap").textContent     = gap;
-  document.getElementById("dashDays").textContent    = days;
-  document.getElementById("topScore").textContent    = predicted;
-  document.querySelector(".current-card .score-sub").textContent =
-    `Confidence: ${profile.confidence?.level || "none"}`;
   const scoreProgress = Math.min(100, Math.round((predicted / Math.max(profile.targetScore, 1)) * 100));
   const taskCount = totalCompletedTasks(profile);
 
@@ -1513,26 +1506,19 @@ function renderAnalytics() {
   const completed = totalCompletedTasks(profile);
   const correct = Object.values(profile.correct || {}).reduce((sum, value) => sum + (value || 0), 0);
   const accuracy = completed ? Math.round((correct / completed) * 100) : 0;
-  const current = calcPredictedScore(profile);
-  const weak = calcWeaknessScores(profile);
+  const current = analytics.predictedScore;
+  const weak = analytics.weakZones.length
+    ? analytics.weakZones
+    : calcWeaknessScores(profile).filter(item => item.total > 0);
+  const confidence = analytics.confidence || { level: "none", score: 0 };
+  const readiness = analytics.readiness || { level: "not-ready", overall: 0 };
 
-  // Summary cards
-  document.getElementById("analyticsSummary").innerHTML = analytics.skills.map(item => {
-    const skill = item.skill;
-    const pct = item.proficiency;
-    const meta    = SKILL_META[skill];
-    return `
-      <div class="summary-card">
-        <div class="summary-skill">${meta.icon} ${meta.label}</div>
-        <div class="summary-score text-${skill}">${pct}%</div>
-        <div class="summary-label">${item.correct}/${item.totalTasks} correct · ${item.confidence.level} confidence</div>
-        <div class="summary-bar">
-          <div class="summary-fill fill-${skill} ${percentClass("w", pct)}"></div>
   container.innerHTML = `
     <div class="analytics-kpi-grid">
       ${renderKpi("Current TOEFL", current, "Predicted score")}
       ${renderKpi("Accuracy", `${accuracy}%`, `${correct}/${completed} correct`)}
-      ${renderKpi("Study streak", profile.streak?.current || 0, "days")}
+      ${renderKpi("Confidence", confidence.level, `${confidence.score}% model confidence`)}
+      ${renderKpi("Readiness", readiness.level, `${readiness.overall}% exam readiness`)}
       ${renderKpi("Completed tasks", completed, "all practice")}
     </div>
     <div class="analytics-grid">
@@ -1568,25 +1554,6 @@ function renderKpi(label, value, note) {
   return `<div class="card analytics-kpi"><span>${label}</span><strong>${value}</strong><small>${note}</small></div>`;
 }
 
-  // Error analysis
-  const weak = analytics.weakZones.length ? analytics.weakZones : calcWeaknessScores(profile);
-  document.getElementById("errorAnalysis").innerHTML = weak.length === 0
-    ? `<p class="placeholder-text">No data yet. Complete practice tasks to see error analysis.</p>`
-    : weak.map(w => {
-        const meta   = SKILL_META[w.skill];
-        const errPct = Math.round(w.score * 100);
-        return `
-          <div class="error-item">
-            <span class="error-skill">${meta.icon} ${meta.label}</span>
-            <div class="error-bar-wrap">
-              <div class="error-bar-track">
-                <div class="error-bar-fill ${percentClass("w", errPct)}"></div>
-              </div>
-            </div>
-            <span class="error-pct">${errPct}%</span>
-            <span class="error-count">${w.mistakes}/${w.total}</span>
-          </div>`;
-      }).join("");
 function renderSkillDistribution(skill) {
   const meta = SKILL_META[skill];
   const score = skill === "vocabulary" ? (profile.progress[skill] || 0) : (profile.scores[skill] || 0);
