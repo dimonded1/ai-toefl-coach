@@ -20,6 +20,12 @@ const DEFAULT_PROFILE = {
     speaking:   14,
     writing:    13
   },
+  baselineScores: {
+    reading:    15,
+    listening:  14,
+    speaking:   14,
+    writing:    13
+  },
 
   // Task tracking
   mistakes: {
@@ -36,6 +42,25 @@ const DEFAULT_PROFILE = {
   progress: {
     reading: 0, listening: 0, speaking: 0, writing: 0, vocabulary: 0
   },
+
+  // Proficiency 0–100 (%) is performance quality; progress is practice volume.
+  proficiency: {
+    reading: 50, listening: 47, speaking: 47, writing: 43, vocabulary: 0
+  },
+
+  confidence: {
+    level: "none",
+    score: 0,
+    bySkill: {}
+  },
+  readiness: {
+    level: "not-ready",
+    overall: 0,
+    bySkill: {}
+  },
+  weakZones: [],
+  attempts: [],
+  scoringModelVersion: "legacy",
 
   // History for mini test
   miniTestHistory: [],
@@ -61,12 +86,14 @@ const DEFAULT_PROFILE = {
 function loadProfile() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return JSON.parse(JSON.stringify(DEFAULT_PROFILE));
+    if (!raw) return refreshScoringMetrics(JSON.parse(JSON.stringify(DEFAULT_PROFILE)));
     const saved = JSON.parse(raw);
     // Merge with defaults to handle new fields
-    return deepMerge(JSON.parse(JSON.stringify(DEFAULT_PROFILE)), saved);
+    const merged = deepMerge(JSON.parse(JSON.stringify(DEFAULT_PROFILE)), saved);
+    if (!saved.baselineScores) merged.baselineScores = { ...merged.scores };
+    return refreshScoringMetrics(merged);
   } catch {
-    return JSON.parse(JSON.stringify(DEFAULT_PROFILE));
+    return refreshScoringMetrics(JSON.parse(JSON.stringify(DEFAULT_PROFILE)));
   }
 }
 
@@ -80,7 +107,7 @@ function saveProfile(profile) {
 
 function resetProfile() {
   localStorage.removeItem(STORAGE_KEY);
-  return JSON.parse(JSON.stringify(DEFAULT_PROFILE));
+  return refreshScoringMetrics(JSON.parse(JSON.stringify(DEFAULT_PROFILE)));
 }
 
 function deepMerge(target, source) {
@@ -93,67 +120,6 @@ function deepMerge(target, source) {
     }
   }
   return target;
-}
-
-// ─── SCORE CALCULATION ───────────────────────────
-
-function calcPredictedScore(profile) {
-  const s = profile.scores;
-  return s.reading + s.listening + s.speaking + s.writing;
-}
-
-/**
- * Update a skill score based on error rate.
- * Better performance → higher score (approaching 30).
- * Worse performance → score decreases toward 0.
- */
-function updateSkillScore(profile, skill) {
-  if (!["reading","listening","speaking","writing"].includes(skill)) return profile;
-
-  const total   = profile.totalTasks[skill];
-  const correct = profile.correct[skill];
-  if (total === 0) return profile;
-
-  const accuracy = correct / total; // 0–1
-  // Map accuracy to 0–30 range, smoothly
-  profile.scores[skill] = Math.round(accuracy * 30);
-  return profile;
-}
-
-/**
- * Update progress % for a skill.
- * Progress = (correct / max_tasks_expected) * 100, capped at 100.
- */
-function updateProgress(profile, skill) {
-  const total   = profile.totalTasks[skill];
-  const correct = profile.correct[skill];
-  if (total === 0) return profile;
-
-  const accuracy = correct / total;
-  // Progress also reflects how much has been practiced (volume factor)
-  const volumeFactor = Math.min(total / 10, 1); // full credit after 10 tasks
-  profile.progress[skill] = Math.round(accuracy * volumeFactor * 100);
-  return profile;
-}
-
-// ─── WEAKNESS ANALYSIS ───────────────────────────
-
-function calcWeaknessScores(profile) {
-  const skills = ["reading","listening","speaking","writing","vocabulary"];
-  return skills.map(skill => {
-    const m = profile.mistakes[skill];
-    const t = profile.totalTasks[skill];
-    const score = t > 0 ? m / t : 0;
-    return { skill, score, mistakes: m, total: t };
-  }).sort((a, b) => b.score - a.score);
-}
-
-function getWeakSkills(profile, threshold = 0.4) {
-  return calcWeaknessScores(profile).filter(s => s.score >= threshold);
-}
-
-function getStrongestSkills(profile) {
-  return calcWeaknessScores(profile).filter(s => s.score < 0.3);
 }
 
 // ─── RECORD ANSWER ───────────────────────────────
@@ -175,12 +141,25 @@ function recordAnswer(profile, skill, isCorrect, question = null) {
     recordMistake(profile, s, question);
   }
 
+  recordAttempt(profile, s, isCorrect, question);
   updateHabitProgress(profile, s, isCorrect);
-  if (["reading","listening","speaking","writing"].includes(s)) {
-    updateSkillScore(profile, s);
-  }
-  updateProgress(profile, s);
+  refreshScoringMetrics(profile);
   saveProfile(profile);
+  return profile;
+}
+
+function recordAttempt(profile, skill, isCorrect, question) {
+  profile.attempts = profile.attempts || [];
+  profile.attempts.push({
+    id: `${skill}-${Date.now()}-${profile.attempts.length}`,
+    date: new Date().toISOString(),
+    skill,
+    correct: Boolean(isCorrect),
+    difficulty: question?.difficulty || "medium",
+    topic: question?.topic || "General",
+    questionId: question?.id || null
+  });
+  profile.attempts = profile.attempts.slice(-1000);
   return profile;
 }
 

@@ -78,16 +78,30 @@ ai-toefl-coach/
 │   │   │   └── main.css   # Dashboard theme and responsive layout
 │   │   └── scripts/
 │   │       ├── data.js    # TOEFL reference DB + question bank
-│   │       ├── profile.js # User profile + scoring logic
+│   │       ├── scoring.js # TOEFL scoring, confidence, readiness
+│   │       ├── analyticsModel.js # Analytics data model
+│   │       ├── profile.js # User profile + localStorage
 │   │       ├── aiPlan.js  # AI API calls + gap visualizer
-│   │       └── app.js     # Main app logic + UI
+│   │       ├── app.js     # Main app logic + UI
+│   │       └── scoring.examples.js # Scoring control examples
 │   ├── nginx.conf
 │   ├── .dockerignore
 │   └── Dockerfile
+├── scripts/
+│   └── check-scoring.mjs
 ├── docker-compose.yml
 ├── .gitignore
 └── .env.example
 ```
+
+---
+
+## Checks
+```bash
+node scripts/check-scoring.mjs
+```
+
+This verifies the scoring edge cases for zero tasks, small samples, all-correct/all-wrong answers, difficulty weighting, and recency weighting.
 
 ---
 

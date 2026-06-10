@@ -5,6 +5,13 @@ const router = express.Router();
 // Free models: llama-3.1-8b-instant, llama-3.3-70b-versatile, mixtral-8x7b-32768
 const GROQ_MODEL   = "llama-3.1-8b-instant";
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_TIMEOUT_MS = 15000;
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 20;
+const VALID_ACTIONS = new Set(["study_plan", "score_gap", "feedback"]);
+const requestBuckets = new Map();
+
+router.use(rateLimitAIRequests);
 
 /**
  * POST /api/gemini/analyze
@@ -21,8 +28,9 @@ router.post("/analyze", async (req, res) => {
 
   const { userProfile, studyReference, action, extraContext } = req.body;
 
-  if (!userProfile || !action) {
-    return res.status(400).json({ error: "Missing userProfile or action" });
+  const validationError = validateAnalyzeRequest({ userProfile, action, extraContext });
+  if (validationError) {
+    return res.status(400).json({ error: validationError });
   }
 
   const prompts = {
@@ -36,11 +44,15 @@ router.post("/analyze", async (req, res) => {
     return res.status(400).json({ error: `Unknown action: ${action}` });
   }
 
+  let timeout = null;
   try {
     const { default: fetch } = await import("node-fetch");
+    const controller = new AbortController();
+    timeout = setTimeout(() => controller.abort(), GROQ_TIMEOUT_MS);
 
     const response = await fetch(GROQ_API_URL, {
       method: "POST",
+      signal: controller.signal,
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`
@@ -54,6 +66,8 @@ router.post("/analyze", async (req, res) => {
         stream: false
       })
     });
+    clearTimeout(timeout);
+    timeout = null;
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
@@ -65,24 +79,112 @@ router.post("/analyze", async (req, res) => {
 
     const data = await response.json();
     const text = data.choices?.[0]?.message?.content || "";
+    const parsed = parseAIJson(text);
 
-    res.json({ result: text });
+    if (!parsed || !validateAIResult(action, parsed)) {
+      return res.status(502).json({
+        error: "AI returned invalid JSON. Local fallback is available."
+      });
+    }
+
+    res.json({ result: parsed });
   } catch (err) {
+    if (timeout) clearTimeout(timeout);
+    if (err.name === "AbortError") {
+      return res.status(504).json({ error: "AI request timed out. Local fallback is available." });
+    }
     console.error("[Groq fetch error]", err.message);
     res.status(500).json({ error: "Failed to reach Groq API" });
   }
 });
 
+function rateLimitAIRequests(req, res, next) {
+  const now = Date.now();
+  const key = req.ip || req.headers["x-forwarded-for"] || "unknown";
+  const bucket = requestBuckets.get(key) || { count: 0, resetAt: now + RATE_LIMIT_WINDOW_MS };
+
+  if (now > bucket.resetAt) {
+    bucket.count = 0;
+    bucket.resetAt = now + RATE_LIMIT_WINDOW_MS;
+  }
+
+  bucket.count += 1;
+  requestBuckets.set(key, bucket);
+
+  if (bucket.count > RATE_LIMIT_MAX_REQUESTS) {
+    return res.status(429).json({ error: "Too many AI requests. Try again in a minute." });
+  }
+
+  next();
+}
+
+function validateAnalyzeRequest({ userProfile, action, extraContext }) {
+  if (!userProfile || typeof userProfile !== "object" || Array.isArray(userProfile)) {
+    return "Missing or invalid userProfile";
+  }
+  if (!VALID_ACTIONS.has(action)) {
+    return `Unknown action: ${action}`;
+  }
+
+  const targetScore = Number(userProfile.targetScore);
+  const currentPrediction = Number(userProfile.currentPrediction);
+  const preparationDays = Number(userProfile.preparationDays);
+  if (!Number.isFinite(targetScore) || targetScore < 0 || targetScore > 120) return "Invalid targetScore";
+  if (!Number.isFinite(currentPrediction) || currentPrediction < 0 || currentPrediction > 120) return "Invalid currentPrediction";
+  if (!Number.isFinite(preparationDays) || preparationDays < 0 || preparationDays > 3650) return "Invalid preparationDays";
+
+  if (action === "feedback") {
+    const answer = String(extraContext?.userAnswer || "");
+    if (!answer.trim()) return "Missing feedback answer";
+    if (answer.length > 3000) return "Feedback answer is too long";
+  }
+
+  return null;
+}
+
+function parseAIJson(text) {
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {}
+
+  const match = String(text).match(/\{[\s\S]*\}/);
+  if (!match) return null;
+  try {
+    return JSON.parse(match[0]);
+  } catch {
+    return null;
+  }
+}
+
+function validateAIResult(action, result) {
+  if (!result || typeof result !== "object" || Array.isArray(result)) return false;
+
+  if (action === "study_plan") {
+    return typeof result.summary === "string" && Array.isArray(result.tasks);
+  }
+  if (action === "score_gap") {
+    return typeof result.overall === "string" && Array.isArray(result.topActions);
+  }
+  if (action === "feedback") {
+    return typeof result.good === "string" && typeof result.improve === "string";
+  }
+  return false;
+}
+
 // ─── Prompt builders ────────────────────────────────────────────────────────
 
 function buildStudyPlanPrompt(profile, studyReference) {
-  const { targetScore, currentPrediction, preparationDays, mistakes, totalTasks } = profile;
+  const { targetScore, currentPrediction, preparationDays, mistakes, totalTasks, confidence, weakZones, readiness } = profile;
 
   const skillLines = Object.entries(mistakes || {}).map(([skill, m]) => {
     const total = totalTasks?.[skill] || 10;
     const pct = Math.round((m / total) * 100);
     return `  - ${skill}: ${pct}% error rate (${m}/${total} mistakes)`;
   }).join("\n");
+  const weakZoneLines = formatWeakZones(weakZones);
+  const confidenceLine = formatConfidence(confidence);
+  const readinessLine = readiness ? `Readiness: ${readiness.level || "unknown"} (${readiness.overall ?? "n/a"}%)` : "Readiness: not provided";
 
   return `You are an expert TOEFL iBT coach. Analyze this student's performance and create a personalized study plan.
 
@@ -94,6 +196,13 @@ Student Profile:
 
 Skill Error Rates:
 ${skillLines}
+
+Weak Zones:
+${weakZoneLines}
+
+Scoring Confidence:
+${confidenceLine}
+${readinessLine}
 
 Reference Data:
 ${formatStudyReference(studyReference)}
@@ -111,7 +220,7 @@ Rules:
 }
 
 function buildScoreGapPrompt(profile, studyReference) {
-  const { targetScore, currentPrediction, scores } = profile;
+  const { targetScore, currentPrediction, scores, confidence, readiness } = profile;
   const gap = targetScore - currentPrediction;
 
   const scoreLines = Object.entries(scores || {}).map(([skill, s]) => {
@@ -129,6 +238,10 @@ Score Gap Analysis:
 
 Skill Scores (out of 30 each):
 ${scoreLines}
+
+Scoring confidence:
+${formatConfidence(confidence)}
+${readiness ? `Readiness: ${readiness.level || "unknown"} (${readiness.overall ?? "n/a"}%)` : "Readiness: not provided"}
 
 Reference Data:
 ${formatStudyReference(studyReference)}
@@ -181,6 +294,22 @@ function formatRubricForSkill(ref, skill) {
   const rubrics = ref?.rubrics || {};
   const items = rubrics[key] || rubrics.speaking || rubrics.writing || [];
   return Array.isArray(items) ? items.map(item => `- ${item}`).join("\n") : "Use TOEFL clarity, organization, accuracy, and task fulfillment criteria.";
+}
+
+function formatWeakZones(weakZones) {
+  if (!Array.isArray(weakZones) || weakZones.length === 0) return "No weak-zone data provided.";
+  return weakZones.slice(0, 5).map(zone => {
+    const pct = Math.round((Number(zone.score) || 0) * 100);
+    return `  - ${zone.skill}: ${pct}% weighted error rate (${zone.mistakes || 0}/${zone.total || 0}), confidence ${zone.confidence || "unknown"}`;
+  }).join("\n");
+}
+
+function formatConfidence(confidence) {
+  if (!confidence || typeof confidence !== "object") return "Overall confidence: not provided";
+  const skillLines = Object.entries(confidence.bySkill || {}).map(([skill, item]) => {
+    return `  - ${skill}: ${item.level || "unknown"} (${item.score ?? "n/a"}%), sample ${item.sampleSize ?? "n/a"}`;
+  }).join("\n");
+  return `Overall confidence: ${confidence.level || "unknown"} (${confidence.score ?? "n/a"}%)${skillLines ? `\n${skillLines}` : ""}`;
 }
 
 module.exports = router;

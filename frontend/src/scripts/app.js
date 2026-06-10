@@ -159,6 +159,14 @@ function renderDashboard() {
   const predicted = calcPredictedScore(profile);
   const gap       = Math.max(0, profile.targetScore - predicted);
   const days      = daysRemaining(profile);
+
+  document.getElementById("dashTarget").textContent  = profile.targetScore;
+  document.getElementById("dashCurrent").textContent = predicted;
+  document.getElementById("dashGap").textContent     = gap;
+  document.getElementById("dashDays").textContent    = days;
+  document.getElementById("topScore").textContent    = predicted;
+  document.querySelector(".current-card .score-sub").textContent =
+    `Confidence: ${profile.confidence?.level || "none"}`;
   const scoreProgress = Math.min(100, Math.round((predicted / Math.max(profile.targetScore, 1)) * 100));
   const taskCount = totalCompletedTasks(profile);
 
@@ -570,6 +578,7 @@ function renderPlanHtml(plan) {
 }
 
 function parseJsonFromAI(raw) {
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) return raw;
   if (!raw || typeof raw !== "string") return null;
   try { return JSON.parse(raw); } catch {}
   const match = raw.match(/\{[\s\S]*\}/);
@@ -649,6 +658,7 @@ function initGoalForm() {
     const base = levelScores[profile.level] || 14;
     if (profile.totalTasks.reading === 0) {
       profile.scores = { reading: base, listening: base, speaking: base, writing: base };
+      profile.baselineScores = { ...profile.scores };
     }
 
     saveProfile(profile);
@@ -1496,6 +1506,7 @@ function initAnalytics() { /* rendered on navigate */ }
 
 function renderAnalytics() {
   profile = loadProfile();
+  const analytics = buildAnalyticsModel(profile);
   const container = document.getElementById("analyticsWorkspace");
   if (!container) return;
   const skills = ["reading","listening","speaking","writing","vocabulary"];
@@ -1505,6 +1516,18 @@ function renderAnalytics() {
   const current = calcPredictedScore(profile);
   const weak = calcWeaknessScores(profile);
 
+  // Summary cards
+  document.getElementById("analyticsSummary").innerHTML = analytics.skills.map(item => {
+    const skill = item.skill;
+    const pct = item.proficiency;
+    const meta    = SKILL_META[skill];
+    return `
+      <div class="summary-card">
+        <div class="summary-skill">${meta.icon} ${meta.label}</div>
+        <div class="summary-score text-${skill}">${pct}%</div>
+        <div class="summary-label">${item.correct}/${item.totalTasks} correct · ${item.confidence.level} confidence</div>
+        <div class="summary-bar">
+          <div class="summary-fill fill-${skill} ${percentClass("w", pct)}"></div>
   container.innerHTML = `
     <div class="analytics-kpi-grid">
       ${renderKpi("Current TOEFL", current, "Predicted score")}
@@ -1545,6 +1568,25 @@ function renderKpi(label, value, note) {
   return `<div class="card analytics-kpi"><span>${label}</span><strong>${value}</strong><small>${note}</small></div>`;
 }
 
+  // Error analysis
+  const weak = analytics.weakZones.length ? analytics.weakZones : calcWeaknessScores(profile);
+  document.getElementById("errorAnalysis").innerHTML = weak.length === 0
+    ? `<p class="placeholder-text">No data yet. Complete practice tasks to see error analysis.</p>`
+    : weak.map(w => {
+        const meta   = SKILL_META[w.skill];
+        const errPct = Math.round(w.score * 100);
+        return `
+          <div class="error-item">
+            <span class="error-skill">${meta.icon} ${meta.label}</span>
+            <div class="error-bar-wrap">
+              <div class="error-bar-track">
+                <div class="error-bar-fill ${percentClass("w", errPct)}"></div>
+              </div>
+            </div>
+            <span class="error-pct">${errPct}%</span>
+            <span class="error-count">${w.mistakes}/${w.total}</span>
+          </div>`;
+      }).join("");
 function renderSkillDistribution(skill) {
   const meta = SKILL_META[skill];
   const score = skill === "vocabulary" ? (profile.progress[skill] || 0) : (profile.scores[skill] || 0);
