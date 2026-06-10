@@ -4,30 +4,39 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI TOEFL Coach</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="src/styles/main.css" />
 </head>
 <body>
 
 <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
 <nav class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <span class="logo-icon">🎓</span>
-    <span class="logo-text">AI TOEFL Coach</span>
+  <div class="sidebar-user" data-section="goal">
+    <span class="avatar avatar-md" id="sidebarAvatar"></span>
+    <span class="sidebar-user-copy">
+      <strong id="sidebarName">Alex Carter</strong>
+      <span id="sidebarScoreLine">Current 56 to Goal 95</span>
+    </span>
+  </div>
+  <div class="sidebar-study-meta">
+    <div><span>Target</span><strong id="sidebarTarget">95</strong></div>
+    <div><span>Day</span><strong id="sidebarDay">1 / 60</strong></div>
   </div>
   <ul class="sidebar-nav">
-    <li><a href="#" class="nav-link active" data-section="dashboard">📊 Dashboard</a></li>
-    <li><a href="#" class="nav-link" data-section="goal">🎯 Goal Setup</a></li>
-    <li><a href="#" class="nav-link" data-section="vocabulary">📚 Vocabulary</a></li>
-    <li><a href="#" class="nav-link" data-section="reading">📖 Reading</a></li>
-    <li><a href="#" class="nav-link" data-section="listening">🎧 Listening</a></li>
-    <li><a href="#" class="nav-link" data-section="speaking">🎤 Speaking</a></li>
-    <li><a href="#" class="nav-link" data-section="writing">✍️ Writing</a></li>
-    <li><a href="#" class="nav-link" data-section="minitest">⚡ Mini TOEFL Test</a></li>
-    <li><a href="#" class="nav-link" data-section="aiplan">🤖 AI Study Plan</a></li>
-    <li><a href="#" class="nav-link" data-section="analytics">📈 Results & Analytics</a></li>
+    <li><a href="#" class="nav-link active" data-section="dashboard"><span class="nav-icon">⌂</span><span>Dashboard</span></a></li>
+    <li><a href="#" class="nav-link" data-section="practice"><span class="nav-icon">◇</span><span>Practice</span></a></li>
+    <li><a href="#" class="nav-link" data-section="aiplan"><span class="nav-icon">✦</span><span>Study Plan</span></a></li>
+    <li><a href="#" class="nav-link" data-section="analytics"><span class="nav-icon">↗</span><span>Analytics</span></a></li>
+    <li><a href="#" class="nav-link" data-section="goal"><span class="nav-icon">◎</span><span>Profile</span></a></li>
   </ul>
   <div class="sidebar-footer">
-    <button class="btn-reset" id="resetBtn">↺ Reset Progress</button>
+    <div class="sidebar-progress">
+      <span>Study streak</span>
+      <strong id="sidebarStreak">0 days</strong>
+    </div>
+    <button class="btn-reset" id="resetBtn">Reset Progress</button>
   </div>
 </nav>
 
@@ -45,86 +54,91 @@
 
   <!-- ─── SECTION: DASHBOARD ─── -->
   <section class="section active" id="section-dashboard">
-    <div class="dashboard-grid">
+    <div class="dashboard-shell">
+      <div class="dashboard-hero-row">
+        <div class="card dashboard-hero">
+          <div class="hero-copy">
+            <div class="card-kicker">Dashboard</div>
+            <h2>What should I do right now?</h2>
+            <p id="dashboardInsight">Run one focused action, then let the coach update your next step.</p>
+          </div>
+          <div class="hero-score-strip">
+            <div><span>Current</span><strong id="dashCurrent">--</strong></div>
+            <div><span>Target</span><strong id="dashTarget">--</strong></div>
+            <div><span>Gap</span><strong id="dashGap">--</strong></div>
+            <div><span>Days left</span><strong id="dashDays">--</strong></div>
+          </div>
+        </div>
 
-      <!-- Score Cards Row -->
-      <div class="card score-card target-card">
-        <div class="score-label">Target Score</div>
-        <div class="score-value" id="dashTarget">--</div>
-        <div class="score-sub">TOEFL iBT</div>
-      </div>
-      <div class="card score-card current-card">
-        <div class="score-label">Current Prediction</div>
-        <div class="score-value" id="dashCurrent">--</div>
-        <div class="score-sub">Predicted</div>
-      </div>
-      <div class="card score-card gap-card">
-        <div class="score-label">Score Gap</div>
-        <div class="score-value" id="dashGap">--</div>
-        <div class="score-sub">Points to goal</div>
-      </div>
-      <div class="card score-card days-card">
-        <div class="score-label">Days Left</div>
-        <div class="score-value" id="dashDays">--</div>
-        <div class="score-sub">Preparation time</div>
-      </div>
-
-      <!-- Skills Progress -->
-      <div class="card skills-card">
-        <h2 class="card-title">Skills Progress</h2>
-        <div class="skill-bars" id="skillBars"></div>
-      </div>
-
-      <!-- Weak Skills -->
-      <div class="card weak-card">
-        <h2 class="card-title">⚠️ Weak Zones</h2>
-        <div class="weak-list" id="weakList"></div>
-      </div>
-
-      <!-- Today's Plan -->
-      <div class="card plan-card">
-        <h2 class="card-title">📅 Today's Study Plan</h2>
-        <div class="today-plan" id="todayPlan"></div>
-        <button class="btn-primary btn-full" id="refreshAIBtn">🤖 Refresh AI Plan</button>
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="card actions-card">
-        <h2 class="card-title">Quick Practice</h2>
-        <div class="quick-actions">
-          <button class="btn-skill" data-section="vocabulary">📚 Vocabulary</button>
-          <button class="btn-skill" data-section="reading">📖 Reading</button>
-          <button class="btn-skill" data-section="listening">🎧 Listening</button>
-          <button class="btn-skill" data-section="speaking">🎤 Speaking</button>
-          <button class="btn-skill" data-section="writing">✍️ Writing</button>
-          <button class="btn-skill" data-section="minitest">⚡ Mini Test</button>
+        <div class="card next-action-card">
+          <div class="card-kicker">Next best action</div>
+          <h2 class="focus-title" id="primaryFocusTitle">Run Diagnostic</h2>
+          <p class="focus-reason" id="primaryFocusReason">Complete practice to reveal your weak zones.</p>
+          <div class="focus-meta" id="primaryFocusMeta"></div>
+          <button class="btn-primary btn-full" id="startFocusBtn">Start focus session</button>
+          <button class="btn-secondary btn-full" id="refreshAIBtn">Refresh AI Plan</button>
         </div>
       </div>
 
-      <div class="card progress-card">
-        <h2 class="card-title">🔥 Progress System</h2>
-        <div id="habitProgress"></div>
+      <div class="dashboard-main-grid product-dashboard-grid">
+        <div class="card today-focus-card">
+          <div class="section-heading">
+            <div>
+              <div class="card-kicker">Today's focus</div>
+              <h2 class="card-title">Two actions for today</h2>
+            </div>
+            <span class="action-badge" id="dashTasks">0 tasks</span>
+          </div>
+          <div class="today-plan compact-plan" id="todayPlan"></div>
+        </div>
+
+        <div class="card dashboard-skills-card">
+          <div class="section-heading">
+            <div>
+              <div class="card-kicker">Skills snapshot</div>
+              <h2 class="card-title">Where to spend effort</h2>
+            </div>
+          </div>
+          <div class="skill-bars" id="skillBars"></div>
+        </div>
       </div>
 
-      <div class="card smart-card">
-        <h2 class="card-title">🎯 What to Improve Today</h2>
-        <div id="smartFocus"></div>
+      <div class="card dashboard-weak-card">
+        <div class="section-heading">
+          <div>
+            <div class="card-kicker">Weak zones preview</div>
+            <h2 class="card-title">Top repair areas</h2>
+          </div>
+          <button class="btn-secondary btn-compact" data-section="analytics">Full analysis</button>
+        </div>
+        <div class="weak-list" id="weakList"></div>
       </div>
+    </div>
+  </section>
 
-      <div class="card mistake-card">
-        <h2 class="card-title">🧠 Mistake Bank</h2>
-        <div id="mistakePreview"></div>
+  <!-- ─── SECTION: PRACTICE HUB ─── -->
+  <section class="section" id="section-practice">
+    <div class="practice-workspace">
+      <div class="hub-header">
+        <h2>What should I train?</h2>
+        <p>Pick a skill based on readiness, recent accuracy, and mistakes.</p>
       </div>
-
+      <div class="practice-layout" id="practiceHub"></div>
     </div>
   </section>
 
   <!-- ─── SECTION: GOAL SETUP ─── -->
   <section class="section" id="section-goal">
-    <div class="form-container">
+    <div class="profile-layout">
       <div class="card form-card">
-        <h2 class="card-title">🎯 Set Your TOEFL Goal</h2>
-        <p class="form-desc">Configure your profile to get a personalized study plan.</p>
+        <div class="card-kicker">Profile</div>
+        <h2 class="profile-title">Who is preparing?</h2>
+        <p class="form-desc">Keep your name and TOEFL goal accurate. Your avatar is generated automatically.</p>
+
+        <div class="form-group">
+          <label>Your Name</label>
+          <input class="text-input" id="profileNameInput" type="text" value="Alex Carter" />
+        </div>
 
         <div class="form-group">
           <label>Exam Type</label>
@@ -171,9 +185,35 @@
           </div>
         </div>
 
-        <button class="btn-primary btn-full" id="saveGoalBtn">💾 Save & Start Preparation</button>
-        <div class="success-msg hidden" id="goalSaved">✅ Profile saved! Go to Dashboard to start.</div>
+        <button class="btn-primary btn-full" id="saveGoalBtn">Save & Start Preparation</button>
+        <div class="success-msg hidden" id="goalSaved">Profile saved. Go to Dashboard to start.</div>
       </div>
+
+      <aside class="card setup-preview-card">
+        <div class="card-kicker">Personal summary</div>
+        <h2 class="card-title">Your study setup</h2>
+        <div class="profile-summary-head">
+          <span class="avatar avatar-lg" id="profilePreviewAvatar"></span>
+          <div>
+            <strong id="profilePreviewName">Alex Carter</strong>
+            <span id="profilePreviewGoal">Study Abroad</span>
+          </div>
+        </div>
+        <div class="setup-score">
+          <span id="setupCurrent">56</span>
+          <small>current TOEFL</small>
+        </div>
+        <div class="setup-path">
+          <div><span>Target</span><strong id="setupTarget">95</strong></div>
+          <div><span>Timeline</span><strong id="setupDays">60 days</strong></div>
+          <div><span>Level</span><strong id="setupLevel">Intermediate</strong></div>
+          <div><span>Goal</span><strong id="setupGoal">Study Abroad</strong></div>
+        </div>
+        <div class="setup-mini-chart" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <p class="setup-note">The dashboard will turn this setup into weak zones, daily focus, and score movement after practice.</p>
+      </aside>
     </div>
   </section>
 
@@ -182,7 +222,7 @@
     <div class="practice-container">
       <div class="card practice-card">
         <div class="practice-header">
-          <h2>📚 Vocabulary Practice</h2>
+          <h2>Vocabulary Practice</h2>
           <div class="practice-stats">
             <span class="stat-badge" id="vocabProgress">0 / 0</span>
             <span class="stat-badge weak-badge" id="vocabMistakes">Mistakes: 0</span>
@@ -198,7 +238,7 @@
     <div class="practice-container">
       <div class="card practice-card">
         <div class="practice-header">
-          <h2>📖 Reading Practice</h2>
+          <h2>Reading Practice</h2>
           <div class="practice-stats">
             <span class="stat-badge" id="readProgress">0 / 0</span>
             <span class="stat-badge weak-badge" id="readMistakes">Mistakes: 0</span>
@@ -214,7 +254,7 @@
     <div class="practice-container">
       <div class="card practice-card">
         <div class="practice-header">
-          <h2>🎧 Listening Practice</h2>
+          <h2>Listening Practice</h2>
           <div class="practice-stats">
             <span class="stat-badge" id="listenProgress">0 / 0</span>
             <span class="stat-badge weak-badge" id="listenMistakes">Mistakes: 0</span>
@@ -230,7 +270,7 @@
     <div class="practice-container">
       <div class="card practice-card">
         <div class="practice-header">
-          <h2>🎤 Speaking Practice</h2>
+          <h2>Speaking Practice</h2>
           <div class="practice-stats">
             <span class="stat-badge" id="speakProgress">0 / 0</span>
             <span class="stat-badge weak-badge" id="speakMistakes">Mistakes: 0</span>
@@ -246,7 +286,7 @@
     <div class="practice-container">
       <div class="card practice-card">
         <div class="practice-header">
-          <h2>✍️ Writing Practice</h2>
+          <h2>Writing Practice</h2>
           <div class="practice-stats">
             <span class="stat-badge" id="writeProgress">0 / 0</span>
             <span class="stat-badge weak-badge" id="writeMistakes">Mistakes: 0</span>
@@ -262,7 +302,7 @@
     <div class="practice-container">
       <div class="card practice-card" id="miniTestCard">
         <div class="practice-header">
-          <h2>⚡ Mini TOEFL Test</h2>
+          <h2>Mini TOEFL Test</h2>
           <div class="practice-stats">
             <span class="stat-badge" id="miniProgress">0 / 10</span>
           </div>
@@ -274,56 +314,76 @@
 
   <!-- ─── SECTION: AI STUDY PLAN ─── -->
   <section class="section" id="section-aiplan">
-    <div class="aiplan-container">
-
-      <div class="card aiplan-card">
-        <h2 class="card-title">🤖 AI Score Gap Analyzer</h2>
-        <div id="scoreGapContent" class="gap-analysis">
-          <div class="gap-visual" id="gapVisual"></div>
-        </div>
-        <button class="btn-primary" id="analyzeGapBtn">🔍 Run AI Analysis</button>
+    <div class="study-plan-workspace">
+      <div class="hub-header">
+        <h2>How will I reach my goal?</h2>
+        <p>Roadmap, weekly targets, and AI recommendations live here.</p>
       </div>
-
-      <div class="card aiplan-card">
-        <h2 class="card-title">📋 Your Personalized Study Plan</h2>
-        <div id="studyPlanContent" class="study-plan-content">
-          <p class="placeholder-text">Click "Generate Study Plan" to get your personalized recommendations.</p>
+      <div class="study-plan-grid">
+        <div class="card plan-goal-card">
+          <div class="card-kicker">Goal overview</div>
+          <div id="studyGoalOverview"></div>
         </div>
-        <button class="btn-primary" id="generatePlanBtn">✨ Generate Study Plan</button>
+        <div class="card weekly-targets-card">
+          <div class="card-kicker">Weekly targets</div>
+          <div id="weeklyTargets"></div>
+        </div>
+        <div class="card roadmap-card">
+          <div class="section-heading">
+            <div>
+              <div class="card-kicker">Roadmap</div>
+              <h2 class="card-title">Preparation phases</h2>
+            </div>
+          </div>
+          <div id="roadmapContent"></div>
+        </div>
+        <div class="card ai-recommendations-card">
+          <div class="section-heading">
+            <div>
+              <div class="card-kicker">AI recommendations</div>
+              <h2 class="card-title">Focus plan</h2>
+            </div>
+            <button class="btn-primary" id="generatePlanBtn">Generate Study Plan</button>
+          </div>
+          <div id="studyPlanContent" class="study-plan-content">
+            <p class="placeholder-text">Click "Generate Study Plan" to get your personalized recommendations.</p>
+          </div>
+        </div>
+        <div class="card gap-analysis-card">
+          <div class="section-heading">
+            <div>
+              <div class="card-kicker">Gap analysis</div>
+              <h2 class="card-title">Current to target</h2>
+            </div>
+            <button class="btn-secondary" id="analyzeGapBtn">Run AI Analysis</button>
+          </div>
+          <div id="scoreGapContent" class="gap-analysis">
+            <div class="gap-visual" id="gapVisual"></div>
+          </div>
+        </div>
       </div>
+    </div>
+  </section>
 
+  <!-- ─── SECTION: MISTAKES ─── -->
+  <section class="section" id="section-mistakes">
+    <div class="hub-container">
+      <div class="hub-header">
+        <h2>Mistakes</h2>
+        <p>Review missed tasks and decide what to repair first.</p>
+      </div>
+      <div class="mistakes-hub" id="mistakesHub"></div>
     </div>
   </section>
 
   <!-- ─── SECTION: ANALYTICS ─── -->
   <section class="section" id="section-analytics">
-    <div class="analytics-container">
-
-      <div class="card analytics-summary">
-        <h2 class="card-title">📈 Performance Summary</h2>
-        <div id="analyticsSummary" class="summary-grid"></div>
+    <div class="analytics-workspace">
+      <div class="hub-header">
+        <h2>Why is my score changing?</h2>
+        <p>Analytics explains movement, accuracy, weak areas, and mistakes.</p>
       </div>
-
-      <div class="card analytics-chart">
-        <h2 class="card-title">📊 Skill Breakdown</h2>
-        <div id="skillChart" class="chart-area"></div>
-      </div>
-
-      <div class="card analytics-mistakes">
-        <h2 class="card-title">❌ Error Analysis</h2>
-        <div id="errorAnalysis" class="error-list"></div>
-      </div>
-
-      <div class="card analytics-mistakes">
-        <h2 class="card-title">🧠 Mistake Bank Review</h2>
-        <div id="mistakeBankReview" class="error-list"></div>
-      </div>
-
-      <div class="card analytics-mistakes">
-        <h2 class="card-title">🏆 Achievements & Weekly Report</h2>
-        <div id="weeklyReport" class="error-list"></div>
-      </div>
-
+      <div id="analyticsWorkspace"></div>
     </div>
   </section>
 

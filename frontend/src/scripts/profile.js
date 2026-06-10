@@ -5,6 +5,7 @@
 const STORAGE_KEY = "toefl_coach_profile";
 
 const DEFAULT_PROFILE = {
+  name: "Alex Carter",
   exam: "TOEFL iBT",
   targetScore: 95,
   preparationDays: 60,
