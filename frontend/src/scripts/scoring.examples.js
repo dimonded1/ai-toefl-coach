@@ -28,15 +28,15 @@ const SCORING_CONTROL_EXAMPLES = [
     }
   },
   {
-    name: "aggregate 7 of 10 reading correct maps to 21 score and 50 volume progress",
+    name: "aggregate 7 of 10 reading correct blends baseline with observed score",
     profile: mergeExampleProfile({
       totalTasks: { reading: 10 },
       correct: { reading: 7 },
       mistakes: { reading: 3 }
     }),
     expected: {
-      predictedScore: 62,
-      readingScore: 21,
+      predictedScore: 59,
+      readingScore: 18,
       readingProgress: 50,
       readingProficiency: 70,
       readingConfidence: "medium",
@@ -64,13 +64,13 @@ const SCORING_CONTROL_EXAMPLES = [
     }
   },
   {
-    name: "all correct hard attempts raise weighted proficiency",
+    name: "all correct hard attempts raise proficiency while score stays cautious",
     profile: mergeExampleProfile({
       attempts: buildAttempts("reading", [true, true, true, true], "hard")
     }),
     expected: {
-      predictedScore: 71,
-      readingScore: 30,
+      predictedScore: 59,
+      readingScore: 18,
       readingProgress: 20,
       readingProficiency: 100,
       readingConfidence: "low",
@@ -80,13 +80,13 @@ const SCORING_CONTROL_EXAMPLES = [
     }
   },
   {
-    name: "all wrong easy attempts produce zero proficiency",
+    name: "all wrong easy attempts produce zero proficiency while score stays cautious",
     profile: mergeExampleProfile({
       attempts: buildAttempts("reading", [false, false, false, false], "easy")
     }),
     expected: {
-      predictedScore: 41,
-      readingScore: 0,
+      predictedScore: 53,
+      readingScore: 12,
       readingProgress: 20,
       readingProficiency: 0,
       readingConfidence: "low",
@@ -104,8 +104,8 @@ const SCORING_CONTROL_EXAMPLES = [
       ]
     }),
     expected: {
-      predictedScore: 58,
-      readingScore: 17,
+      predictedScore: 56,
+      readingScore: 15,
       readingProgress: 20,
       readingProficiency: 58,
       readingConfidence: "low",
@@ -124,8 +124,8 @@ const SCORING_CONTROL_EXAMPLES = [
     }),
     now: "2026-06-10T00:00:00.000Z",
     expected: {
-      predictedScore: 46,
-      readingScore: 5,
+      predictedScore: 53,
+      readingScore: 12,
       readingProgress: 30,
       readingProficiency: 17,
       readingConfidence: "low",

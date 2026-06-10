@@ -19,6 +19,12 @@ const DEFAULT_PROFILE = {
     speaking:   14,
     writing:    13
   },
+  baselineScores: {
+    reading:    15,
+    listening:  14,
+    speaking:   14,
+    writing:    13
+  },
 
   // Task tracking
   mistakes: {
@@ -82,7 +88,9 @@ function loadProfile() {
     if (!raw) return refreshScoringMetrics(JSON.parse(JSON.stringify(DEFAULT_PROFILE)));
     const saved = JSON.parse(raw);
     // Merge with defaults to handle new fields
-    return refreshScoringMetrics(deepMerge(JSON.parse(JSON.stringify(DEFAULT_PROFILE)), saved));
+    const merged = deepMerge(JSON.parse(JSON.stringify(DEFAULT_PROFILE)), saved);
+    if (!saved.baselineScores) merged.baselineScores = { ...merged.scores };
+    return refreshScoringMetrics(merged);
   } catch {
     return refreshScoringMetrics(JSON.parse(JSON.stringify(DEFAULT_PROFILE)));
   }

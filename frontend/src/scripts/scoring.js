@@ -7,6 +7,7 @@ const TRACKED_SKILLS = [...TOEFL_SCORE_SKILLS, "vocabulary"];
 const SCORING_MODEL_VERSION = "andrew-sprint-4-v1";
 const PROGRESS_TARGET_TASKS = 20;
 const CONFIDENCE_TARGET_TASKS = 20;
+const SCORE_FULL_WEIGHT_TASKS = 20;
 const RECENCY_HALF_LIFE_DAYS = 21;
 const READINESS_TARGET_SCORE = 24;
 const DIFFICULTY_WEIGHTS = {
@@ -108,7 +109,7 @@ function calcSkillStats(profile, skill, now = new Date()) {
     weightedAccuracy: accuracy,
     errorRate: total > 0 ? mistakes / total : 0,
     weightedErrorRate: total > 0 ? mistakes / total : 0,
-    averageRecencyWeight: total > 0 ? 0.65 : 0,
+    averageRecencyWeight: total > 0 ? 0.35 : 0,
     source: "aggregate"
   };
 }
@@ -127,7 +128,13 @@ function calcSectionScoreFromAccuracy(accuracy) {
 }
 
 function calcSkillScore(profile, skill) {
-  return calcSectionScoreFromAccuracy(calcWeightedSkillAccuracy(profile, skill));
+  const stats = calcSkillStats(profile, skill);
+  const observedScore = calcSectionScoreFromAccuracy(stats.weightedAccuracy);
+  if (observedScore === null) return null;
+
+  const baselineScore = profile.baselineScores?.[skill] ?? profile.scores?.[skill] ?? observedScore;
+  const sampleWeight = clamp(stats.total / SCORE_FULL_WEIGHT_TASKS, 0, 1);
+  return Math.round((baselineScore * (1 - sampleWeight)) + (observedScore * sampleWeight));
 }
 
 function calcSkillProgressPercent(profile, skill) {

@@ -114,6 +114,8 @@ function renderDashboard() {
   document.getElementById("dashGap").textContent     = gap;
   document.getElementById("dashDays").textContent    = days;
   document.getElementById("topScore").textContent    = predicted;
+  document.querySelector(".current-card .score-sub").textContent =
+    `Confidence: ${profile.confidence?.level || "none"}`;
 
   renderSkillBars();
   renderWeakZones();
@@ -299,6 +301,7 @@ function renderPlanHtml(plan) {
 }
 
 function parseJsonFromAI(raw) {
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) return raw;
   if (!raw || typeof raw !== "string") return null;
   try { return JSON.parse(raw); } catch {}
   const match = raw.match(/\{[\s\S]*\}/);
@@ -374,6 +377,7 @@ function initGoalForm() {
     const base = levelScores[profile.level] || 14;
     if (profile.totalTasks.reading === 0) {
       profile.scores = { reading: base, listening: base, speaking: base, writing: base };
+      profile.baselineScores = { ...profile.scores };
     }
 
     saveProfile(profile);
@@ -1143,19 +1147,19 @@ function initAnalytics() { /* rendered on navigate */ }
 
 function renderAnalytics() {
   profile = loadProfile();
+  const analytics = buildAnalyticsModel(profile);
   const skills = ["reading","listening","speaking","writing","vocabulary"];
 
   // Summary cards
-  document.getElementById("analyticsSummary").innerHTML = skills.map(skill => {
-    const correct = profile.correct[skill]    || 0;
-    const total   = profile.totalTasks[skill] || 0;
-    const pct     = total > 0 ? Math.round((correct / total) * 100) : 0;
+  document.getElementById("analyticsSummary").innerHTML = analytics.skills.map(item => {
+    const skill = item.skill;
+    const pct = item.proficiency;
     const meta    = SKILL_META[skill];
     return `
       <div class="summary-card">
         <div class="summary-skill">${meta.icon} ${meta.label}</div>
         <div class="summary-score text-${skill}">${pct}%</div>
-        <div class="summary-label">${correct}/${total} correct</div>
+        <div class="summary-label">${item.correct}/${item.totalTasks} correct · ${item.confidence.level} confidence</div>
         <div class="summary-bar">
           <div class="summary-fill fill-${skill} ${percentClass("w", pct)}"></div>
         </div>
@@ -1177,7 +1181,7 @@ function renderAnalytics() {
   }).join("");
 
   // Error analysis
-  const weak = calcWeaknessScores(profile);
+  const weak = analytics.weakZones.length ? analytics.weakZones : calcWeaknessScores(profile);
   document.getElementById("errorAnalysis").innerHTML = weak.length === 0
     ? `<p class="placeholder-text">No data yet. Complete practice tasks to see error analysis.</p>`
     : weak.map(w => {
