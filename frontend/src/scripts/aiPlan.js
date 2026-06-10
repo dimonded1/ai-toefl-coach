@@ -18,16 +18,23 @@ function percentClass(prefix, value) {
 
 async function callGemini(action, extraContext = null) {
   const profile = loadProfile();
+  const scoring = buildScoringSnapshot(profile);
 
   const body = {
     userProfile: {
       targetScore:      profile.targetScore,
-      currentPrediction: calcPredictedScore(profile),
+      currentPrediction: scoring.predictedScore,
       preparationDays:  daysRemaining(profile),
       mistakes:         profile.mistakes,
       totalTasks:       profile.totalTasks,
       scores:           profile.scores,
-      progress:         profile.progress
+      progress:         profile.progress,
+      proficiency:      scoring.proficiency,
+      confidence:       scoring.confidence,
+      weakZones:        scoring.weakZones,
+      readiness:        scoring.readiness,
+      sampleSize:       scoring.sampleSize,
+      scoringModelVersion: scoring.modelVersion
     },
     studyReference: buildStudyReferenceSummary(),
     action,
