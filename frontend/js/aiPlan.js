@@ -1,12 +1,12 @@
 // ═══════════════════════════════════════════════
-//  AI TOEFL Coach — Gemini API integration
+//  AI TOEFL Coach — AI API integration (provider-neutral)
 // ═══════════════════════════════════════════════
 
-// In Docker the frontend is served by nginx which proxies /api/ → backend:3001
-// In local dev (open file directly) we fall back to localhost:3001
-const API_BASE = "/api/gemini";
+// In Docker the frontend is served by nginx which proxies /api/ → backend:3001.
+// Backend exposes /api/ai (the legacy /api/gemini alias still works).
+const API_BASE = "/api/ai";
 
-async function callGemini(action, extraContext = null) {
+async function callAI(action, extraContext = null) {
   const profile = loadProfile();
 
   const body = {
@@ -59,19 +59,19 @@ function buildStudyReferenceSummary() {
 // ─── Study Plan ──────────────────────────────────
 
 async function fetchAIStudyPlan() {
-  return callGemini("study_plan");
+  return callAI("study_plan");
 }
 
 // ─── Score Gap ────────────────────────────────────
 
 async function fetchScoreGapAnalysis() {
-  return callGemini("score_gap");
+  return callAI("score_gap");
 }
 
 // ─── Speaking / Writing feedback ─────────────────
 
 async function fetchAnswerFeedback(skill, userAnswer, taskType) {
-  return callGemini("feedback", { skill, userAnswer, taskType });
+  return callAI("feedback", { skill, userAnswer, taskType });
 }
 
 // ─── RENDER: Score Gap Visual ────────────────────

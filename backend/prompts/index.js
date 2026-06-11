@@ -1,79 +1,9 @@
-const express = require("express");
-const router = express.Router();
+// ─────────────────────────────────────────────────────────────────────────────
+//  Prompt builders. Pure functions: profile/reference in → prompt string out.
+//  Kept separate from transport (provider.js) and orchestration (aiService.js).
+// ─────────────────────────────────────────────────────────────────────────────
 
-// Groq — free tier: 30 RPM, 14 400 req/day
-// Free models: llama-3.1-8b-instant, llama-3.3-70b-versatile, mixtral-8x7b-32768
-const GROQ_MODEL   = "llama-3.1-8b-instant";
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-
-/**
- * POST /api/gemini/analyze
- * Body: { userProfile, studyReference, action: "study_plan" | "score_gap" | "feedback" }
- */
-router.post("/analyze", async (req, res) => {
-  const apiKey = process.env.GROQ_API_KEY;
-
-  if (!apiKey) {
-    return res.status(503).json({
-      error: "Groq API key not configured. Add GROQ_API_KEY to backend/.env"
-    });
-  }
-
-  const { userProfile, studyReference, action, extraContext } = req.body;
-
-  if (!userProfile || !action) {
-    return res.status(400).json({ error: "Missing userProfile or action" });
-  }
-
-  const prompts = {
-    study_plan: buildStudyPlanPrompt(userProfile, studyReference),
-    score_gap:  buildScoreGapPrompt(userProfile, studyReference),
-    feedback:   buildFeedbackPrompt(userProfile, extraContext, studyReference)
-  };
-
-  const prompt = prompts[action];
-  if (!prompt) {
-    return res.status(400).json({ error: `Unknown action: ${action}` });
-  }
-
-  try {
-    const { default: fetch } = await import("node-fetch");
-
-    const response = await fetch(GROQ_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-        max_tokens: 700,
-        top_p: 0.9,
-        stream: false
-      })
-    });
-
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      console.error("[Groq API Error]", errData);
-      return res.status(response.status).json({
-        error: errData.error?.message || `Groq API error ${response.status}`
-      });
-    }
-
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content || "";
-
-    res.json({ result: text });
-  } catch (err) {
-    console.error("[Groq fetch error]", err.message);
-    res.status(500).json({ error: "Failed to reach Groq API" });
-  }
-});
-
-// ─── Prompt builders ────────────────────────────────────────────────────────
+const SKILLS = ["reading", "listening", "speaking", "writing", "vocabulary"];
 
 function buildStudyPlanPrompt(profile, studyReference) {
   const { targetScore, currentPrediction, preparationDays, mistakes, totalTasks } = profile;
@@ -105,6 +35,7 @@ Schema:
 Rules:
 - Always include exactly 5 tasks.
 - Distribute tasks across TOEFL skills based on weak zones and score gap.
+- Every task MUST include a concrete "reason" explaining why it matters for this student.
 - Keep each title and reason practical, not generic.
 - Use the reference data when relevant.
 - English only.`;
@@ -158,6 +89,39 @@ Schema:
 Be encouraging but honest. English only. Max 80 words.`;
 }
 
+function buildRecommendationsPrompt(profile, studyReference) {
+  const { targetScore, currentPrediction, preparationDays, mistakes, totalTasks } = profile;
+
+  const skillLines = Object.entries(mistakes || {}).map(([skill, m]) => {
+    const total = totalTasks?.[skill] || 10;
+    const pct = Math.round((m / total) * 100);
+    return `  - ${skill}: ${pct}% error rate (${m}/${total} mistakes)`;
+  }).join("\n");
+
+  return `You are an expert TOEFL iBT coach generating the dashboard "recommended focus" widget.
+
+Student Profile:
+- Target TOEFL Score: ${targetScore}
+- Current Predicted Score: ${currentPrediction}
+- Days until exam: ${preparationDays}
+- Score gap: ${targetScore - currentPrediction} points
+
+Skill Error Rates:
+${skillLines}
+
+Reference Data:
+${formatStudyReference(studyReference)}
+
+Task: Return ONLY valid minified JSON. No markdown.
+Schema:
+{"headline":"one short motivating sentence","recommendations":[{"skill":"reading|listening|speaking|writing|vocabulary","title":"short focus area","reason":"why now, tied to this student's data","priority":"high|medium|low","minutes":10}]}
+
+Rules:
+- Return 3 recommendations, ordered most-impactful first.
+- Each recommendation MUST cite a concrete reason from the student's data.
+- English only.`;
+}
+
 function formatStudyReference(ref) {
   if (!ref) return "No local reference database was provided.";
 
@@ -180,7 +144,15 @@ function formatRubricForSkill(ref, skill) {
   const key = String(skill || "").toLowerCase();
   const rubrics = ref?.rubrics || {};
   const items = rubrics[key] || rubrics.speaking || rubrics.writing || [];
-  return Array.isArray(items) ? items.map(item => `- ${item}`).join("\n") : "Use TOEFL clarity, organization, accuracy, and task fulfillment criteria.";
+  return Array.isArray(items)
+    ? items.map(item => `- ${item}`).join("\n")
+    : "Use TOEFL clarity, organization, accuracy, and task fulfillment criteria.";
 }
 
-module.exports = router;
+module.exports = {
+  SKILLS,
+  buildStudyPlanPrompt,
+  buildScoreGapPrompt,
+  buildFeedbackPrompt,
+  buildRecommendationsPrompt
+};

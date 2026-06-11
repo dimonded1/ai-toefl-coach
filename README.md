@@ -67,8 +67,18 @@ npx serve .
 ```
 ai-toefl-coach/
 ├── backend/
-│   ├── server.js          # Express app
-│   ├── routes/gemini.js   # AI API proxy
+│   ├── server.js          # Express app wiring (CORS, rate limit, error handler)
+│   ├── config/env.js      # Centralized, validated configuration
+│   ├── routes/ai.js       # HTTP layer (validate → service → response)
+│   ├── services/
+│   │   ├── provider.js    # Provider-neutral AI transport (Groq, with timeout)
+│   │   └── aiService.js   # Orchestration: prompt → provider → validate output
+│   ├── prompts/index.js   # Prompt builders
+│   ├── validators/        # Request + AI-response validation
+│   ├── middleware/        # Rate limiting
+│   ├── lib/errors.js      # Stable error codes (AppError)
+│   ├── models/            # Storage schema (schema.sql) + repository interface
+│   ├── docs/AI_CONTRACT.md# API / AI contract reference
 │   ├── package.json
 │   └── Dockerfile
 ├── frontend/
