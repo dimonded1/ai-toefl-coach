@@ -61,6 +61,26 @@ a {
   outline-offset: 2px;
 }
 
+.skip-link {
+  position: fixed;
+  left: 16px;
+  top: 12px;
+  z-index: 999;
+  transform: translateY(-140%);
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--accent);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+  font-weight: 800;
+  text-decoration: none;
+  transition: transform .18s ease;
+}
+.skip-link:focus-visible { transform: translateY(0); }
+
+.main-content:focus { outline: none; }
+
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -1732,9 +1752,40 @@ a {
 
 .analytics-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 24px;
+}
+
+.analytics-insight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(15,138,122,.12), transparent 14rem),
+    linear-gradient(135deg, #fff, #f7faff);
+}
+.analytics-insight p {
+  margin-top: 6px;
+  color: var(--muted);
+  max-width: 760px;
+}
+.analytics-insight-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 220px;
+}
+.analytics-insight-tags span {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: .74rem;
+  font-weight: 850;
 }
 
 .analytics-kpi {
@@ -1768,6 +1819,43 @@ a {
 .score-progress-card,
 .progress-history-card {
   grid-column: span 2;
+}
+
+.target-pace-card {
+  display: grid;
+  gap: 14px;
+}
+
+.pace-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pace-stat {
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--bg4);
+  border: 1px solid var(--border);
+}
+.pace-stat span,
+.pace-stat small {
+  display: block;
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+.pace-stat strong {
+  display: block;
+  margin: 5px 0 2px;
+  font-size: 1.75rem;
+  line-height: 1;
+  font-weight: 900;
+}
+.pace-note {
+  color: var(--muted);
+  font-size: .84rem;
 }
 
 .analytics-trajectory {
@@ -2384,6 +2472,88 @@ a {
   font-size: .875rem;
 }
 .ai-loading-spaced { margin-top: 12px; }
+.ai-state-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.74);
+  box-shadow: 0 14px 34px rgba(25,39,69,.06);
+}
+.ai-state-loading {
+  align-items: center;
+  background: linear-gradient(135deg, rgba(237,242,255,.92), rgba(230,246,243,.72));
+  border-color: rgba(40,84,232,.16);
+}
+.ai-state-warning {
+  background: #fff8ed;
+  border-color: rgba(201,120,22,.22);
+}
+.ai-state-danger {
+  background: #fff4f5;
+  border-color: rgba(196,61,75,.22);
+}
+.ai-state-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(40,84,232,.1);
+  color: var(--accent);
+  font-weight: 900;
+}
+.ai-state-warning .ai-state-icon {
+  background: rgba(201,120,22,.12);
+  color: var(--warning);
+}
+.ai-state-danger .ai-state-icon {
+  background: rgba(196,61,75,.12);
+  color: var(--danger);
+}
+.ai-state-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.ai-state-topline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.ai-state-label,
+.ai-state-action {
+  width: fit-content;
+  color: var(--accent);
+  font-size: .68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.ai-state-action {
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.ai-state-copy strong {
+  font-size: .98rem;
+  line-height: 1.2;
+}
+.ai-state-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: .84rem;
+}
+.ai-state-copy small {
+  color: var(--muted-2);
+  font-size: .76rem;
+  overflow-wrap: anywhere;
+}
 .spinner {
   width: 18px; height: 18px;
   border: 2px solid var(--border);
@@ -2427,6 +2597,36 @@ a {
   gap: 12px;
   margin-bottom: 14px;
 }
+.skill-distribution-row {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.skill-distribution-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.skill-distribution-head,
+.skill-distribution-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.skill-distribution-head {
+  margin-bottom: 9px;
+}
+.skill-distribution-foot {
+  margin-top: -6px;
+  color: var(--muted-2);
+  font-size: .74rem;
+  font-weight: 750;
+}
+.skill-distribution-note {
+  color: var(--muted-2);
+  font-size: .72rem;
+  font-weight: 750;
+  text-align: right;
+}
 .bar-chart-label { width: 90px; font-size: .8rem; color: var(--muted); }
 .bar-chart-track {
   flex: 1;
@@ -2467,6 +2667,15 @@ a {
 .error-bar-fill  { height: 100%; border-radius: 4px; background: var(--danger); }
 .error-pct  { font-size: .8rem; color: var(--muted); width: 40px; text-align: right; }
 .error-count { font-size: .75rem; color: var(--muted); }
+.analytics-empty {
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--bg4);
+  border: 1px dashed var(--border-strong);
+  color: var(--muted);
+  font-size: .86rem;
+  text-align: center;
+}
 .mistake-detail {
   flex: 1;
   font-size: .8rem;
@@ -2595,4 +2804,27 @@ a {
     scroll-behavior: auto !important;
     transition-duration: .01ms !important;
   }
+}
+
+@media (max-width: 900px) {
+  .analytics-insight {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .analytics-insight-tags {
+    justify-content: flex-start;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .pace-grid { grid-template-columns: 1fr; }
+  .ai-state-card { grid-template-columns: 1fr; }
+  .skill-distribution-head,
+  .skill-distribution-foot {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .skill-distribution-note { text-align: left; }
 }
