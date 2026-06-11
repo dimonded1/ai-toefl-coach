@@ -24,6 +24,7 @@
     <li><a href="#" class="nav-link" data-section="writing">✍️ Writing</a></li>
     <li><a href="#" class="nav-link" data-section="minitest">⚡ Mini TOEFL Test</a></li>
     <li><a href="#" class="nav-link" data-section="aiplan">🤖 AI Study Plan</a></li>
+    <li><a href="#" class="nav-link" data-section="calendar">🗓️ Study Calendar</a></li>
     <li><a href="#" class="nav-link" data-section="analytics">📈 Results & Analytics</a></li>
   </ul>
   <div class="sidebar-footer">
@@ -295,6 +296,32 @@
     </div>
   </section>
 
+  <!-- ─── SECTION: STUDY CALENDAR ─── -->
+  <section class="section" id="section-calendar">
+    <div class="calendar-container">
+
+      <div class="card cal-countdown-card" id="calCountdown"></div>
+
+      <div class="card cal-month-card">
+        <div class="cal-month-head">
+          <button class="cal-nav-btn" id="calPrev" aria-label="Previous month">‹</button>
+          <h2 class="cal-month-title" id="calMonthTitle">—</h2>
+          <button class="cal-nav-btn" id="calNext" aria-label="Next month">›</button>
+          <button class="cal-today-btn" id="calToday">Today</button>
+        </div>
+        <div class="cal-weekdays" id="calWeekdays"></div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-legend" id="calLegend"></div>
+      </div>
+
+      <div class="card cal-roadmap-card">
+        <h2 class="card-title">🗺️ 8-Week Roadmap</h2>
+        <div class="cal-roadmap" id="calRoadmap"></div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- ─── SECTION: ANALYTICS ─── -->
   <section class="section" id="section-analytics">
     <div class="analytics-container">
@@ -336,6 +363,7 @@
 <script src="js/data.js"></script>
 <script src="js/profile.js"></script>
 <script src="js/aiPlan.js"></script>
+<script src="js/calendar.js"></script>
 <script src="js/app.js"></script>
 
 </body>

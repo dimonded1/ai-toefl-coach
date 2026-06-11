@@ -90,6 +90,7 @@ function navigateTo(section) {
   if (section === "dashboard") renderDashboard();
   if (section === "analytics") renderAnalytics();
   if (section === "aiplan")    renderAIPlanSection();
+  if (section === "calendar")  renderCalendar();
   if (["vocabulary","reading","listening","speaking","writing"].includes(section)) {
     renderQuestion(section);
   }

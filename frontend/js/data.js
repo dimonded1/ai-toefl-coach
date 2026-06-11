@@ -508,6 +508,7 @@ const SECTION_TITLES = {
   writing:    "Writing Practice",
   minitest:   "Mini TOEFL Test",
   aiplan:     "AI Study Plan",
+  calendar:   "Study Calendar",
   analytics:  "Results & Analytics"
 };
 
