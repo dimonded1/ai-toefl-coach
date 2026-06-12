@@ -554,6 +554,33 @@
 <!-- ═══════════════════════ TOAST NOTIFICATION ═══════════════════════ -->
 <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
 
+<!-- ═══════════════════════ AI COACH CHAT ═══════════════════════ -->
+<div class="coach-chat" id="coachChat">
+  <button class="coach-chat-toggle" id="coachChatToggle" type="button" aria-expanded="false" aria-controls="coachChatPanel">
+    <span class="coach-chat-mark">AI</span>
+    <span>Coach</span>
+  </button>
+  <section class="coach-chat-panel hidden" id="coachChatPanel" aria-label="AI TOEFL Coach chat">
+    <div class="coach-chat-head">
+      <div>
+        <div class="card-kicker">AI Coach</div>
+        <h2>Ask about your next step</h2>
+      </div>
+      <button class="coach-chat-close" id="coachChatClose" type="button" aria-label="Close chat">Close</button>
+    </div>
+    <div class="coach-chat-messages" id="coachChatMessages" aria-live="polite"></div>
+    <div class="coach-chat-suggestions" id="coachChatSuggestions">
+      <button type="button" data-chat-prompt="What should I practice today?">Today</button>
+      <button type="button" data-chat-prompt="Explain my weak zones in simple words.">Weak zones</button>
+      <button type="button" data-chat-prompt="How can I improve my TOEFL score this week?">This week</button>
+    </div>
+    <form class="coach-chat-form" id="coachChatForm">
+      <textarea id="coachChatInput" class="text-input" rows="2" maxlength="1200" placeholder="Ask your TOEFL coach..."></textarea>
+      <button class="btn-primary" id="coachChatSend" type="submit">Send</button>
+    </form>
+  </section>
+</div>
+
 <!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
 <script src="src/scripts/data.js"></script>
 <script src="src/scripts/scoring.js"></script>
