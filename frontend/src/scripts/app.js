@@ -18,6 +18,10 @@ const PAGE_TITLES = {
 
 const PRACTICE_SECTIONS = ["vocabulary","reading","listening","speaking","writing","minitest"];
 let learnSkillFilter = "all";
+let learnLevelFilter = "all";
+let learnTimeFilter = "all";
+let notebookTypeFilter = "all";
+let notebookSearchQuery = "";
 
 // Per-section question state
 const practiceState = {
@@ -26,7 +30,7 @@ const practiceState = {
   listening:  { idx: 0, questions: [], answered: false, played: false },
   speaking:   { idx: 0, questions: [], answered: false },
   writing:    { idx: 0, questions: [], answered: false },
-  minitest:   { idx: 0, questions: [], answers: [], started: false, done: false }
+  minitest:   { idx: 0, questions: [], answers: [], started: false, done: false, mode: "full", moduleId: null }
 };
 
 const listeningSpeechState = {
@@ -87,6 +91,11 @@ function initNavigation() {
     const trigger = e.target.closest("[data-section]");
     if (!trigger) return;
     e.preventDefault();
+    if (trigger.dataset.section === "minitest") {
+      practiceState.minitest.mode = "full";
+      practiceState.minitest.moduleId = null;
+      renderMiniTestStart();
+    }
     navigateTo(trigger.dataset.section);
     document.getElementById("sidebar").classList.remove("open");
   });
@@ -1153,6 +1162,18 @@ function titleCase(value) {
 function initLearning() {
   const search = document.getElementById("learnSearchInput");
   if (search) search.addEventListener("input", renderLearn);
+  document.getElementById("learnLevelSelect")?.addEventListener("change", event => {
+    learnLevelFilter = event.target.value || "all";
+    renderLearn();
+  });
+  document.getElementById("learnTimeSelect")?.addEventListener("change", event => {
+    learnTimeFilter = event.target.value || "all";
+    renderLearn();
+  });
+  document.getElementById("noteSearchInput")?.addEventListener("input", event => {
+    notebookSearchQuery = event.target.value.trim().toLowerCase();
+    renderNotebook();
+  });
 
   document.addEventListener("click", event => {
     const filterBtn = event.target.closest("[data-learn-filter]");
@@ -1161,6 +1182,47 @@ function initLearning() {
       filterBtn.classList.add("selected");
       learnSkillFilter = filterBtn.dataset.learnFilter || "all";
       renderLearn();
+      return;
+    }
+
+    const topicBtn = event.target.closest("[data-topic-query]");
+    if (topicBtn) {
+      const input = document.getElementById("learnSearchInput");
+      if (input) input.value = topicBtn.dataset.topicQuery || "";
+      renderLearn();
+      return;
+    }
+
+    const noteFilterBtn = event.target.closest("[data-note-filter]");
+    if (noteFilterBtn) {
+      document.querySelectorAll("[data-note-filter]").forEach(btn => btn.classList.remove("selected"));
+      noteFilterBtn.classList.add("selected");
+      notebookTypeFilter = noteFilterBtn.dataset.noteFilter || "all";
+      renderNotebook();
+      return;
+    }
+
+    const lockedLessonBtn = event.target.closest("[data-locked-lesson]");
+    if (lockedLessonBtn) {
+      showToast(lockedLessonBtn.dataset.lockedReason || "Complete the previous week to unlock this lesson.", "info");
+      return;
+    }
+
+    const repairLessonBtn = event.target.closest("[data-repair-lesson]");
+    if (repairLessonBtn) {
+      openLesson(repairLessonBtn.dataset.repairLesson, { force: true });
+      return;
+    }
+
+    const moduleTestBtn = event.target.closest("[data-module-test]");
+    if (moduleTestBtn) {
+      startModuleMiniTest(moduleTestBtn.dataset.moduleTest);
+      return;
+    }
+
+    const vocabReviewBtn = event.target.closest("[data-start-vocab-review]");
+    if (vocabReviewBtn) {
+      startVocabularyReviewQuiz();
       return;
     }
 
@@ -1215,6 +1277,7 @@ function renderLearn() {
   renderStudyPath();
   renderMistakeLessons();
   renderModules();
+  renderTopicQuickFilters();
   renderLessonLibrary();
   renderVocabularySystem();
   renderNotebook();
@@ -1243,6 +1306,29 @@ function learningCompletionPct(lessonIds = LEARNING_LESSONS.map(lesson => lesson
   return lessonIds.length ? Math.round((count / lessonIds.length) * 100) : 0;
 }
 
+function getLessonWeek(lessonId) {
+  return STUDY_PATH_WEEKS.find(week => week.lessonIds.includes(lessonId)) || STUDY_PATH_WEEKS[0];
+}
+
+function isStudyWeekUnlocked(week) {
+  const completed = new Set(profile.learningProgress?.completedLessons || []);
+  if (week.week === 1) return true;
+  return STUDY_PATH_WEEKS
+    .slice(0, week.week - 1)
+    .every(item => item.lessonIds.some(id => completed.has(id)));
+}
+
+function isLessonUnlocked(lessonId) {
+  const week = getLessonWeek(lessonId);
+  return isStudyWeekUnlocked(week);
+}
+
+function getLessonLockReason(lessonId) {
+  const week = getLessonWeek(lessonId);
+  if (!week || week.week <= 1) return "";
+  return `Complete one lesson in Week ${week.week - 1} to unlock Week ${week.week}.`;
+}
+
 function renderStudyPath() {
   const container = document.getElementById("studyPathList");
   if (!container) return;
@@ -1251,18 +1337,21 @@ function renderStudyPath() {
 
   container.innerHTML = STUDY_PATH_WEEKS.map(week => {
     const pct = learningCompletionPct(week.lessonIds);
-    const previousWeeks = STUDY_PATH_WEEKS.slice(0, week.week - 1);
-    const unlocked = week.week === 1 || previousWeeks.every(item => item.lessonIds.some(id => completed.has(id)));
+    const unlocked = isStudyWeekUnlocked(week);
     const nextLesson = week.lessonIds.find(id => !completed.has(id)) || week.lessonIds[0];
+    const lockReason = unlocked ? "" : `Complete one lesson in Week ${week.week - 1} first.`;
     return `
       <div class="study-path-item ${unlocked ? "unlocked" : "locked"}">
         <div class="path-week-meta">
-          <span>Week ${week.week}</span>
+          <span>Week ${week.week} · ${unlocked ? "Unlocked" : "Locked"}</span>
           <strong>${escapeHtml(week.title)}</strong>
         </div>
         <p>${escapeHtml(week.focus)}</p>
         <div class="path-progress"><span class="w-${pct}"></span></div>
-        <button class="btn-secondary btn-compact" data-lesson-id="${escapeHtml(nextLesson)}">${unlocked ? "Open lesson" : "Preview"}</button>
+        <button class="btn-secondary btn-compact" ${unlocked ? `data-lesson-id="${escapeHtml(nextLesson)}"` : `data-locked-lesson="${escapeHtml(nextLesson)}" data-locked-reason="${escapeHtml(lockReason)}" disabled`}>
+          ${unlocked ? "Open lesson" : "Locked"}
+        </button>
+        ${unlocked ? "" : `<small class="path-lock-note">${escapeHtml(lockReason)}</small>`}
       </div>`;
   }).join("");
 }
@@ -1304,12 +1393,31 @@ function getRecommendedMistakeLessons(currentProfile) {
   return Array.from(matches.values()).slice(0, 3);
 }
 
+function getRepairLessonForQuestion(question, skill) {
+  const haystack = `${question?.topic || ""} ${question?.question || ""} ${question?.prompt || ""} ${question?.lectureTitle || ""} ${skill || ""}`.toLowerCase();
+  return LEARNING_LESSONS.find(lesson =>
+    lesson.repairTopics?.some(topic => haystack.includes(String(topic).toLowerCase()))
+  ) || LEARNING_LESSONS.find(lesson => lesson.skill === skill);
+}
+
+function renderRepairLessonPrompt(question, skill) {
+  const lesson = getRepairLessonForQuestion(question, skill);
+  if (!lesson) return "";
+  return `
+    <div class="repair-prompt">
+      <span>Repair lesson</span>
+      <strong>${escapeHtml(lesson.title)}</strong>
+      <button class="btn-secondary btn-compact" data-repair-lesson="${escapeHtml(lesson.id)}">Start repair lesson</button>
+    </div>`;
+}
+
 function renderModules() {
   const container = document.getElementById("moduleGrid");
   if (!container) return;
   container.innerHTML = LEARNING_MODULES.map(module => {
     const pct = learningCompletionPct(module.lessonIds);
     const nextLesson = module.lessonIds.find(id => !profile.learningProgress.completedLessons.includes(id)) || module.lessonIds[0];
+    const unlocked = isLessonUnlocked(nextLesson);
     return `
       <div class="module-card">
         <div class="module-card-head">
@@ -1319,7 +1427,10 @@ function renderModules() {
         <strong>${escapeHtml(module.title)}</strong>
         <p>${escapeHtml(module.description)}</p>
         <div class="path-progress"><span class="w-${pct}"></span></div>
-        <button class="btn-secondary btn-full" data-lesson-id="${escapeHtml(nextLesson)}">Continue module</button>
+        <div class="module-actions">
+          <button class="btn-secondary btn-full" ${unlocked ? `data-lesson-id="${escapeHtml(nextLesson)}"` : `data-locked-lesson="${escapeHtml(nextLesson)}" disabled`}>${unlocked ? "Continue module" : "Locked"}</button>
+          <button class="btn-secondary btn-full" data-module-test="${escapeHtml(module.id)}">Module mini-test</button>
+        </div>
       </div>`;
   }).join("");
 }
@@ -1331,24 +1442,49 @@ function renderLessonLibrary() {
   const completed = new Set(profile.learningProgress.completedLessons);
   const lessons = LEARNING_LESSONS.filter(lesson => {
     const matchesSkill = learnSkillFilter === "all" || lesson.skill === learnSkillFilter;
+    const matchesLevel = learnLevelFilter === "all" || lesson.level === learnLevelFilter;
+    const matchesTime = learnTimeFilter === "all"
+      || (learnTimeFilter === "short" && lesson.minutes < 5)
+      || (learnTimeFilter === "medium" && lesson.minutes >= 5 && lesson.minutes <= 6);
     const haystack = `${lesson.title} ${lesson.summary} ${lesson.tags.join(" ")} ${lesson.skill} ${lesson.level}`.toLowerCase();
-    return matchesSkill && (!query || haystack.includes(query));
+    return matchesSkill && matchesLevel && matchesTime && (!query || haystack.includes(query));
   });
 
   setText("lessonCountBadge", `${lessons.length} ${lessons.length === 1 ? "lesson" : "lessons"}`);
   container.innerHTML = lessons.length
-    ? lessons.map(lesson => `
-        <button class="lesson-card" data-lesson-id="${escapeHtml(lesson.id)}">
+    ? lessons.map(lesson => {
+        const unlocked = isLessonUnlocked(lesson.id);
+        const lockReason = getLessonLockReason(lesson.id);
+        return `
+        <button class="lesson-card ${unlocked ? "" : "locked"}" ${unlocked ? `data-lesson-id="${escapeHtml(lesson.id)}"` : `data-locked-lesson="${escapeHtml(lesson.id)}" data-locked-reason="${escapeHtml(lockReason)}"`}>
           <span class="lesson-card-top">
             <span class="lesson-skill ${escapeHtml(lesson.skill)}">${escapeHtml(titleCase(lesson.skill))}</span>
-            <span>${lesson.minutes} min</span>
+            <span>${lesson.minutes} min · ${escapeHtml(lesson.level)}</span>
           </span>
           <strong>${escapeHtml(lesson.title)}</strong>
           <span>${escapeHtml(lesson.summary)}</span>
           <span class="lesson-tags">${lesson.tags.slice(0, 3).map(tag => `<small>${escapeHtml(tag)}</small>`).join("")}</span>
           ${completed.has(lesson.id) ? `<em>Completed</em>` : ""}
-        </button>`).join("")
+          ${unlocked ? "" : `<em class="locked-note">Locked</em>`}
+        </button>`;
+      }).join("")
     : `<p class="placeholder-text">No lessons match this search. Try a skill or TOEFL topic.</p>`;
+}
+
+function renderTopicQuickFilters() {
+  const container = document.getElementById("topicQuickFilters");
+  if (!container) return;
+  const topics = [
+    "inference",
+    "lecture notes",
+    "academic discussion",
+    "template",
+    "time management",
+    "vocabulary"
+  ];
+  container.innerHTML = topics.map(topic => `
+    <button class="topic-chip" data-topic-query="${escapeHtml(topic)}">${escapeHtml(titleCase(topic))}</button>
+  `).join("");
 }
 
 function renderVocabularySystem() {
@@ -1357,25 +1493,56 @@ function renderVocabularySystem() {
   const saved = new Set(profile.vocabularyProgress.savedWords);
   const mastered = new Set(profile.vocabularyProgress.masteredWords);
   const missed = new Set(profile.vocabularyProgress.missedWords);
+  const dueWords = getDueVocabularyWords();
   const reviewWords = profile.vocabularyProgress.missedWords
     .map(getVocabularyWordCard)
     .filter(word => word && !mastered.has(word.id));
 
-  const reviewHtml = reviewWords.length
-    ? reviewWords.map(word => renderVocabularyWordCard(word, saved, mastered, missed)).join("")
-    : `<p class="placeholder-text">Missed vocabulary words will appear here after practice.</p>`;
+  const reviewHtml = dueWords.length
+    ? dueWords.map(word => renderVocabularyWordCard(word, saved, mastered, missed)).join("")
+    : `<p class="placeholder-text">No words due today. Missed or saved words will appear here for review.</p>`;
 
   container.innerHTML = `
     <div class="vocab-system-summary">
       <div><strong>${saved.size}</strong><span>saved</span></div>
       <div><strong>${mastered.size}</strong><span>mastered</span></div>
-      <div><strong>${reviewWords.length}</strong><span>to review</span></div>
+      <div><strong>${dueWords.length}</strong><span>due today</span></div>
     </div>
     <div class="vocab-review-block">
-      <div class="card-kicker">Words I missed</div>
+      <div class="vocab-review-head">
+        <div>
+          <div class="card-kicker">Due today</div>
+          <strong>Vocabulary review</strong>
+        </div>
+        <button class="btn-secondary btn-compact" data-start-vocab-review ${dueWords.length ? "" : "disabled"}>Review quiz</button>
+      </div>
       <div class="vocab-review-list">${reviewHtml}</div>
     </div>
     ${TOEFL_WORD_CARDS.map(word => renderVocabularyWordCard(word, saved, mastered, missed)).join("")}`;
+}
+
+function getLatestVocabularyReview(wordId) {
+  const reviews = profile.vocabularyProgress?.reviews || [];
+  return reviews.slice().reverse().find(review => review.wordId === wordId);
+}
+
+function getDueVocabularyWords() {
+  const mastered = new Set(profile.vocabularyProgress.masteredWords);
+  const candidates = Array.from(new Set([
+    ...profile.vocabularyProgress.missedWords,
+    ...profile.vocabularyProgress.savedWords
+  ])).filter(wordId => !mastered.has(wordId));
+  const today = new Date().toISOString().slice(0, 10);
+  return candidates
+    .filter(wordId => {
+      const latest = getLatestVocabularyReview(wordId);
+      if (!latest) return true;
+      const lastDate = String(latest.date || "").slice(0, 10);
+      return latest.action === "missed" || lastDate < today;
+    })
+    .map(getVocabularyWordCard)
+    .filter(Boolean)
+    .slice(0, 6);
 }
 
 function getVocabularyWordCard(wordId) {
@@ -1407,7 +1574,15 @@ function renderVocabularyWordCard(word, saved, mastered, missed) {
 function renderNotebook() {
   const container = document.getElementById("notebookList");
   if (!container) return;
-  const notes = (profile.notes || []).slice().reverse();
+  const query = notebookSearchQuery || (document.getElementById("noteSearchInput")?.value || "").trim().toLowerCase();
+  const notes = (profile.notes || [])
+    .filter(note => notebookTypeFilter === "all" || note.type === notebookTypeFilter)
+    .filter(note => {
+      const haystack = `${note.title || ""} ${note.content || ""} ${note.source || ""} ${note.type || ""}`.toLowerCase();
+      return !query || haystack.includes(query);
+    })
+    .slice()
+    .reverse();
   container.innerHTML = notes.length
     ? notes.map(note => `
         <div class="notebook-item">
@@ -1418,11 +1593,16 @@ function renderNotebook() {
           </div>
           <button class="btn-secondary btn-compact" data-delete-note="${escapeHtml(note.id)}">Delete</button>
         </div>`).join("")
-    : `<p class="placeholder-text">Save useful phrases, personal rules, templates, or AI advice here.</p>`;
+    : `<p class="placeholder-text">No notes match this filter. Save useful phrases, personal rules, templates, or AI advice here.</p>`;
 }
 
-function openLesson(lessonId) {
+function openLesson(lessonId, options = {}) {
   ensureLearningState(profile);
+  if (!options.force && !isLessonUnlocked(lessonId)) {
+    showToast(getLessonLockReason(lessonId) || "This lesson is locked for now.", "info");
+    renderLearn();
+    return;
+  }
   profile.learningProgress.currentLessonId = lessonId;
   saveProfile(profile);
   navigateTo("lesson");
@@ -1472,7 +1652,7 @@ function renderLessonPage() {
         </section>
         <div class="lesson-bottom-actions">
           <button class="btn-primary" data-section="${escapeHtml(lesson.practiceSkill)}">Practice this skill</button>
-          <button class="btn-secondary" data-section="minitest">Run mini-test</button>
+          <button class="btn-secondary" data-module-test="${escapeHtml(module.id)}">Run module mini-test</button>
           <button class="btn-secondary" data-complete-lesson="${escapeHtml(lesson.id)}">${completed ? "Completed" : "Mark complete"}</button>
         </div>
       </article>
@@ -1525,14 +1705,50 @@ function markVocabularyMastered(wordId) {
   showToast("Word marked mastered.", "success");
 }
 
+function buildVocabularyReviewQuestions(words) {
+  return words.map(word => {
+    const distractors = TOEFL_WORD_CARDS
+      .filter(item => item.id !== word.id)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3)
+      .map(item => item.definition);
+    return {
+      id: `review-${word.id}`,
+      type: "vocabulary",
+      skill: "Vocabulary",
+      question: `Choose the correct meaning of "${word.word}"`,
+      options: [word.definition, ...distractors].sort(() => Math.random() - 0.5),
+      correctAnswer: word.definition,
+      topic: "Vocabulary review",
+      difficulty: "medium"
+    };
+  });
+}
+
+function startVocabularyReviewQuiz() {
+  profile = loadProfile();
+  ensureLearningState(profile);
+  const dueWords = getDueVocabularyWords();
+  if (!dueWords.length) {
+    showToast("No vocabulary words are due today.", "info");
+    return;
+  }
+  practiceState.vocabulary.questions = buildVocabularyReviewQuestions(dueWords);
+  practiceState.vocabulary.idx = 0;
+  practiceState.vocabulary.answered = false;
+  navigateTo("vocabulary");
+  showToast("Vocabulary review quiz started.", "success");
+}
+
 function addNotebookNoteFromForm() {
   const title = document.getElementById("noteTitleInput")?.value.trim();
   const content = document.getElementById("noteContentInput")?.value.trim();
+  const type = document.getElementById("noteTypeInput")?.value || "personal";
   if (!title || !content) {
     showToast("Add a title and note content.", "error");
     return;
   }
-  addNotebookNote({ type: "personal", title, content, source: "Notebook" });
+  addNotebookNote({ type, title, content, source: "Notebook" });
   document.getElementById("noteTitleInput").value = "";
   document.getElementById("noteContentInput").value = "";
   renderNotebook();
@@ -1882,7 +2098,8 @@ function attachOptionHandlers(container, q, skill, isMiniTest) {
           ${correct
             ? "Correct. Well done."
             : `Incorrect. The correct answer is: <strong>${q.correctAnswer}</strong>`}
-        </div>`;
+        </div>
+        ${correct ? "" : renderRepairLessonPrompt(q, skill)}`;
       }
 
       // Show Next button
@@ -1957,6 +2174,67 @@ function renderSectionDone(skill, container) {
 }
 
 // ─── MINI TEST ────────────────────────────────────
+function getModulePracticeSkills(moduleId) {
+  const module = getModuleById(moduleId);
+  const skills = [
+    module.skill,
+    ...module.lessonIds.map(id => getLessonById(id).practiceSkill)
+  ].filter(skill => QUESTIONS[skill]);
+  return Array.from(new Set(skills));
+}
+
+function buildModuleMiniTest(moduleId) {
+  const skills = getModulePracticeSkills(moduleId);
+  const questions = [];
+  const perSkill = skills.length === 1 ? 5 : 3;
+  skills.forEach(skill => {
+    questions.push(...pickQuestions(QUESTIONS[skill], perSkill));
+  });
+  return questions.slice(0, 8);
+}
+
+function getQuestionCompositionTags(questions) {
+  const counts = questions.reduce((acc, question) => {
+    const skill = question.skill?.toLowerCase() || question.type;
+    acc[skill] = (acc[skill] || 0) + 1;
+    return acc;
+  }, {});
+  return Object.entries(counts).map(([skill, count]) => `${count} ${SKILL_META[skill]?.label || titleCase(skill)}`);
+}
+
+function getMiniTestConfig() {
+  const state = practiceState.minitest;
+  if (state.mode === "module" && state.moduleId) {
+    const module = getModuleById(state.moduleId);
+    const questions = buildModuleMiniTest(module.id);
+    return {
+      title: `${module.title} Mini-Test`,
+      copy: "Focused quiz for this preparation module.",
+      button: "Start Module Mini-Test",
+      questions,
+      tags: getQuestionCompositionTags(questions)
+    };
+  }
+
+  const questions = buildMiniTest();
+  return {
+    title: "Mini TOEFL Test",
+    copy: "10 questions across all skill areas. Complete without stopping.",
+    button: "Start Mini Test",
+    questions,
+    tags: ["3 Reading", "3 Listening", "2 Vocabulary", "1 Speaking", "1 Writing"]
+  };
+}
+
+function startModuleMiniTest(moduleId) {
+  practiceState.minitest.mode = "module";
+  practiceState.minitest.moduleId = moduleId;
+  practiceState.minitest.started = false;
+  practiceState.minitest.done = false;
+  renderMiniTestStart();
+  navigateTo("minitest");
+}
+
 function initMiniTest() {
   const state = practiceState.minitest;
   state.questions = buildMiniTest();
@@ -1964,22 +2242,19 @@ function initMiniTest() {
 }
 
 function renderMiniTestStart() {
+  const config = getMiniTestConfig();
   document.getElementById("miniContent").innerHTML = `
     <div class="mini-start">
-      <h3>Mini TOEFL Test</h3>
-      <p>10 questions across all skill areas. Complete without stopping.</p>
+      <h3>${escapeHtml(config.title)}</h3>
+      <p>${escapeHtml(config.copy)}</p>
       <div class="mini-composition">
-        <span class="mini-tag">3 Reading</span>
-        <span class="mini-tag">3 Listening</span>
-        <span class="mini-tag">2 Vocabulary</span>
-        <span class="mini-tag">1 Speaking</span>
-        <span class="mini-tag">1 Writing</span>
+        ${config.tags.map(tag => `<span class="mini-tag">${escapeHtml(tag)}</span>`).join("")}
       </div>
-      <button class="btn-primary" id="startMiniBtn">Start Mini Test</button>
+      <button class="btn-primary" id="startMiniBtn">${escapeHtml(config.button)}</button>
     </div>`;
 
   document.getElementById("startMiniBtn").addEventListener("click", () => {
-    practiceState.minitest.questions = buildMiniTest();
+    practiceState.minitest.questions = config.questions;
     practiceState.minitest.idx     = 0;
     practiceState.minitest.answers = [];
     practiceState.minitest.started = true;
@@ -2249,7 +2524,7 @@ function renderMiniResults() {
   content.innerHTML = `
     <div class="mini-results">
       <div class="mini-result-header">
-        <div class="mini-result-score">${totalCorrect}/10</div>
+        <div class="mini-result-score">${totalCorrect}/${answers.length}</div>
         <div class="mini-result-label">Correct Answers</div>
         <div class="mini-result-prediction">
           Predicted TOEFL: <strong>${predicted}</strong>
@@ -2286,7 +2561,7 @@ function renderMiniResults() {
 
   document.getElementById("miniProgress").textContent = `Done`;
   content.querySelector("#retakeMiniBtn").addEventListener("click", () => {
-    state.questions = buildMiniTest();
+    state.questions = getMiniTestConfig().questions;
     state.idx = 0; state.answers = [];
     renderMiniTestStart();
   });
