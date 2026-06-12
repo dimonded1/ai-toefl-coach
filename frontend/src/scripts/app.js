@@ -890,7 +890,10 @@ function renderAccountSync() {
   const signedOutPanel = document.getElementById("accountSignedOut");
   const signedInPanel = document.getElementById("accountSignedIn");
   const status = document.getElementById("accountSyncStatus");
-  if (!signedOutPanel || !signedInPanel || !status) return;
+  if (!signedOutPanel || !signedInPanel || !status) {
+    renderTopbarSyncStatus(signedIn);
+    return;
+  }
 
   signedOutPanel.classList.toggle("hidden", signedIn);
   signedInPanel.classList.toggle("hidden", !signedIn);
@@ -900,6 +903,7 @@ function renderAccountSync() {
     status.className = "sync-status sync-status-local";
     const nameInput = document.getElementById("authNameInput");
     if (nameInput && !nameInput.value) nameInput.value = document.getElementById("profileNameInput")?.value || profile.name || "";
+    renderTopbarSyncStatus(false);
     return;
   }
 
@@ -911,12 +915,43 @@ function renderAccountSync() {
   const statusCopy = getSyncStatusCopy(accountSyncState);
   status.textContent = statusCopy.label;
   status.className = `sync-status ${statusCopy.className}`;
+  renderTopbarSyncStatus(true);
 }
 
 function getSyncStatusCopy(state) {
   if (state.state === "failed") return { label: "Sync failed", className: "sync-status-failed" };
   if (state.state === "saving" || state.state === "syncing") return { label: "Saving", className: "sync-status-saving" };
   return { label: "Synced", className: "sync-status-synced" };
+}
+
+function renderTopbarSyncStatus(signedIn) {
+  const topbarStatus = document.getElementById("topbarSyncStatus");
+  if (!topbarStatus) return;
+
+  if (!signedIn) {
+    topbarStatus.textContent = "Local";
+    topbarStatus.className = "sync-topbar-status sync-topbar-local";
+    topbarStatus.title = "Local mode. Create an account to sync progress.";
+    return;
+  }
+
+  const state = accountSyncState.state;
+  if (state === "failed") {
+    topbarStatus.textContent = "Sync failed";
+    topbarStatus.className = "sync-topbar-status sync-topbar-failed";
+    topbarStatus.title = "Sync failed. Open Profile to try again.";
+    return;
+  }
+  if (state === "saving" || state === "syncing") {
+    topbarStatus.textContent = "Saving";
+    topbarStatus.className = "sync-topbar-status sync-topbar-saving";
+    topbarStatus.title = "Saving profile to SQLite.";
+    return;
+  }
+
+  topbarStatus.textContent = "Synced";
+  topbarStatus.className = "sync-topbar-status sync-topbar-synced";
+  topbarStatus.title = "Progress is synced to SQLite.";
 }
 
 function renderProfileScreen() {

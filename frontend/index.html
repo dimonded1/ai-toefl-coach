@@ -49,6 +49,7 @@
     <button class="hamburger" id="hamburger" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">☰</button>
     <h1 class="page-title" id="pageTitle">Dashboard</h1>
     <div class="topbar-right">
+      <button class="sync-topbar-status sync-topbar-local" id="topbarSyncStatus" data-section="goal">Local mode</button>
       <span class="score-badge" id="topbarScore">TOEFL: <strong id="topScore">--</strong></span>
     </div>
   </header>
@@ -191,33 +192,7 @@
       </div>
 
       <aside class="profile-side">
-        <div class="card setup-preview-card">
-          <div class="card-kicker">Personal summary</div>
-          <h2 class="card-title">Your study setup</h2>
-          <div class="profile-summary-head">
-            <span class="avatar avatar-lg" id="profilePreviewAvatar"></span>
-            <div>
-              <strong id="profilePreviewName">Alex Carter</strong>
-              <span id="profilePreviewGoal">Study Abroad</span>
-            </div>
-          </div>
-          <div class="setup-score">
-            <span id="setupCurrent">56</span>
-            <small>current TOEFL</small>
-          </div>
-          <div class="setup-path">
-            <div><span>Target</span><strong id="setupTarget">95</strong></div>
-            <div><span>Timeline</span><strong id="setupDays">60 days</strong></div>
-            <div><span>Level</span><strong id="setupLevel">Intermediate</strong></div>
-            <div><span>Goal</span><strong id="setupGoal">Study Abroad</strong></div>
-          </div>
-          <div class="setup-mini-chart" aria-hidden="true">
-            <span></span><span></span><span></span><span></span><span></span>
-          </div>
-          <p class="setup-note">The dashboard will turn this setup into weak zones, daily focus, and score movement after practice.</p>
-        </div>
-
-        <div class="card account-sync-card">
+        <div class="card account-sync-card account-sync-card-primary">
           <div class="account-sync-head">
             <div>
               <div class="card-kicker">Account Sync</div>
@@ -227,7 +202,7 @@
           </div>
 
           <div id="accountSignedOut">
-            <p class="sync-copy">Save your TOEFL progress across devices.</p>
+            <p class="sync-copy">Use local mode for quick practice, or create an account to save your progress in SQLite.</p>
             <div class="sync-form">
               <label>Name<input class="text-input" id="authNameInput" type="text" autocomplete="name" placeholder="Gosha" /></label>
               <label>Email<input class="text-input" id="authEmailInput" type="email" autocomplete="email" placeholder="gosha@example.com" /></label>
@@ -253,6 +228,32 @@
               <button class="btn-secondary" id="logoutBtn">Log out</button>
             </div>
           </div>
+        </div>
+
+        <div class="card setup-preview-card">
+          <div class="card-kicker">Personal summary</div>
+          <h2 class="card-title">Your study setup</h2>
+          <div class="profile-summary-head">
+            <span class="avatar avatar-lg" id="profilePreviewAvatar"></span>
+            <div>
+              <strong id="profilePreviewName">Alex Carter</strong>
+              <span id="profilePreviewGoal">Study Abroad</span>
+            </div>
+          </div>
+          <div class="setup-score">
+            <span id="setupCurrent">56</span>
+            <small>current TOEFL</small>
+          </div>
+          <div class="setup-path">
+            <div><span>Target</span><strong id="setupTarget">95</strong></div>
+            <div><span>Timeline</span><strong id="setupDays">60 days</strong></div>
+            <div><span>Level</span><strong id="setupLevel">Intermediate</strong></div>
+            <div><span>Goal</span><strong id="setupGoal">Study Abroad</strong></div>
+          </div>
+          <div class="setup-mini-chart" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <p class="setup-note">The dashboard will turn this setup into weak zones, daily focus, and score movement after practice.</p>
         </div>
       </aside>
     </div>

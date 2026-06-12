@@ -333,6 +333,47 @@ a {
 }
 .score-badge strong { color: var(--text); font-size: 1rem; }
 
+.sync-topbar-status {
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s, transform .1s;
+}
+
+.sync-topbar-status:hover {
+  background: var(--accent-soft);
+  border-color: rgba(29,78,216,.24);
+  color: var(--accent);
+}
+
+.sync-topbar-status:active {
+  transform: translateY(1px);
+}
+
+.sync-topbar-synced {
+  background: var(--accent2-soft);
+  border-color: rgba(15,138,122,.22);
+  color: var(--accent2);
+}
+
+.sync-topbar-saving {
+  background: var(--accent-soft);
+  border-color: rgba(29,78,216,.24);
+  color: var(--accent);
+}
+
+.sync-topbar-failed {
+  background: #fff1f2;
+  border-color: rgba(185,28,28,.24);
+  color: var(--danger);
+}
+
 .avatar {
   display: inline-grid;
   place-items: center;
@@ -1567,6 +1608,12 @@ a {
   display: grid;
   gap: 16px;
   padding: 22px;
+}
+
+.account-sync-card-primary {
+  border-color: rgba(15,138,122,.22);
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f6fbfa 100%);
 }
 
 .account-sync-head {
@@ -2884,6 +2931,11 @@ a {
   .trajectory-chart { height: 170px; gap: 8px; }
   .button-row { flex-direction: column; }
   .topbar { padding: 0 14px; }
+  .sync-topbar-status {
+    min-height: 34px;
+    padding: 6px 10px;
+    font-size: .76rem;
+  }
   .score-badge { padding: 5px 10px; }
   .practice-header {
     align-items: flex-start;
