@@ -1,12 +1,12 @@
-// AI TOEFL Coach - AI API integration
+// AI TOEFL Coach - Groq-backed AI API integration
 
 // Docker/nginx proxies /api/. Static local dev calls backend directly.
 const API_BASE = (() => {
   const localStaticHosts = new Set(["localhost:3000", "127.0.0.1:3000"]);
   if (window.location.protocol === "file:" || localStaticHosts.has(window.location.host)) {
-    return "http://localhost:3001/api/gemini";
+    return "http://localhost:3001/api/ai";
   }
-  return "/api/gemini";
+  return "/api/ai";
 })();
 
 function percentClass(prefix, value) {
@@ -14,7 +14,7 @@ function percentClass(prefix, value) {
   return `${prefix}-${pct}`;
 }
 
-async function callGemini(action, extraContext = null) {
+async function callGroqAI(action, extraContext = null) {
   const profile = loadProfile();
   const scoring = buildScoringSnapshot(profile);
 
@@ -89,19 +89,19 @@ function buildStudyReferenceSummary() {
 // ─── Study Plan ──────────────────────────────────
 
 async function fetchAIStudyPlan() {
-  return callGemini("study_plan");
+  return callGroqAI("study_plan");
 }
 
 // ─── Score Gap ────────────────────────────────────
 
 async function fetchScoreGapAnalysis() {
-  return callGemini("score_gap");
+  return callGroqAI("score_gap");
 }
 
 // ─── Speaking / Writing feedback ─────────────────
 
 async function fetchAnswerFeedback(skill, userAnswer, taskType) {
-  return callGemini("feedback", { skill, userAnswer, taskType });
+  return callGroqAI("feedback", { skill, userAnswer, taskType });
 }
 
 // ─── RENDER: Score Gap Visual ────────────────────

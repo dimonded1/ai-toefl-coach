@@ -8,6 +8,7 @@ An interactive TOEFL iBT preparation web app with a personalized AI study plan p
 - 📚 Vocabulary, Reading, Listening, Speaking, Writing practice
 - ⚡ Mini TOEFL Test (10 randomized questions)
 - 🤖 AI Score Gap Analyzer + structured Study Plan
+- 🗓️ Study Calendar with exam countdown and 8-week roadmap
 - 🧠 Mistake Bank, XP, streaks, achievements, and weekly progress
 - 📈 Results & Analytics
 - 💾 Progress saved in localStorage
@@ -28,6 +29,7 @@ cp backend/.env.example backend/.env
 Then edit `backend/.env`:
 ```
 GROQ_API_KEY=your_actual_key_here
+GROQ_MODEL=llama-3.1-8b-instant
 PORT=3001
 ```
 
@@ -54,7 +56,7 @@ npm run dev   # nodemon for hot-reload
 
 **Frontend:**
 Open `frontend/index.html` directly in a browser.
-> For AI API calls, run the backend on `localhost:3001`. The frontend uses the nginx `/api/` proxy in Docker, and calls `localhost:3001` directly when opened via `file://` or `localhost:3000`.
+> For AI API calls, run the backend on `localhost:3001`. The frontend uses the nginx `/api/` proxy in Docker, and calls `localhost:3001/api/ai` directly when opened via `file://` or `localhost:3000`.
 ```bash
 cd frontend
 npx serve .
@@ -68,7 +70,9 @@ npx serve .
 ai-toefl-coach/
 ├── backend/
 │   ├── server.js          # Express app
-│   ├── routes/gemini.js   # AI API proxy
+│   ├── routes/ai.js       # Groq-backed AI API proxy
+│   ├── routes/gemini.js   # Legacy API alias
+│   ├── package-lock.json
 │   ├── package.json
 │   └── Dockerfile
 ├── frontend/
@@ -82,6 +86,7 @@ ai-toefl-coach/
 │   │       ├── analyticsModel.js # Analytics data model
 │   │       ├── profile.js # User profile + localStorage
 │   │       ├── aiPlan.js  # AI API calls + gap visualizer
+│   │       ├── calendar.js # Study calendar + roadmap
 │   │       ├── app.js     # Main app logic + UI
 │   │       └── scoring.examples.js # Scoring control examples
 │   ├── nginx.conf

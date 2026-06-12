@@ -26,11 +26,11 @@
     <div><span>Day</span><strong id="sidebarDay">1 / 60</strong></div>
   </div>
   <ul class="sidebar-nav">
-    <li><a href="#" class="nav-link active" data-section="dashboard" aria-current="page"><span class="nav-icon">⌂</span><span>Dashboard</span></a></li>
-    <li><a href="#" class="nav-link" data-section="practice"><span class="nav-icon">◇</span><span>Practice</span></a></li>
-    <li><a href="#" class="nav-link" data-section="aiplan"><span class="nav-icon">✦</span><span>Study Plan</span></a></li>
-    <li><a href="#" class="nav-link" data-section="analytics"><span class="nav-icon">↗</span><span>Analytics</span></a></li>
-    <li><a href="#" class="nav-link" data-section="goal"><span class="nav-icon">◎</span><span>Profile</span></a></li>
+    <li><a href="#" class="nav-link active" data-section="dashboard" aria-current="page"><span class="nav-icon">D</span><span>Dashboard</span></a></li>
+    <li><a href="#" class="nav-link" data-section="practice"><span class="nav-icon">P</span><span>Practice</span></a></li>
+    <li><a href="#" class="nav-link" data-section="aiplan"><span class="nav-icon">S</span><span>Study Plan</span></a></li>
+    <li><a href="#" class="nav-link" data-section="analytics"><span class="nav-icon">A</span><span>Analytics</span></a></li>
+    <li><a href="#" class="nav-link" data-section="goal"><span class="nav-icon">Me</span><span>Profile</span></a></li>
   </ul>
   <div class="sidebar-footer">
     <div class="sidebar-progress">
@@ -359,7 +359,7 @@
     <div class="study-plan-workspace">
       <div class="hub-header">
         <h2>How will I reach my goal?</h2>
-        <p>Roadmap, weekly targets, and AI recommendations live here.</p>
+          <p>Calendar, weekly targets, and Groq-backed recommendations live here.</p>
       </div>
       <div class="study-plan-grid">
         <div class="card plan-goal-card">
@@ -370,19 +370,10 @@
           <div class="card-kicker">Weekly targets</div>
           <div id="weeklyTargets"></div>
         </div>
-        <div class="card roadmap-card">
-          <div class="section-heading">
-            <div>
-              <div class="card-kicker">Roadmap</div>
-              <h2 class="card-title">Preparation phases</h2>
-            </div>
-          </div>
-          <div id="roadmapContent"></div>
-        </div>
         <div class="card ai-recommendations-card">
           <div class="section-heading">
             <div>
-              <div class="card-kicker">AI recommendations</div>
+              <div class="card-kicker">Groq recommendations</div>
               <h2 class="card-title">Focus plan</h2>
             </div>
             <button class="btn-primary" id="generatePlanBtn">Generate Study Plan</button>
@@ -401,6 +392,32 @@
           </div>
           <div id="scoreGapContent" class="gap-analysis" aria-live="polite">
             <div class="gap-visual" id="gapVisual"></div>
+          </div>
+        </div>
+        <div class="card calendar-card">
+          <div class="section-heading">
+            <div>
+              <div class="card-kicker">Study calendar</div>
+              <h2 class="card-title">Countdown and roadmap</h2>
+            </div>
+          </div>
+          <div class="calendar-container">
+            <div class="cal-countdown-card" id="calCountdown" aria-live="polite"></div>
+            <div class="cal-month-card">
+              <div class="cal-month-head">
+                <button class="cal-nav-btn" id="calPrev" type="button" aria-label="Previous month">‹</button>
+                <div class="cal-month-title" id="calMonthTitle"></div>
+                <button class="cal-nav-btn" id="calNext" type="button" aria-label="Next month">›</button>
+                <button class="cal-today-btn" id="calToday" type="button">Today</button>
+              </div>
+              <div class="cal-weekdays" id="calWeekdays"></div>
+              <div class="cal-grid" id="calGrid"></div>
+              <div class="cal-legend" id="calLegend"></div>
+            </div>
+            <div class="cal-roadmap-card">
+              <div class="card-kicker">8-week roadmap</div>
+              <div class="cal-roadmap" id="calRoadmap"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -441,6 +458,7 @@
 <script src="src/scripts/auth.js"></script>
 <script src="src/scripts/profile.js"></script>
 <script src="src/scripts/aiPlan.js"></script>
+<script src="src/scripts/calendar.js"></script>
 <script src="src/scripts/app.js"></script>
 
 </body>
