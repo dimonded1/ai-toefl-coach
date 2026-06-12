@@ -1,7 +1,10 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const authRouter = require("./routes/auth");
 const geminiRouter = require("./routes/gemini");
+const profileRouter = require("./routes/profile");
+require("./database/db");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -12,22 +15,27 @@ app.use(cors({
     "http://localhost:8080",
     "http://localhost:3000",
     "http://127.0.0.1:8080",
-    "http://127.0.0.1:3000"
+    "http://127.0.0.1:3000",
+    "null"
   ],
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"]
+  methods: ["GET", "POST", "PUT"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
-app.use(express.json({ limit: "10kb" }));
+app.use(express.json({ limit: "1mb" }));
 
 // Routes
+app.use("/api/auth", authRouter);
 app.use("/api/gemini", geminiRouter);
+app.use("/api/profile", profileRouter);
 
 // Health check
 app.get("/health", (req, res) => {
   res.json({
+    ok: true,
     status: "ok",
     service: "AI TOEFL Coach Backend",
-    groqConfigured: !!process.env.GROQ_API_KEY
+    groqConfigured: !!process.env.GROQ_API_KEY,
+    database: "sqlite"
   });
 });
 

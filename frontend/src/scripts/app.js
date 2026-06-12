@@ -2,6 +2,7 @@
 
 // ─── State ───────────────────────────────────────
 let profile = loadProfile();
+let accountSyncState = { state: "local", message: "Local mode" };
 
 const AVATAR_TONES = ["teal", "blue", "violet", "rose", "amber", "mint", "indigo", "sky", "green", "pink", "slate", "cyan"];
 
@@ -29,6 +30,7 @@ const practiceState = {
 document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
   initGoalForm();
+  initAccountSync();
   initDashboard();
   initPracticeSection("vocabulary");
   initPracticeSection("reading");
@@ -47,6 +49,8 @@ document.addEventListener("DOMContentLoaded", () => {
   } else {
     navigateTo("dashboard");
   }
+
+  hydrateProfileFromBackend();
 
   document.getElementById("resetBtn").addEventListener("click", () => {
     if (confirm("Reset all progress? This cannot be undone.")) {
@@ -136,6 +140,37 @@ function renderAppShell() {
   setText("sidebarTarget", profile.targetScore);
   setText("sidebarDay", `${day} / ${profile.preparationDays || 60}`);
   setAvatar("sidebarAvatar", profile.name);
+}
+
+async function hydrateProfileFromBackend() {
+  renderAccountSync();
+  if (typeof isAuthenticated !== "function" || !isAuthenticated()) return;
+
+  const syncedProfile = await syncProfileFromBackend();
+  if (!syncedProfile) {
+    renderAccountSync();
+    return;
+  }
+
+  profile = syncedProfile;
+  renderAppShell();
+  renderCurrentSection();
+  renderAccountSync();
+}
+
+function renderCurrentSection() {
+  const active = document.querySelector(".section.active");
+  const section = active?.id?.replace("section-", "");
+  if (!section) return;
+  if (section === "dashboard") renderDashboard();
+  if (section === "practice") renderPracticeHub();
+  if (section === "mistakes") renderMistakesSection();
+  if (section === "analytics") renderAnalytics();
+  if (section === "aiplan") renderAIPlanSection();
+  if (section === "goal") renderProfileScreen();
+  if (["vocabulary","reading","listening","speaking","writing"].includes(section)) {
+    renderQuestion(section);
+  }
 }
 
 function setAvatar(id, name) {
@@ -761,6 +796,127 @@ function initGoalForm() {
       document.getElementById("goalSaved").classList.add("hidden");
     }, 1800);
   });
+}
+
+function initAccountSync() {
+  window.addEventListener("profile-sync-state", event => {
+    accountSyncState = event.detail || accountSyncState;
+    renderAccountSync();
+  });
+
+  document.getElementById("createAccountBtn")?.addEventListener("click", async () => {
+    await handleAuthSubmit("register");
+  });
+  document.getElementById("signInBtn")?.addEventListener("click", async () => {
+    await handleAuthSubmit("login");
+  });
+  document.getElementById("syncNowBtn")?.addEventListener("click", async () => {
+    await handleManualSync();
+  });
+  document.getElementById("logoutBtn")?.addEventListener("click", () => {
+    logoutUser();
+    renderAccountSync();
+    showToast("Signed out. Local mode is active.", "info");
+  });
+
+  renderAccountSync();
+}
+
+async function handleAuthSubmit(mode) {
+  const nameInput = document.getElementById("authNameInput");
+  const emailInput = document.getElementById("authEmailInput");
+  const passwordInput = document.getElementById("authPasswordInput");
+  const createBtn = document.getElementById("createAccountBtn");
+  const signInBtn = document.getElementById("signInBtn");
+
+  const name = (nameInput?.value || document.getElementById("profileNameInput")?.value || profile.name || "").trim();
+  const email = (emailInput?.value || "").trim();
+  const password = passwordInput?.value || "";
+
+  createBtn.disabled = true;
+  signInBtn.disabled = true;
+
+  try {
+    if (mode === "register") {
+      await registerUser({ name, email, password });
+      profile.name = name || profile.name;
+      cacheProfile(profile);
+      await apiSaveProfile(profile);
+      showToast("Signed in. Progress is synced.", "success");
+    } else {
+      await loginUser({ email, password });
+      const syncedProfile = await syncProfileFromBackend();
+      if (syncedProfile) profile = syncedProfile;
+      showToast("Signed in.", "success");
+    }
+    passwordInput.value = "";
+    renderAppShell();
+    renderCurrentSection();
+  } catch (err) {
+    showToast(err.message || "Sign in failed.", "error");
+    if (typeof setProfileSyncState === "function") setProfileSyncState("failed", "Sync failed");
+  } finally {
+    createBtn.disabled = false;
+    signInBtn.disabled = false;
+    renderAccountSync();
+  }
+}
+
+async function handleManualSync() {
+  if (!isAuthenticated()) return;
+  const btn = document.getElementById("syncNowBtn");
+  btn.disabled = true;
+  try {
+    accountSyncState = { state: "saving", message: "Saving" };
+    renderAccountSync();
+    await apiSaveProfile(loadProfile());
+    const syncedProfile = await syncProfileFromBackend();
+    if (syncedProfile) profile = syncedProfile;
+    showToast("Synced.", "success");
+    renderAppShell();
+    renderCurrentSection();
+  } catch (err) {
+    console.warn("Manual sync failed:", err);
+    showToast("Sync failed. Local changes are still saved.", "error");
+    accountSyncState = { state: "failed", message: "Sync failed" };
+  } finally {
+    btn.disabled = false;
+    renderAccountSync();
+  }
+}
+
+function renderAccountSync() {
+  const signedIn = typeof isAuthenticated === "function" && isAuthenticated();
+  const signedOutPanel = document.getElementById("accountSignedOut");
+  const signedInPanel = document.getElementById("accountSignedIn");
+  const status = document.getElementById("accountSyncStatus");
+  if (!signedOutPanel || !signedInPanel || !status) return;
+
+  signedOutPanel.classList.toggle("hidden", signedIn);
+  signedInPanel.classList.toggle("hidden", !signedIn);
+
+  if (!signedIn) {
+    status.textContent = "Local mode";
+    status.className = "sync-status sync-status-local";
+    const nameInput = document.getElementById("authNameInput");
+    if (nameInput && !nameInput.value) nameInput.value = document.getElementById("profileNameInput")?.value || profile.name || "";
+    return;
+  }
+
+  const user = getCurrentUser() || {};
+  setText("accountName", user.name || profile.name || "Student");
+  setText("accountEmail", user.email || "");
+  setAvatar("accountAvatar", user.name || profile.name);
+
+  const statusCopy = getSyncStatusCopy(accountSyncState);
+  status.textContent = statusCopy.label;
+  status.className = `sync-status ${statusCopy.className}`;
+}
+
+function getSyncStatusCopy(state) {
+  if (state.state === "failed") return { label: "Sync failed", className: "sync-status-failed" };
+  if (state.state === "saving" || state.state === "syncing") return { label: "Saving", className: "sync-status-saving" };
+  return { label: "Synced", className: "sync-status-synced" };
 }
 
 function renderProfileScreen() {

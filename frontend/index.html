@@ -190,30 +190,70 @@
         <div class="success-msg hidden" id="goalSaved">Profile saved. Go to Dashboard to start.</div>
       </div>
 
-      <aside class="card setup-preview-card">
-        <div class="card-kicker">Personal summary</div>
-        <h2 class="card-title">Your study setup</h2>
-        <div class="profile-summary-head">
-          <span class="avatar avatar-lg" id="profilePreviewAvatar"></span>
-          <div>
-            <strong id="profilePreviewName">Alex Carter</strong>
-            <span id="profilePreviewGoal">Study Abroad</span>
+      <aside class="profile-side">
+        <div class="card setup-preview-card">
+          <div class="card-kicker">Personal summary</div>
+          <h2 class="card-title">Your study setup</h2>
+          <div class="profile-summary-head">
+            <span class="avatar avatar-lg" id="profilePreviewAvatar"></span>
+            <div>
+              <strong id="profilePreviewName">Alex Carter</strong>
+              <span id="profilePreviewGoal">Study Abroad</span>
+            </div>
+          </div>
+          <div class="setup-score">
+            <span id="setupCurrent">56</span>
+            <small>current TOEFL</small>
+          </div>
+          <div class="setup-path">
+            <div><span>Target</span><strong id="setupTarget">95</strong></div>
+            <div><span>Timeline</span><strong id="setupDays">60 days</strong></div>
+            <div><span>Level</span><strong id="setupLevel">Intermediate</strong></div>
+            <div><span>Goal</span><strong id="setupGoal">Study Abroad</strong></div>
+          </div>
+          <div class="setup-mini-chart" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <p class="setup-note">The dashboard will turn this setup into weak zones, daily focus, and score movement after practice.</p>
+        </div>
+
+        <div class="card account-sync-card">
+          <div class="account-sync-head">
+            <div>
+              <div class="card-kicker">Account Sync</div>
+              <h2 class="card-title">Save progress</h2>
+            </div>
+            <span class="sync-status sync-status-local" id="accountSyncStatus">Local mode</span>
+          </div>
+
+          <div id="accountSignedOut">
+            <p class="sync-copy">Save your TOEFL progress across devices.</p>
+            <div class="sync-form">
+              <label>Name<input class="text-input" id="authNameInput" type="text" autocomplete="name" placeholder="Gosha" /></label>
+              <label>Email<input class="text-input" id="authEmailInput" type="email" autocomplete="email" placeholder="gosha@example.com" /></label>
+              <label>Password<input class="text-input" id="authPasswordInput" type="password" autocomplete="current-password" placeholder="At least 6 characters" /></label>
+            </div>
+            <div class="sync-actions">
+              <button class="btn-primary" id="createAccountBtn">Create account</button>
+              <button class="btn-secondary" id="signInBtn">Sign in</button>
+            </div>
+          </div>
+
+          <div id="accountSignedIn" class="hidden">
+            <div class="account-user-line">
+              <span class="avatar avatar-sm" id="accountAvatar"></span>
+              <div>
+                <strong id="accountName">Alex Carter</strong>
+                <span id="accountEmail">alex@example.com</span>
+              </div>
+            </div>
+            <p class="sync-copy">Progress is synced.</p>
+            <div class="sync-actions">
+              <button class="btn-primary" id="syncNowBtn">Sync now</button>
+              <button class="btn-secondary" id="logoutBtn">Log out</button>
+            </div>
           </div>
         </div>
-        <div class="setup-score">
-          <span id="setupCurrent">56</span>
-          <small>current TOEFL</small>
-        </div>
-        <div class="setup-path">
-          <div><span>Target</span><strong id="setupTarget">95</strong></div>
-          <div><span>Timeline</span><strong id="setupDays">60 days</strong></div>
-          <div><span>Level</span><strong id="setupLevel">Intermediate</strong></div>
-          <div><span>Goal</span><strong id="setupGoal">Study Abroad</strong></div>
-        </div>
-        <div class="setup-mini-chart" aria-hidden="true">
-          <span></span><span></span><span></span><span></span><span></span>
-        </div>
-        <p class="setup-note">The dashboard will turn this setup into weak zones, daily focus, and score movement after practice.</p>
       </aside>
     </div>
   </section>
@@ -397,6 +437,7 @@
 <script src="src/scripts/data.js"></script>
 <script src="src/scripts/scoring.js"></script>
 <script src="src/scripts/analyticsModel.js"></script>
+<script src="src/scripts/auth.js"></script>
 <script src="src/scripts/profile.js"></script>
 <script src="src/scripts/aiPlan.js"></script>
 <script src="src/scripts/app.js"></script>

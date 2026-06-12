@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════
 
 const STORAGE_KEY = "toefl_coach_profile";
+let profileSyncTimer = null;
 
 const DEFAULT_PROFILE = {
   name: "Alex Carter",
@@ -97,17 +98,75 @@ function loadProfile() {
   }
 }
 
-function saveProfile(profile) {
+function saveProfile(profile, options = {}) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
   } catch (e) {
     console.warn("localStorage save failed:", e);
   }
+
+  if (options.sync !== false) {
+    scheduleProfileSync(profile);
+  }
 }
 
 function resetProfile() {
   localStorage.removeItem(STORAGE_KEY);
-  return refreshScoringMetrics(JSON.parse(JSON.stringify(DEFAULT_PROFILE)));
+  const fresh = refreshScoringMetrics(JSON.parse(JSON.stringify(DEFAULT_PROFILE)));
+  scheduleProfileSync(fresh);
+  return fresh;
+}
+
+function cacheProfile(profile) {
+  saveProfile(refreshScoringMetrics(profile), { sync: false });
+}
+
+async function syncProfileFromBackend() {
+  if (typeof isAuthenticated !== "function" || !isAuthenticated()) return null;
+  if (typeof apiGetProfile !== "function") return null;
+
+  try {
+    emitProfileSyncState("syncing", "Loading synced profile");
+    const remoteProfile = await apiGetProfile();
+    const merged = deepMerge(JSON.parse(JSON.stringify(DEFAULT_PROFILE)), remoteProfile || {});
+    if (!remoteProfile?.baselineScores) merged.baselineScores = { ...merged.scores };
+    const syncedProfile = refreshScoringMetrics(merged);
+    cacheProfile(syncedProfile);
+    emitProfileSyncState("synced", "Synced");
+    return syncedProfile;
+  } catch (e) {
+    if (e.status === 401 && typeof clearAuthToken === "function") clearAuthToken();
+    console.warn("Profile sync failed:", e);
+    emitProfileSyncState("failed", "Sync failed");
+    return null;
+  }
+}
+
+function scheduleProfileSync(profile) {
+  if (typeof isAuthenticated !== "function" || !isAuthenticated()) {
+    emitProfileSyncState("local", "Saving locally");
+    return;
+  }
+  if (typeof apiSaveProfile !== "function") return;
+
+  emitProfileSyncState("saving", "Saving");
+  clearTimeout(profileSyncTimer);
+  const snapshot = JSON.parse(JSON.stringify(profile));
+  profileSyncTimer = setTimeout(async () => {
+    try {
+      await apiSaveProfile(snapshot);
+      emitProfileSyncState("synced", "Synced");
+    } catch (e) {
+      console.warn("Remote profile save failed:", e);
+      emitProfileSyncState("failed", "Sync failed");
+    }
+  }, 250);
+}
+
+function emitProfileSyncState(state, message) {
+  if (typeof setProfileSyncState === "function") {
+    setProfileSyncState(state, message);
+  }
 }
 
 function deepMerge(target, source) {
