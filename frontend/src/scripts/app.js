@@ -685,12 +685,16 @@ function renderMistakesSection() {
 
   const mistakesHtml = mistakes.length
     ? mistakes.slice(0, 10).map(item => `
-        <button class="mistake-review-card" data-section="${item.skill}">
+        <div class="mistake-review-card">
           <span class="mistake-review-skill">${SKILL_META[item.skill]?.label || item.skill}</span>
           <strong>${escapeHtml(item.topic)}</strong>
           <span>${escapeHtml(item.prompt).slice(0, 160)}${item.prompt.length > 160 ? "..." : ""}</span>
           ${item.correctAnswer ? `<small>Correct: ${escapeHtml(item.correctAnswer)}</small>` : ""}
-        </button>`).join("")
+          <div class="mistake-card-actions">
+            <button class="btn-secondary btn-compact" data-section="${escapeHtml(item.skill)}">Practice skill</button>
+            <button class="btn-secondary btn-compact" data-save-mistake-note="${escapeHtml(item.id)}">Save to notes</button>
+          </div>
+        </div>`).join("")
     : `<p class="placeholder-text">Missed questions will appear here after practice.</p>`;
 
   container.innerHTML = `
@@ -1190,6 +1194,12 @@ function initLearning() {
       return;
     }
 
+    const saveMistakeNoteBtn = event.target.closest("[data-save-mistake-note]");
+    if (saveMistakeNoteBtn) {
+      saveMistakeToNotes(saveMistakeNoteBtn.dataset.saveMistakeNote);
+      return;
+    }
+
     const deleteNoteBtn = event.target.closest("[data-delete-note]");
     if (deleteNoteBtn) {
       deleteNotebookNote(deleteNoteBtn.dataset.deleteNote);
@@ -1220,6 +1230,9 @@ function ensureLearningState(currentProfile) {
   currentProfile.vocabularyProgress.masteredWords = currentProfile.vocabularyProgress.masteredWords || [];
   currentProfile.vocabularyProgress.missedWords = currentProfile.vocabularyProgress.missedWords || [];
   currentProfile.vocabularyProgress.reviews = currentProfile.vocabularyProgress.reviews || [];
+  currentProfile.vocabularyProgress.savedWords = Array.from(new Set(currentProfile.vocabularyProgress.savedWords));
+  currentProfile.vocabularyProgress.masteredWords = Array.from(new Set(currentProfile.vocabularyProgress.masteredWords));
+  currentProfile.vocabularyProgress.missedWords = Array.from(new Set(currentProfile.vocabularyProgress.missedWords));
   currentProfile.notes = currentProfile.notes || [];
   return currentProfile;
 }
@@ -1343,10 +1356,44 @@ function renderVocabularySystem() {
   if (!container) return;
   const saved = new Set(profile.vocabularyProgress.savedWords);
   const mastered = new Set(profile.vocabularyProgress.masteredWords);
-  container.innerHTML = TOEFL_WORD_CARDS.map(word => `
+  const missed = new Set(profile.vocabularyProgress.missedWords);
+  const reviewWords = profile.vocabularyProgress.missedWords
+    .map(getVocabularyWordCard)
+    .filter(word => word && !mastered.has(word.id));
+
+  const reviewHtml = reviewWords.length
+    ? reviewWords.map(word => renderVocabularyWordCard(word, saved, mastered, missed)).join("")
+    : `<p class="placeholder-text">Missed vocabulary words will appear here after practice.</p>`;
+
+  container.innerHTML = `
+    <div class="vocab-system-summary">
+      <div><strong>${saved.size}</strong><span>saved</span></div>
+      <div><strong>${mastered.size}</strong><span>mastered</span></div>
+      <div><strong>${reviewWords.length}</strong><span>to review</span></div>
+    </div>
+    <div class="vocab-review-block">
+      <div class="card-kicker">Words I missed</div>
+      <div class="vocab-review-list">${reviewHtml}</div>
+    </div>
+    ${TOEFL_WORD_CARDS.map(word => renderVocabularyWordCard(word, saved, mastered, missed)).join("")}`;
+}
+
+function getVocabularyWordCard(wordId) {
+  const normalized = String(wordId || "").toLowerCase();
+  return TOEFL_WORD_CARDS.find(word => word.id === normalized) || {
+    id: normalized,
+    word: normalized.replace(/-/g, " "),
+    definition: "Review this word from a missed practice question.",
+    example: "Save an example sentence after you review the correct answer.",
+    skill: "vocabulary"
+  };
+}
+
+function renderVocabularyWordCard(word, saved, mastered, missed) {
+  return `
     <div class="vocab-word-card">
       <div>
-        <strong>${escapeHtml(word.word)}</strong>
+        <strong>${escapeHtml(word.word)}${missed.has(word.id) ? ` <em>Missed</em>` : ""}</strong>
         <span>${escapeHtml(word.definition)}</span>
         <small>${escapeHtml(word.example)}</small>
       </div>
@@ -1354,7 +1401,7 @@ function renderVocabularySystem() {
         <button class="btn-secondary btn-compact" data-save-word="${escapeHtml(word.id)}">${saved.has(word.id) ? "Saved" : "Save"}</button>
         <button class="btn-secondary btn-compact" data-master-word="${escapeHtml(word.id)}">${mastered.has(word.id) ? "Mastered" : "Mark mastered"}</button>
       </div>
-    </div>`).join("");
+    </div>`;
 }
 
 function renderNotebook() {
@@ -1425,6 +1472,7 @@ function renderLessonPage() {
         </section>
         <div class="lesson-bottom-actions">
           <button class="btn-primary" data-section="${escapeHtml(lesson.practiceSkill)}">Practice this skill</button>
+          <button class="btn-secondary" data-section="minitest">Run mini-test</button>
           <button class="btn-secondary" data-complete-lesson="${escapeHtml(lesson.id)}">${completed ? "Completed" : "Mark complete"}</button>
         </div>
       </article>
@@ -1470,6 +1518,7 @@ function markVocabularyMastered(wordId) {
   if (!profile.vocabularyProgress.masteredWords.includes(wordId)) {
     profile.vocabularyProgress.masteredWords.push(wordId);
   }
+  profile.vocabularyProgress.missedWords = profile.vocabularyProgress.missedWords.filter(id => id !== wordId);
   profile.vocabularyProgress.reviews.push({ wordId, action: "mastered", date: new Date().toISOString() });
   saveProfile(profile);
   renderVocabularySystem();
@@ -1498,6 +1547,24 @@ function saveLessonChecklistToNotes(lessonId) {
     source: lesson.title
   });
   renderLessonPage();
+}
+
+function saveMistakeToNotes(mistakeId) {
+  profile = loadProfile();
+  ensureLearningState(profile);
+  const mistake = (profile.mistakeBank || []).find(item => item.id === mistakeId);
+  if (!mistake) {
+    showToast("Mistake not found.", "error");
+    return;
+  }
+
+  addNotebookNote({
+    type: "mistake",
+    title: `${SKILL_META[mistake.skill]?.label || titleCase(mistake.skill)}: ${mistake.topic}`,
+    content: `${mistake.prompt}${mistake.correctAnswer ? ` Correct answer: ${mistake.correctAnswer}.` : ""}`,
+    source: "Mistake bank"
+  });
+  renderCurrentSection();
 }
 
 function addNotebookNote(note) {

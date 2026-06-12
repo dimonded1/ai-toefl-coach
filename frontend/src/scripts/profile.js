@@ -212,12 +212,51 @@ function recordAnswer(profile, skill, isCorrect, question = null) {
   } else {
     profile.mistakes[s] = (profile.mistakes[s] || 0) + 1;
     recordMistake(profile, s, question);
+    if (s === "vocabulary") recordVocabularyMiss(profile, question);
   }
 
   recordAttempt(profile, s, isCorrect, question);
   updateHabitProgress(profile, s, isCorrect);
   refreshScoringMetrics(profile);
   saveProfile(profile);
+  return profile;
+}
+
+function normalizeVocabularyWordId(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function extractVocabularyWordId(question) {
+  const prompt = question?.question || "";
+  const quoted = prompt.match(/"([^"]+)"/);
+  return normalizeVocabularyWordId(quoted?.[1] || question?.word || question?.id);
+}
+
+function recordVocabularyMiss(profile, question) {
+  const wordId = extractVocabularyWordId(question);
+  if (!wordId) return profile;
+
+  profile.vocabularyProgress = profile.vocabularyProgress || {};
+  profile.vocabularyProgress.savedWords = profile.vocabularyProgress.savedWords || [];
+  profile.vocabularyProgress.masteredWords = profile.vocabularyProgress.masteredWords || [];
+  profile.vocabularyProgress.missedWords = profile.vocabularyProgress.missedWords || [];
+  profile.vocabularyProgress.reviews = profile.vocabularyProgress.reviews || [];
+
+  if (!profile.vocabularyProgress.missedWords.includes(wordId)) {
+    profile.vocabularyProgress.missedWords.push(wordId);
+  }
+
+  profile.vocabularyProgress.reviews.push({
+    wordId,
+    action: "missed",
+    questionId: question?.id || null,
+    date: new Date().toISOString()
+  });
+  profile.vocabularyProgress.reviews = profile.vocabularyProgress.reviews.slice(-250);
   return profile;
 }
 

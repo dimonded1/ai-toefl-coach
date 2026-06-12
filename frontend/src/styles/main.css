@@ -1931,6 +1931,49 @@ a {
   padding: 12px;
 }
 
+.vocab-system-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.vocab-system-summary div {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg4);
+}
+
+.vocab-system-summary strong,
+.vocab-system-summary span {
+  display: block;
+}
+
+.vocab-system-summary strong {
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.vocab-system-summary span {
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+.vocab-review-block {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(8,145,178,.2);
+  border-radius: 8px;
+  background: #f0fbfd;
+}
+
+.vocab-review-list {
+  display: grid;
+  gap: 8px;
+}
+
 .vocab-word-card strong,
 .vocab-word-card span,
 .vocab-word-card small,
@@ -1951,6 +1994,19 @@ a {
   color: var(--muted-2);
   font-size: .74rem;
   line-height: 1.4;
+}
+
+.vocab-word-card em {
+  display: inline-flex;
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #b45309;
+  font-size: .68rem;
+  font-style: normal;
+  font-weight: 850;
+  vertical-align: middle;
 }
 
 .vocab-actions {
@@ -2928,6 +2984,7 @@ a {
   gap: 5px;
   padding: 13px 14px;
   line-height: 1.45;
+  cursor: default;
 }
 
 .mistake-review-card span,
@@ -2948,6 +3005,13 @@ a {
 .mistake-review-card:hover {
   background: var(--accent-soft);
   border-color: rgba(29,78,216,.24);
+}
+
+.mistake-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 /* ═══════════════ BUTTONS ═══════════════ */
