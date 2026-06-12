@@ -2,11 +2,14 @@
 
 // ─── State ───────────────────────────────────────
 let profile = loadProfile();
+let accountSyncState = { state: "local", message: "Local mode" };
 
 const AVATAR_TONES = ["teal", "blue", "violet", "rose", "amber", "mint", "indigo", "sky", "green", "pink", "slate", "cyan"];
 
 const PAGE_TITLES = {
   dashboard: "Dashboard",
+  learn: "Learn",
+  lesson: "Lesson",
   practice: "Practice",
   aiplan: "Study Plan",
   analytics: "Analytics",
@@ -14,6 +17,7 @@ const PAGE_TITLES = {
 };
 
 const PRACTICE_SECTIONS = ["vocabulary","reading","listening","speaking","writing","minitest"];
+let learnSkillFilter = "all";
 
 // Per-section question state
 const practiceState = {
@@ -29,6 +33,8 @@ const practiceState = {
 document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
   initGoalForm();
+  initAccountSync();
+  initLearning();
   initDashboard();
   initPracticeSection("vocabulary");
   initPracticeSection("reading");
@@ -48,6 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
   } else {
     navigateTo("dashboard");
   }
+
+  hydrateProfileFromBackend();
 
   document.getElementById("resetBtn").addEventListener("click", () => {
     if (confirm("Reset all progress? This cannot be undone.")) {
@@ -85,6 +93,7 @@ function initNavigation() {
 function getNavSection(section) {
   if (PRACTICE_SECTIONS.includes(section)) return "practice";
   if (section === "mistakes") return "analytics";
+  if (section === "lesson") return "learn";
   return section;
 }
 
@@ -117,6 +126,8 @@ function navigateTo(section) {
 
   // Refresh content on navigate
   if (section === "dashboard") renderDashboard();
+  if (section === "learn")      renderLearn();
+  if (section === "lesson")     renderLessonPage();
   if (section === "practice")  renderPracticeHub();
   if (section === "mistakes")  renderMistakesSection();
   if (section === "analytics") renderAnalytics();
@@ -137,6 +148,39 @@ function renderAppShell() {
   setText("sidebarTarget", profile.targetScore);
   setText("sidebarDay", `${day} / ${profile.preparationDays || 60}`);
   setAvatar("sidebarAvatar", profile.name);
+}
+
+async function hydrateProfileFromBackend() {
+  renderAccountSync();
+  if (typeof isAuthenticated !== "function" || !isAuthenticated()) return;
+
+  const syncedProfile = await syncProfileFromBackend();
+  if (!syncedProfile) {
+    renderAccountSync();
+    return;
+  }
+
+  profile = syncedProfile;
+  renderAppShell();
+  renderCurrentSection();
+  renderAccountSync();
+}
+
+function renderCurrentSection() {
+  const active = document.querySelector(".section.active");
+  const section = active?.id?.replace("section-", "");
+  if (!section) return;
+  if (section === "dashboard") renderDashboard();
+  if (section === "learn") renderLearn();
+  if (section === "lesson") renderLessonPage();
+  if (section === "practice") renderPracticeHub();
+  if (section === "mistakes") renderMistakesSection();
+  if (section === "analytics") renderAnalytics();
+  if (section === "aiplan") renderAIPlanSection();
+  if (section === "goal") renderProfileScreen();
+  if (["vocabulary","reading","listening","speaking","writing"].includes(section)) {
+    renderQuestion(section);
+  }
 }
 
 function setAvatar(id, name) {
@@ -765,6 +809,162 @@ function initGoalForm() {
   });
 }
 
+function initAccountSync() {
+  window.addEventListener("profile-sync-state", event => {
+    accountSyncState = event.detail || accountSyncState;
+    renderAccountSync();
+  });
+
+  document.getElementById("createAccountBtn")?.addEventListener("click", async () => {
+    await handleAuthSubmit("register");
+  });
+  document.getElementById("signInBtn")?.addEventListener("click", async () => {
+    await handleAuthSubmit("login");
+  });
+  document.getElementById("syncNowBtn")?.addEventListener("click", async () => {
+    await handleManualSync();
+  });
+  document.getElementById("logoutBtn")?.addEventListener("click", () => {
+    logoutUser();
+    renderAccountSync();
+    showToast("Signed out. Local mode is active.", "info");
+  });
+
+  renderAccountSync();
+}
+
+async function handleAuthSubmit(mode) {
+  const nameInput = document.getElementById("authNameInput");
+  const emailInput = document.getElementById("authEmailInput");
+  const passwordInput = document.getElementById("authPasswordInput");
+  const createBtn = document.getElementById("createAccountBtn");
+  const signInBtn = document.getElementById("signInBtn");
+
+  const name = (nameInput?.value || document.getElementById("profileNameInput")?.value || profile.name || "").trim();
+  const email = (emailInput?.value || "").trim();
+  const password = passwordInput?.value || "";
+
+  createBtn.disabled = true;
+  signInBtn.disabled = true;
+
+  try {
+    if (mode === "register") {
+      await registerUser({ name, email, password });
+      profile.name = name || profile.name;
+      cacheProfile(profile);
+      await apiSaveProfile(profile);
+      showToast("Signed in. Progress is synced.", "success");
+    } else {
+      await loginUser({ email, password });
+      const syncedProfile = await syncProfileFromBackend();
+      if (syncedProfile) profile = syncedProfile;
+      showToast("Signed in.", "success");
+    }
+    passwordInput.value = "";
+    renderAppShell();
+    renderCurrentSection();
+  } catch (err) {
+    showToast(err.message || "Sign in failed.", "error");
+    if (typeof setProfileSyncState === "function") setProfileSyncState("failed", "Sync failed");
+  } finally {
+    createBtn.disabled = false;
+    signInBtn.disabled = false;
+    renderAccountSync();
+  }
+}
+
+async function handleManualSync() {
+  if (!isAuthenticated()) return;
+  const btn = document.getElementById("syncNowBtn");
+  btn.disabled = true;
+  try {
+    accountSyncState = { state: "saving", message: "Saving" };
+    renderAccountSync();
+    await apiSaveProfile(loadProfile());
+    const syncedProfile = await syncProfileFromBackend();
+    if (syncedProfile) profile = syncedProfile;
+    showToast("Synced.", "success");
+    renderAppShell();
+    renderCurrentSection();
+  } catch (err) {
+    console.warn("Manual sync failed:", err);
+    showToast("Sync failed. Local changes are still saved.", "error");
+    accountSyncState = { state: "failed", message: "Sync failed" };
+  } finally {
+    btn.disabled = false;
+    renderAccountSync();
+  }
+}
+
+function renderAccountSync() {
+  const signedIn = typeof isAuthenticated === "function" && isAuthenticated();
+  const signedOutPanel = document.getElementById("accountSignedOut");
+  const signedInPanel = document.getElementById("accountSignedIn");
+  const status = document.getElementById("accountSyncStatus");
+  if (!signedOutPanel || !signedInPanel || !status) {
+    renderTopbarSyncStatus(signedIn);
+    return;
+  }
+
+  signedOutPanel.classList.toggle("hidden", signedIn);
+  signedInPanel.classList.toggle("hidden", !signedIn);
+
+  if (!signedIn) {
+    status.textContent = "Local mode";
+    status.className = "sync-status sync-status-local";
+    const nameInput = document.getElementById("authNameInput");
+    if (nameInput && !nameInput.value) nameInput.value = document.getElementById("profileNameInput")?.value || profile.name || "";
+    renderTopbarSyncStatus(false);
+    return;
+  }
+
+  const user = getCurrentUser() || {};
+  setText("accountName", user.name || profile.name || "Student");
+  setText("accountEmail", user.email || "");
+  setAvatar("accountAvatar", user.name || profile.name);
+
+  const statusCopy = getSyncStatusCopy(accountSyncState);
+  status.textContent = statusCopy.label;
+  status.className = `sync-status ${statusCopy.className}`;
+  renderTopbarSyncStatus(true);
+}
+
+function getSyncStatusCopy(state) {
+  if (state.state === "failed") return { label: "Sync failed", className: "sync-status-failed" };
+  if (state.state === "saving" || state.state === "syncing") return { label: "Saving", className: "sync-status-saving" };
+  return { label: "Synced", className: "sync-status-synced" };
+}
+
+function renderTopbarSyncStatus(signedIn) {
+  const topbarStatus = document.getElementById("topbarSyncStatus");
+  if (!topbarStatus) return;
+
+  if (!signedIn) {
+    topbarStatus.textContent = "Local";
+    topbarStatus.className = "sync-topbar-status sync-topbar-local";
+    topbarStatus.title = "Local mode. Create an account to sync progress.";
+    return;
+  }
+
+  const state = accountSyncState.state;
+  if (state === "failed") {
+    topbarStatus.textContent = "Sync failed";
+    topbarStatus.className = "sync-topbar-status sync-topbar-failed";
+    topbarStatus.title = "Sync failed. Open Profile to try again.";
+    return;
+  }
+  if (state === "saving" || state === "syncing") {
+    topbarStatus.textContent = "Saving";
+    topbarStatus.className = "sync-topbar-status sync-topbar-saving";
+    topbarStatus.title = "Saving profile to SQLite.";
+    return;
+  }
+
+  topbarStatus.textContent = "Synced";
+  topbarStatus.className = "sync-topbar-status sync-topbar-synced";
+  topbarStatus.title = "Progress is synced to SQLite.";
+}
+
 function renderProfileScreen() {
   profile = loadProfile();
   document.getElementById("profileNameInput").value = profile.name || "Alex Carter";
@@ -810,6 +1010,384 @@ function titleCase(value) {
     .split(" ")
     .map(part => part ? part[0].toUpperCase() + part.slice(1) : "")
     .join(" ");
+}
+
+// ─── LEARNING ────────────────────────────────────
+function initLearning() {
+  const search = document.getElementById("learnSearchInput");
+  if (search) search.addEventListener("input", renderLearn);
+
+  document.addEventListener("click", event => {
+    const filterBtn = event.target.closest("[data-learn-filter]");
+    if (filterBtn) {
+      document.querySelectorAll("[data-learn-filter]").forEach(btn => btn.classList.remove("selected"));
+      filterBtn.classList.add("selected");
+      learnSkillFilter = filterBtn.dataset.learnFilter || "all";
+      renderLearn();
+      return;
+    }
+
+    const lessonBtn = event.target.closest("[data-lesson-id]");
+    if (lessonBtn) {
+      openLesson(lessonBtn.dataset.lessonId);
+      return;
+    }
+
+    const completeBtn = event.target.closest("[data-complete-lesson]");
+    if (completeBtn) {
+      markLessonComplete(completeBtn.dataset.completeLesson);
+      return;
+    }
+
+    const saveWordBtn = event.target.closest("[data-save-word]");
+    if (saveWordBtn) {
+      saveVocabularyWord(saveWordBtn.dataset.saveWord);
+      return;
+    }
+
+    const masterWordBtn = event.target.closest("[data-master-word]");
+    if (masterWordBtn) {
+      markVocabularyMastered(masterWordBtn.dataset.masterWord);
+      return;
+    }
+
+    const saveLessonNoteBtn = event.target.closest("[data-save-lesson-note]");
+    if (saveLessonNoteBtn) {
+      saveLessonChecklistToNotes(saveLessonNoteBtn.dataset.saveLessonNote);
+      return;
+    }
+
+    const deleteNoteBtn = event.target.closest("[data-delete-note]");
+    if (deleteNoteBtn) {
+      deleteNotebookNote(deleteNoteBtn.dataset.deleteNote);
+    }
+  });
+
+  document.getElementById("addNoteBtn")?.addEventListener("click", addNotebookNoteFromForm);
+}
+
+function renderLearn() {
+  profile = loadProfile();
+  ensureLearningState(profile);
+  renderStudyPath();
+  renderMistakeLessons();
+  renderModules();
+  renderLessonLibrary();
+  renderVocabularySystem();
+  renderNotebook();
+}
+
+function ensureLearningState(currentProfile) {
+  currentProfile.learningProgress = currentProfile.learningProgress || {};
+  currentProfile.learningProgress.completedLessons = currentProfile.learningProgress.completedLessons || [];
+  currentProfile.learningProgress.savedLessons = currentProfile.learningProgress.savedLessons || [];
+  currentProfile.learningProgress.currentLessonId = currentProfile.learningProgress.currentLessonId || "toefl-structure";
+  currentProfile.vocabularyProgress = currentProfile.vocabularyProgress || {};
+  currentProfile.vocabularyProgress.savedWords = currentProfile.vocabularyProgress.savedWords || [];
+  currentProfile.vocabularyProgress.masteredWords = currentProfile.vocabularyProgress.masteredWords || [];
+  currentProfile.vocabularyProgress.missedWords = currentProfile.vocabularyProgress.missedWords || [];
+  currentProfile.vocabularyProgress.reviews = currentProfile.vocabularyProgress.reviews || [];
+  currentProfile.notes = currentProfile.notes || [];
+  return currentProfile;
+}
+
+function learningCompletionPct(lessonIds = LEARNING_LESSONS.map(lesson => lesson.id)) {
+  const completed = new Set((profile.learningProgress?.completedLessons) || []);
+  const count = lessonIds.filter(id => completed.has(id)).length;
+  return lessonIds.length ? Math.round((count / lessonIds.length) * 100) : 0;
+}
+
+function renderStudyPath() {
+  const container = document.getElementById("studyPathList");
+  if (!container) return;
+  const completed = new Set(profile.learningProgress.completedLessons);
+  setText("learnPathProgress", `${learningCompletionPct()}%`);
+
+  container.innerHTML = STUDY_PATH_WEEKS.map(week => {
+    const pct = learningCompletionPct(week.lessonIds);
+    const previousWeeks = STUDY_PATH_WEEKS.slice(0, week.week - 1);
+    const unlocked = week.week === 1 || previousWeeks.every(item => item.lessonIds.some(id => completed.has(id)));
+    const nextLesson = week.lessonIds.find(id => !completed.has(id)) || week.lessonIds[0];
+    return `
+      <div class="study-path-item ${unlocked ? "unlocked" : "locked"}">
+        <div class="path-week-meta">
+          <span>Week ${week.week}</span>
+          <strong>${escapeHtml(week.title)}</strong>
+        </div>
+        <p>${escapeHtml(week.focus)}</p>
+        <div class="path-progress"><span class="w-${pct}"></span></div>
+        <button class="btn-secondary btn-compact" data-lesson-id="${escapeHtml(nextLesson)}">${unlocked ? "Open lesson" : "Preview"}</button>
+      </div>`;
+  }).join("");
+}
+
+function renderMistakeLessons() {
+  const container = document.getElementById("mistakeLessonList");
+  if (!container) return;
+  const lessons = getRecommendedMistakeLessons(profile);
+  container.innerHTML = lessons.length
+    ? lessons.map(({ lesson, reason }) => `
+        <button class="mistake-lesson-row" data-lesson-id="${escapeHtml(lesson.id)}">
+          <span class="lesson-skill ${escapeHtml(lesson.skill)}">${escapeHtml(titleCase(lesson.skill))}</span>
+          <strong>${escapeHtml(lesson.title)}</strong>
+          <small>${escapeHtml(reason)}</small>
+        </button>`).join("")
+    : `<p class="placeholder-text">Complete practice tasks to unlock mistake-based micro-lessons.</p>`;
+}
+
+function getRecommendedMistakeLessons(currentProfile) {
+  const bank = currentProfile.mistakeBank || [];
+  const weak = calcWeaknessScores(currentProfile).filter(item => item.total > 0);
+  const matches = new Map();
+
+  for (const mistake of bank) {
+    const haystack = `${mistake.topic || ""} ${mistake.skill || ""} ${mistake.prompt || ""}`.toLowerCase();
+    const lesson = LEARNING_LESSONS.find(item =>
+      item.repairTopics?.some(topic => haystack.includes(String(topic).toLowerCase()))
+    ) || LEARNING_LESSONS.find(item => item.skill === mistake.skill);
+    if (lesson) matches.set(lesson.id, { lesson, reason: `Based on ${mistake.topic || mistake.skill} mistakes` });
+  }
+
+  for (const item of weak.slice(0, 2)) {
+    const lesson = LEARNING_LESSONS.find(entry => entry.skill === item.skill);
+    if (lesson && !matches.has(lesson.id)) {
+      matches.set(lesson.id, { lesson, reason: `${item.mistakes}/${item.total} missed in ${SKILL_META[item.skill]?.label || item.skill}` });
+    }
+  }
+
+  return Array.from(matches.values()).slice(0, 3);
+}
+
+function renderModules() {
+  const container = document.getElementById("moduleGrid");
+  if (!container) return;
+  container.innerHTML = LEARNING_MODULES.map(module => {
+    const pct = learningCompletionPct(module.lessonIds);
+    const nextLesson = module.lessonIds.find(id => !profile.learningProgress.completedLessons.includes(id)) || module.lessonIds[0];
+    return `
+      <div class="module-card">
+        <div class="module-card-head">
+          <span class="lesson-skill ${escapeHtml(module.skill)}">${escapeHtml(titleCase(module.skill))}</span>
+          <span>${pct}%</span>
+        </div>
+        <strong>${escapeHtml(module.title)}</strong>
+        <p>${escapeHtml(module.description)}</p>
+        <div class="path-progress"><span class="w-${pct}"></span></div>
+        <button class="btn-secondary btn-full" data-lesson-id="${escapeHtml(nextLesson)}">Continue module</button>
+      </div>`;
+  }).join("");
+}
+
+function renderLessonLibrary() {
+  const container = document.getElementById("lessonGrid");
+  if (!container) return;
+  const query = (document.getElementById("learnSearchInput")?.value || "").trim().toLowerCase();
+  const completed = new Set(profile.learningProgress.completedLessons);
+  const lessons = LEARNING_LESSONS.filter(lesson => {
+    const matchesSkill = learnSkillFilter === "all" || lesson.skill === learnSkillFilter;
+    const haystack = `${lesson.title} ${lesson.summary} ${lesson.tags.join(" ")} ${lesson.skill} ${lesson.level}`.toLowerCase();
+    return matchesSkill && (!query || haystack.includes(query));
+  });
+
+  setText("lessonCountBadge", `${lessons.length} ${lessons.length === 1 ? "lesson" : "lessons"}`);
+  container.innerHTML = lessons.length
+    ? lessons.map(lesson => `
+        <button class="lesson-card" data-lesson-id="${escapeHtml(lesson.id)}">
+          <span class="lesson-card-top">
+            <span class="lesson-skill ${escapeHtml(lesson.skill)}">${escapeHtml(titleCase(lesson.skill))}</span>
+            <span>${lesson.minutes} min</span>
+          </span>
+          <strong>${escapeHtml(lesson.title)}</strong>
+          <span>${escapeHtml(lesson.summary)}</span>
+          <span class="lesson-tags">${lesson.tags.slice(0, 3).map(tag => `<small>${escapeHtml(tag)}</small>`).join("")}</span>
+          ${completed.has(lesson.id) ? `<em>Completed</em>` : ""}
+        </button>`).join("")
+    : `<p class="placeholder-text">No lessons match this search. Try a skill or TOEFL topic.</p>`;
+}
+
+function renderVocabularySystem() {
+  const container = document.getElementById("vocabCardList");
+  if (!container) return;
+  const saved = new Set(profile.vocabularyProgress.savedWords);
+  const mastered = new Set(profile.vocabularyProgress.masteredWords);
+  container.innerHTML = TOEFL_WORD_CARDS.map(word => `
+    <div class="vocab-word-card">
+      <div>
+        <strong>${escapeHtml(word.word)}</strong>
+        <span>${escapeHtml(word.definition)}</span>
+        <small>${escapeHtml(word.example)}</small>
+      </div>
+      <div class="vocab-actions">
+        <button class="btn-secondary btn-compact" data-save-word="${escapeHtml(word.id)}">${saved.has(word.id) ? "Saved" : "Save"}</button>
+        <button class="btn-secondary btn-compact" data-master-word="${escapeHtml(word.id)}">${mastered.has(word.id) ? "Mastered" : "Mark mastered"}</button>
+      </div>
+    </div>`).join("");
+}
+
+function renderNotebook() {
+  const container = document.getElementById("notebookList");
+  if (!container) return;
+  const notes = (profile.notes || []).slice().reverse();
+  container.innerHTML = notes.length
+    ? notes.map(note => `
+        <div class="notebook-item">
+          <div>
+            <span class="lesson-skill strategy">${escapeHtml(note.type || "note")}</span>
+            <strong>${escapeHtml(note.title)}</strong>
+            <p>${escapeHtml(note.content)}</p>
+          </div>
+          <button class="btn-secondary btn-compact" data-delete-note="${escapeHtml(note.id)}">Delete</button>
+        </div>`).join("")
+    : `<p class="placeholder-text">Save useful phrases, personal rules, templates, or AI advice here.</p>`;
+}
+
+function openLesson(lessonId) {
+  ensureLearningState(profile);
+  profile.learningProgress.currentLessonId = lessonId;
+  saveProfile(profile);
+  navigateTo("lesson");
+}
+
+function renderLessonPage() {
+  profile = loadProfile();
+  ensureLearningState(profile);
+  const lesson = getLessonById(profile.learningProgress.currentLessonId);
+  const module = getModuleById(lesson.moduleId);
+  const completed = profile.learningProgress.completedLessons.includes(lesson.id);
+  const workspace = document.getElementById("lessonWorkspace");
+  if (!workspace) return;
+
+  workspace.innerHTML = `
+    <div class="lesson-shell">
+      <aside class="lesson-steps card">
+        <button class="btn-secondary btn-full" data-section="learn">Back to Learn</button>
+        <div class="card-kicker">Lesson steps</div>
+        <h2 class="card-title">${escapeHtml(module.title)}</h2>
+        ${lesson.steps.map((step, index) => `
+          <div class="lesson-step-item">
+            <span>${index + 1}</span>
+            <strong>${escapeHtml(step.title)}</strong>
+          </div>`).join("")}
+      </aside>
+
+      <article class="lesson-main card">
+        <div class="lesson-hero-line">
+          <span class="lesson-skill ${escapeHtml(lesson.skill)}">${escapeHtml(titleCase(lesson.skill))}</span>
+          <span>${lesson.minutes} min</span>
+          <span>${escapeHtml(titleCase(lesson.level))}</span>
+        </div>
+        <h2>${escapeHtml(lesson.title)}</h2>
+        <p>${escapeHtml(lesson.summary)}</p>
+        ${lesson.steps.map(step => `
+          <section class="lesson-theory-block">
+            <h3>${escapeHtml(step.title)}</h3>
+            <p>${escapeHtml(step.body)}</p>
+            <ul>${step.bullets.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+          </section>`).join("")}
+        <section class="lesson-example-block">
+          <div class="card-kicker">Example</div>
+          <strong>${escapeHtml(lesson.example.prompt)}</strong>
+          <p>${escapeHtml(lesson.example.answer)}</p>
+          <small>${escapeHtml(lesson.example.why)}</small>
+        </section>
+        <div class="lesson-bottom-actions">
+          <button class="btn-primary" data-section="${escapeHtml(lesson.practiceSkill)}">Practice this skill</button>
+          <button class="btn-secondary" data-complete-lesson="${escapeHtml(lesson.id)}">${completed ? "Completed" : "Mark complete"}</button>
+        </div>
+      </article>
+
+      <aside class="lesson-checklist card">
+        <div class="card-kicker">Key rules</div>
+        <h2 class="card-title">Checklist</h2>
+        <div class="checklist-list">
+          ${lesson.checklist.map(item => `<div><span></span><strong>${escapeHtml(item)}</strong></div>`).join("")}
+        </div>
+        <button class="btn-secondary btn-full" data-save-lesson-note="${escapeHtml(lesson.id)}">Save checklist to notes</button>
+      </aside>
+    </div>`;
+}
+
+function markLessonComplete(lessonId) {
+  ensureLearningState(profile);
+  if (!profile.learningProgress.completedLessons.includes(lessonId)) {
+    profile.learningProgress.completedLessons.push(lessonId);
+  }
+  saveProfile(profile);
+  renderLessonPage();
+  renderAppShell();
+  showToast("Lesson marked complete.", "success");
+}
+
+function saveVocabularyWord(wordId) {
+  ensureLearningState(profile);
+  if (!profile.vocabularyProgress.savedWords.includes(wordId)) {
+    profile.vocabularyProgress.savedWords.push(wordId);
+  }
+  profile.vocabularyProgress.reviews.push({ wordId, action: "saved", date: new Date().toISOString() });
+  saveProfile(profile);
+  renderVocabularySystem();
+  showToast("Word saved.", "success");
+}
+
+function markVocabularyMastered(wordId) {
+  ensureLearningState(profile);
+  if (!profile.vocabularyProgress.savedWords.includes(wordId)) {
+    profile.vocabularyProgress.savedWords.push(wordId);
+  }
+  if (!profile.vocabularyProgress.masteredWords.includes(wordId)) {
+    profile.vocabularyProgress.masteredWords.push(wordId);
+  }
+  profile.vocabularyProgress.reviews.push({ wordId, action: "mastered", date: new Date().toISOString() });
+  saveProfile(profile);
+  renderVocabularySystem();
+  showToast("Word marked mastered.", "success");
+}
+
+function addNotebookNoteFromForm() {
+  const title = document.getElementById("noteTitleInput")?.value.trim();
+  const content = document.getElementById("noteContentInput")?.value.trim();
+  if (!title || !content) {
+    showToast("Add a title and note content.", "error");
+    return;
+  }
+  addNotebookNote({ type: "personal", title, content, source: "Notebook" });
+  document.getElementById("noteTitleInput").value = "";
+  document.getElementById("noteContentInput").value = "";
+  renderNotebook();
+}
+
+function saveLessonChecklistToNotes(lessonId) {
+  const lesson = getLessonById(lessonId);
+  addNotebookNote({
+    type: "lesson",
+    title: `${lesson.title} checklist`,
+    content: lesson.checklist.join("; "),
+    source: lesson.title
+  });
+  renderLessonPage();
+}
+
+function addNotebookNote(note) {
+  ensureLearningState(profile);
+  profile.notes.push({
+    id: `note-${Date.now()}-${profile.notes.length}`,
+    type: note.type || "note",
+    title: note.title,
+    content: note.content,
+    source: note.source || "Manual",
+    createdAt: new Date().toISOString()
+  });
+  profile.notes = profile.notes.slice(-120);
+  saveProfile(profile);
+  showToast("Saved to notebook.", "success");
+}
+
+function deleteNotebookNote(noteId) {
+  ensureLearningState(profile);
+  profile.notes = profile.notes.filter(note => note.id !== noteId);
+  saveProfile(profile);
+  renderNotebook();
+  showToast("Note deleted.", "info");
 }
 
 // ─── PRACTICE SECTIONS ───────────────────────────
