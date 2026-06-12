@@ -1931,6 +1931,49 @@ a {
   padding: 12px;
 }
 
+.vocab-system-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.vocab-system-summary div {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg4);
+}
+
+.vocab-system-summary strong,
+.vocab-system-summary span {
+  display: block;
+}
+
+.vocab-system-summary strong {
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.vocab-system-summary span {
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+.vocab-review-block {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(8,145,178,.2);
+  border-radius: 8px;
+  background: #f0fbfd;
+}
+
+.vocab-review-list {
+  display: grid;
+  gap: 8px;
+}
+
 .vocab-word-card strong,
 .vocab-word-card span,
 .vocab-word-card small,
@@ -1951,6 +1994,19 @@ a {
   color: var(--muted-2);
   font-size: .74rem;
   line-height: 1.4;
+}
+
+.vocab-word-card em {
+  display: inline-flex;
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #b45309;
+  font-size: .68rem;
+  font-style: normal;
+  font-weight: 850;
+  vertical-align: middle;
 }
 
 .vocab-actions {
@@ -2928,6 +2984,7 @@ a {
   gap: 5px;
   padding: 13px 14px;
   line-height: 1.45;
+  cursor: default;
 }
 
 .mistake-review-card span,
@@ -2948,6 +3005,13 @@ a {
 .mistake-review-card:hover {
   background: var(--accent-soft);
   border-color: rgba(29,78,216,.24);
+}
+
+.mistake-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 /* ═══════════════ BUTTONS ═══════════════ */
@@ -3112,6 +3176,43 @@ a {
   line-height: 1.7;
 }
 
+.lecture-player {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.lecture-player-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.audio-control-btn {
+  min-height: 38px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: .875rem;
+}
+.audio-control-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+.audio-progress-track {
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  background: var(--bg3);
+  border-radius: 999px;
+}
+.audio-progress-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+  transition: width .18s ease;
+}
+
 /* Play button (Listening) */
 .play-btn {
   display: inline-flex;
@@ -3125,9 +3226,9 @@ a {
   font-size: .875rem;
   cursor: pointer;
   transition: all .15s;
-  margin-bottom: 16px;
 }
 .play-btn:hover { background: var(--accent); color: #fff; }
+.play-btn.playing { background: var(--accent); border-color: var(--accent); color: #fff; }
 .play-btn.played { background: #ecfdf3; border-color: rgba(21,128,61,.28); color: var(--success); }
 
 /* Question text */

@@ -322,7 +322,17 @@ const TOEFL_WORD_CARDS = [
   { id: "empirical", word: "empirical", definition: "based on observation or evidence", example: "The professor asked for empirical support.", skill: "writing" },
   { id: "retain", word: "retain", definition: "to keep or continue to have", example: "Students retain more vocabulary when they review it in context.", skill: "vocabulary" },
   { id: "approximate", word: "approximate", definition: "close to an exact amount", example: "The approximate age of the artifact is 2,000 years.", skill: "listening" },
-  { id: "indicate", word: "indicate", definition: "to show or suggest", example: "The data indicate a change in climate patterns.", skill: "reading" }
+  { id: "indicate", word: "indicate", definition: "to show or suggest", example: "The data indicate a change in climate patterns.", skill: "reading" },
+  { id: "plausible", word: "plausible", definition: "reasonable or believable", example: "The professor offered a plausible explanation for the pattern.", skill: "reading" },
+  { id: "allocate", word: "allocate", definition: "to distribute for a specific purpose", example: "The university will allocate funds to research labs.", skill: "writing" },
+  { id: "constraints", word: "constraints", definition: "limits or restrictions", example: "Time constraints affected the design of the experiment.", skill: "strategy" },
+  { id: "robust", word: "robust", definition: "strong, reliable, and effective", example: "A robust study uses enough data to support its claim.", skill: "writing" },
+  { id: "ambiguous", word: "ambiguous", definition: "having more than one possible meaning", example: "The speaker's comment was ambiguous until she gave an example.", skill: "listening" },
+  { id: "inherent", word: "inherent", definition: "built-in or naturally part of something", example: "There are inherent risks in relying on a single source.", skill: "reading" },
+  { id: "precipitate", word: "precipitate", definition: "to cause something to happen suddenly", example: "A policy change can precipitate unexpected debate.", skill: "writing" },
+  { id: "synthesize", word: "synthesize", definition: "to combine ideas into a whole", example: "Integrated writing asks students to synthesize reading and lecture details.", skill: "writing" },
+  { id: "offset", word: "offset", definition: "to balance or compensate for something", example: "Stronger examples can offset minor grammar errors.", skill: "speaking" },
+  { id: "profound", word: "profound", definition: "deep, important, or significant", example: "The invention had a profound effect on communication.", skill: "reading" }
 ];
 
 function getLessonById(id) {

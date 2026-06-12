@@ -30,6 +30,14 @@ const practiceState = {
   minitest:   { idx: 0, questions: [], answers: [], started: false, done: false }
 };
 
+const listeningSpeechState = {
+  supported: typeof window !== "undefined" && "speechSynthesis" in window && "SpeechSynthesisUtterance" in window,
+  activeId: null,
+  activeButton: null,
+  activeProgress: null,
+  activeUtterance: null
+};
+
 // ─── INIT ────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
@@ -100,6 +108,8 @@ function getNavSection(section) {
 }
 
 function navigateTo(section) {
+  stopListeningSpeech();
+
   // Update sidebar
   document.querySelectorAll(".nav-link").forEach(l => {
     l.classList.remove("active");
@@ -202,6 +212,129 @@ function getAvatarTone(name) {
   const source = String(name || "Alex Carter");
   const hash = [...source].reduce((sum, char) => sum + char.charCodeAt(0), 0);
   return AVATAR_TONES[hash % AVATAR_TONES.length];
+}
+
+function buildLectureSpeechText(q) {
+  return [q.lectureTitle, q.lectureText].filter(Boolean).join(". ");
+}
+
+function getEnglishSpeechVoice() {
+  if (!listeningSpeechState.supported) return null;
+  const voices = window.speechSynthesis.getVoices?.() || [];
+  const englishVoices = voices.filter(voice => /^en/i.test(voice.lang));
+  const softerVoiceNames = /samantha|ava|allison|victoria|karen|moira|serena|aria|jenny|google us english/i;
+  return englishVoices.find(voice => softerVoiceNames.test(voice.name))
+    || englishVoices.find(voice => /^en[-_]?US/i.test(voice.lang))
+    || englishVoices[0]
+    || null;
+}
+
+function markLectureReady(container) {
+  container.querySelector("#restartBtn")?.removeAttribute("disabled");
+  container.querySelector("#miniRestartBtn")?.removeAttribute("disabled");
+  container.querySelectorAll(".option-btn").forEach(button => {
+    button.disabled = false;
+  });
+}
+
+function setLectureTranscriptVisible(container, visible) {
+  const transcript = container.querySelector("#lectureText") || container.querySelector("#miniLectureBox");
+  const button = container.querySelector("#transcriptBtn") || container.querySelector("#miniTranscriptBtn");
+  if (!transcript || !button) return;
+  transcript.classList.toggle("hidden", !visible);
+  button.textContent = visible ? "Hide transcript" : "Show transcript";
+}
+
+function updateSpeechProgress(progress, percent) {
+  if (!progress) return;
+  const safePercent = Math.max(0, Math.min(100, Math.round(percent)));
+  progress.style.width = `${safePercent}%`;
+}
+
+function resetSpeechButton(button, label = "Replay Lecture") {
+  if (!button) return;
+  button.classList.remove("playing");
+  button.classList.add("played");
+  button.textContent = label;
+}
+
+function stopListeningSpeech(label = "Replay Lecture") {
+  const activeButton = listeningSpeechState.activeButton;
+  const activeProgress = listeningSpeechState.activeProgress;
+  listeningSpeechState.activeId = null;
+  listeningSpeechState.activeButton = null;
+  listeningSpeechState.activeProgress = null;
+  listeningSpeechState.activeUtterance = null;
+
+  if (listeningSpeechState.supported) {
+    window.speechSynthesis.cancel();
+  }
+
+  resetSpeechButton(activeButton, label);
+  updateSpeechProgress(activeProgress, 0);
+}
+
+function playLectureAudio({ id, text, button, progress, onReady }) {
+  if (!listeningSpeechState.supported) {
+    onReady?.();
+    resetSpeechButton(button, "Replay Lecture");
+    updateSpeechProgress(progress, 100);
+    showToast("Audio is not supported in this browser.", "error");
+    return;
+  }
+
+  if (listeningSpeechState.activeId === id) {
+    stopListeningSpeech("Replay Lecture");
+    return;
+  }
+
+  stopListeningSpeech();
+  onReady?.();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "en-US";
+  utterance.rate = 0.88;
+  utterance.pitch = 1.02;
+  const voice = getEnglishSpeechVoice();
+  if (voice) utterance.voice = voice;
+
+  listeningSpeechState.activeId = id;
+  listeningSpeechState.activeButton = button;
+  listeningSpeechState.activeProgress = progress;
+  listeningSpeechState.activeUtterance = utterance;
+
+  button.classList.remove("played");
+  button.classList.add("playing");
+  button.textContent = "Stop Audio";
+  updateSpeechProgress(progress, 0);
+
+  utterance.onboundary = event => {
+    if (listeningSpeechState.activeUtterance !== utterance || typeof event.charIndex !== "number") return;
+    updateSpeechProgress(progress, (event.charIndex / Math.max(text.length, 1)) * 100);
+  };
+
+  utterance.onend = () => {
+    if (listeningSpeechState.activeUtterance !== utterance) return;
+    listeningSpeechState.activeId = null;
+    listeningSpeechState.activeButton = null;
+    listeningSpeechState.activeProgress = null;
+    listeningSpeechState.activeUtterance = null;
+    updateSpeechProgress(progress, 100);
+    resetSpeechButton(button, "Replay Lecture");
+  };
+
+  utterance.onerror = () => {
+    if (listeningSpeechState.activeUtterance !== utterance) return;
+    listeningSpeechState.activeId = null;
+    listeningSpeechState.activeButton = null;
+    listeningSpeechState.activeProgress = null;
+    listeningSpeechState.activeUtterance = null;
+    resetSpeechButton(button, "Replay Lecture");
+    showToast("Audio stopped. You can replay the lecture.", "info");
+  };
+
+  window.speechSynthesis.resume?.();
+  window.speechSynthesis.speak(utterance);
 }
 
 // ─── DASHBOARD ───────────────────────────────────
@@ -554,12 +687,16 @@ function renderMistakesSection() {
 
   const mistakesHtml = mistakes.length
     ? mistakes.slice(0, 10).map(item => `
-        <button class="mistake-review-card" data-section="${item.skill}">
+        <div class="mistake-review-card">
           <span class="mistake-review-skill">${SKILL_META[item.skill]?.label || item.skill}</span>
           <strong>${escapeHtml(item.topic)}</strong>
           <span>${escapeHtml(item.prompt).slice(0, 160)}${item.prompt.length > 160 ? "..." : ""}</span>
           ${item.correctAnswer ? `<small>Correct: ${escapeHtml(item.correctAnswer)}</small>` : ""}
-        </button>`).join("")
+          <div class="mistake-card-actions">
+            <button class="btn-secondary btn-compact" data-section="${escapeHtml(item.skill)}">Practice skill</button>
+            <button class="btn-secondary btn-compact" data-save-mistake-note="${escapeHtml(item.id)}">Save to notes</button>
+          </div>
+        </div>`).join("")
     : `<p class="placeholder-text">Missed questions will appear here after practice.</p>`;
 
   container.innerHTML = `
@@ -1248,6 +1385,12 @@ function initLearning() {
       return;
     }
 
+    const saveMistakeNoteBtn = event.target.closest("[data-save-mistake-note]");
+    if (saveMistakeNoteBtn) {
+      saveMistakeToNotes(saveMistakeNoteBtn.dataset.saveMistakeNote);
+      return;
+    }
+
     const deleteNoteBtn = event.target.closest("[data-delete-note]");
     if (deleteNoteBtn) {
       deleteNotebookNote(deleteNoteBtn.dataset.deleteNote);
@@ -1278,6 +1421,9 @@ function ensureLearningState(currentProfile) {
   currentProfile.vocabularyProgress.masteredWords = currentProfile.vocabularyProgress.masteredWords || [];
   currentProfile.vocabularyProgress.missedWords = currentProfile.vocabularyProgress.missedWords || [];
   currentProfile.vocabularyProgress.reviews = currentProfile.vocabularyProgress.reviews || [];
+  currentProfile.vocabularyProgress.savedWords = Array.from(new Set(currentProfile.vocabularyProgress.savedWords));
+  currentProfile.vocabularyProgress.masteredWords = Array.from(new Set(currentProfile.vocabularyProgress.masteredWords));
+  currentProfile.vocabularyProgress.missedWords = Array.from(new Set(currentProfile.vocabularyProgress.missedWords));
   currentProfile.notes = currentProfile.notes || [];
   return currentProfile;
 }
@@ -1401,10 +1547,44 @@ function renderVocabularySystem() {
   if (!container) return;
   const saved = new Set(profile.vocabularyProgress.savedWords);
   const mastered = new Set(profile.vocabularyProgress.masteredWords);
-  container.innerHTML = TOEFL_WORD_CARDS.map(word => `
+  const missed = new Set(profile.vocabularyProgress.missedWords);
+  const reviewWords = profile.vocabularyProgress.missedWords
+    .map(getVocabularyWordCard)
+    .filter(word => word && !mastered.has(word.id));
+
+  const reviewHtml = reviewWords.length
+    ? reviewWords.map(word => renderVocabularyWordCard(word, saved, mastered, missed)).join("")
+    : `<p class="placeholder-text">Missed vocabulary words will appear here after practice.</p>`;
+
+  container.innerHTML = `
+    <div class="vocab-system-summary">
+      <div><strong>${saved.size}</strong><span>saved</span></div>
+      <div><strong>${mastered.size}</strong><span>mastered</span></div>
+      <div><strong>${reviewWords.length}</strong><span>to review</span></div>
+    </div>
+    <div class="vocab-review-block">
+      <div class="card-kicker">Words I missed</div>
+      <div class="vocab-review-list">${reviewHtml}</div>
+    </div>
+    ${TOEFL_WORD_CARDS.map(word => renderVocabularyWordCard(word, saved, mastered, missed)).join("")}`;
+}
+
+function getVocabularyWordCard(wordId) {
+  const normalized = String(wordId || "").toLowerCase();
+  return TOEFL_WORD_CARDS.find(word => word.id === normalized) || {
+    id: normalized,
+    word: normalized.replace(/-/g, " "),
+    definition: "Review this word from a missed practice question.",
+    example: "Save an example sentence after you review the correct answer.",
+    skill: "vocabulary"
+  };
+}
+
+function renderVocabularyWordCard(word, saved, mastered, missed) {
+  return `
     <div class="vocab-word-card">
       <div>
-        <strong>${escapeHtml(word.word)}</strong>
+        <strong>${escapeHtml(word.word)}${missed.has(word.id) ? ` <em>Missed</em>` : ""}</strong>
         <span>${escapeHtml(word.definition)}</span>
         <small>${escapeHtml(word.example)}</small>
       </div>
@@ -1412,7 +1592,7 @@ function renderVocabularySystem() {
         <button class="btn-secondary btn-compact" data-save-word="${escapeHtml(word.id)}">${saved.has(word.id) ? "Saved" : "Save"}</button>
         <button class="btn-secondary btn-compact" data-master-word="${escapeHtml(word.id)}">${mastered.has(word.id) ? "Mastered" : "Mark mastered"}</button>
       </div>
-    </div>`).join("");
+    </div>`;
 }
 
 function renderNotebook() {
@@ -1483,6 +1663,7 @@ function renderLessonPage() {
         </section>
         <div class="lesson-bottom-actions">
           <button class="btn-primary" data-section="${escapeHtml(lesson.practiceSkill)}">Practice this skill</button>
+          <button class="btn-secondary" data-section="minitest">Run mini-test</button>
           <button class="btn-secondary" data-complete-lesson="${escapeHtml(lesson.id)}">${completed ? "Completed" : "Mark complete"}</button>
         </div>
       </article>
@@ -1528,6 +1709,7 @@ function markVocabularyMastered(wordId) {
   if (!profile.vocabularyProgress.masteredWords.includes(wordId)) {
     profile.vocabularyProgress.masteredWords.push(wordId);
   }
+  profile.vocabularyProgress.missedWords = profile.vocabularyProgress.missedWords.filter(id => id !== wordId);
   profile.vocabularyProgress.reviews.push({ wordId, action: "mastered", date: new Date().toISOString() });
   saveProfile(profile);
   renderVocabularySystem();
@@ -1556,6 +1738,24 @@ function saveLessonChecklistToNotes(lessonId) {
     source: lesson.title
   });
   renderLessonPage();
+}
+
+function saveMistakeToNotes(mistakeId) {
+  profile = loadProfile();
+  ensureLearningState(profile);
+  const mistake = (profile.mistakeBank || []).find(item => item.id === mistakeId);
+  if (!mistake) {
+    showToast("Mistake not found.", "error");
+    return;
+  }
+
+  addNotebookNote({
+    type: "mistake",
+    title: `${SKILL_META[mistake.skill]?.label || titleCase(mistake.skill)}: ${mistake.topic}`,
+    content: `${mistake.prompt}${mistake.correctAnswer ? ` Correct answer: ${mistake.correctAnswer}.` : ""}`,
+    source: "Mistake bank"
+  });
+  renderCurrentSection();
 }
 
 function addNotebookNote(note) {
@@ -1683,9 +1883,18 @@ function renderListeningQ(q, container, skill) {
       <div class="passage-label">${q.lectureTitle}</div>
       <div class="lecture-text hidden" id="lectureText">${q.lectureText}</div>
     </div>
-    <button class="play-btn ${state.played ? "played" : ""}" id="playBtn">
-      ${state.played ? "Lecture Played" : "Play Lecture"}
-    </button>
+    <div class="lecture-player">
+      <div class="lecture-player-actions">
+        <button class="play-btn ${state.played ? "played" : ""}" id="playBtn">
+          ${state.played ? "Replay Lecture" : "Play Lecture"}
+        </button>
+        <button class="btn-secondary audio-control-btn" id="restartBtn" ${state.played ? "" : "disabled"}>Restart</button>
+        <button class="btn-secondary audio-control-btn" id="transcriptBtn">Show transcript</button>
+      </div>
+      <div class="audio-progress-track" aria-hidden="true">
+        <span class="audio-progress-fill" id="audioProgress" style="width: 0%"></span>
+      </div>
+    </div>
     <div class="question-text">${q.question}</div>
     <ul class="options-list" id="optionsList">
       ${q.options.map((opt, i) => `
@@ -1699,19 +1908,38 @@ function renderListeningQ(q, container, skill) {
       <button class="btn-primary hidden" id="nextBtn">Next</button>
     </div>`;
 
-  // Play button reveals text and unlocks options
   container.querySelector("#playBtn").addEventListener("click", function() {
-    this.classList.add("played");
-    this.textContent = "Lecture Played";
-    container.querySelector("#lectureText").classList.remove("hidden");
-    state.played = true;
-    container.querySelectorAll(".option-btn").forEach(b => b.disabled = false);
+    playLectureAudio({
+      id: `practice-listening-${q.id}`,
+      text: buildLectureSpeechText(q),
+      button: this,
+      progress: container.querySelector("#audioProgress"),
+      onReady: () => {
+        state.played = true;
+        markLectureReady(container);
+      }
+    });
   });
 
-  // If already played, show text
-  if (state.played) {
-    container.querySelector("#lectureText").classList.remove("hidden");
-  }
+  container.querySelector("#restartBtn").addEventListener("click", function() {
+    const playButton = container.querySelector("#playBtn");
+    stopListeningSpeech();
+    playLectureAudio({
+      id: `practice-listening-${q.id}`,
+      text: buildLectureSpeechText(q),
+      button: playButton,
+      progress: container.querySelector("#audioProgress"),
+      onReady: () => {
+        state.played = true;
+        markLectureReady(container);
+      }
+    });
+  });
+
+  container.querySelector("#transcriptBtn").addEventListener("click", function() {
+    const transcript = container.querySelector("#lectureText");
+    setLectureTranscriptVisible(container, transcript.classList.contains("hidden"));
+  });
 
   attachOptionHandlers(container, q, skill, false);
 }
@@ -1863,6 +2091,7 @@ function attachOptionHandlers(container, q, skill, isMiniTest) {
 }
 
 function advanceQuestion(skill) {
+  if (skill === "listening") stopListeningSpeech();
   const state = practiceState[skill];
   state.idx++;
   state.answered = false;
@@ -1951,6 +2180,8 @@ function renderMiniTestStart() {
 }
 
 function renderMiniQuestion() {
+  stopListeningSpeech();
+
   const state = practiceState.minitest;
   const total = state.questions.length;
 
@@ -2070,7 +2301,16 @@ function renderMiniListening(q, container) {
   container.innerHTML = `
     <div class="passage-label">${q.lectureTitle}</div>
     <div class="passage-box hidden" id="miniLectureBox">${q.lectureText}</div>
-    <button class="play-btn" id="miniPlayBtn">Play Lecture</button>
+    <div class="lecture-player">
+      <div class="lecture-player-actions">
+        <button class="play-btn" id="miniPlayBtn">Play Lecture</button>
+        <button class="btn-secondary audio-control-btn" id="miniRestartBtn" disabled>Restart</button>
+        <button class="btn-secondary audio-control-btn" id="miniTranscriptBtn">Show transcript</button>
+      </div>
+      <div class="audio-progress-track" aria-hidden="true">
+        <span class="audio-progress-fill" id="miniAudioProgress" style="width: 0%"></span>
+      </div>
+    </div>
     <div class="question-text">${q.question}</div>
     <ul class="options-list" id="miniOpts">
       ${q.options.map((opt, i) => `
@@ -2085,10 +2325,30 @@ function renderMiniListening(q, container) {
     </div>`;
 
   container.querySelector("#miniPlayBtn").addEventListener("click", function() {
-    this.classList.add("played");
-    this.textContent = "Played";
-    container.querySelector("#miniLectureBox").classList.remove("hidden");
-    container.querySelectorAll(".option-btn").forEach(b => b.disabled = false);
+    playLectureAudio({
+      id: `mini-listening-${state.idx}-${q.id}`,
+      text: buildLectureSpeechText(q),
+      button: this,
+      progress: container.querySelector("#miniAudioProgress"),
+      onReady: () => markLectureReady(container)
+    });
+  });
+
+  container.querySelector("#miniRestartBtn").addEventListener("click", function() {
+    const playButton = container.querySelector("#miniPlayBtn");
+    stopListeningSpeech();
+    playLectureAudio({
+      id: `mini-listening-${state.idx}-${q.id}`,
+      text: buildLectureSpeechText(q),
+      button: playButton,
+      progress: container.querySelector("#miniAudioProgress"),
+      onReady: () => markLectureReady(container)
+    });
+  });
+
+  container.querySelector("#miniTranscriptBtn").addEventListener("click", function() {
+    const transcript = container.querySelector("#miniLectureBox");
+    setLectureTranscriptVisible(container, transcript.classList.contains("hidden"));
   });
 
   container.querySelectorAll(".option-btn").forEach(btn => {
