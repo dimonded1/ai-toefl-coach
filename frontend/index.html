@@ -10,9 +10,10 @@
   <link rel="stylesheet" href="src/styles/main.css" />
 </head>
 <body>
+<a class="skip-link" href="#mainContent">Skip to content</a>
 
 <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
-<nav class="sidebar" id="sidebar">
+<nav class="sidebar" id="sidebar" aria-label="Primary navigation">
   <div class="sidebar-user" data-section="goal">
     <span class="avatar avatar-md" id="sidebarAvatar"></span>
     <span class="sidebar-user-copy">
@@ -25,7 +26,7 @@
     <div><span>Day</span><strong id="sidebarDay">1 / 60</strong></div>
   </div>
   <ul class="sidebar-nav">
-    <li><a href="#" class="nav-link active" data-section="dashboard"><span class="nav-icon">⌂</span><span>Dashboard</span></a></li>
+    <li><a href="#" class="nav-link active" data-section="dashboard" aria-current="page"><span class="nav-icon">⌂</span><span>Dashboard</span></a></li>
     <li><a href="#" class="nav-link" data-section="practice"><span class="nav-icon">◇</span><span>Practice</span></a></li>
     <li><a href="#" class="nav-link" data-section="aiplan"><span class="nav-icon">✦</span><span>Study Plan</span></a></li>
     <li><a href="#" class="nav-link" data-section="analytics"><span class="nav-icon">↗</span><span>Analytics</span></a></li>
@@ -41,11 +42,11 @@
 </nav>
 
 <!-- ═══════════════════════ MAIN CONTENT ═══════════════════════ -->
-<main class="main-content">
+<main class="main-content" id="mainContent" tabindex="-1">
 
   <!-- TOP BAR -->
   <header class="topbar">
-    <button class="hamburger" id="hamburger">☰</button>
+    <button class="hamburger" id="hamburger" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">☰</button>
     <h1 class="page-title" id="pageTitle">Dashboard</h1>
     <div class="topbar-right">
       <span class="score-badge" id="topbarScore">TOEFL: <strong id="topScore">--</strong></span>
@@ -345,7 +346,7 @@
             </div>
             <button class="btn-primary" id="generatePlanBtn">Generate Study Plan</button>
           </div>
-          <div id="studyPlanContent" class="study-plan-content">
+          <div id="studyPlanContent" class="study-plan-content" aria-live="polite">
             <p class="placeholder-text">Click "Generate Study Plan" to get your personalized recommendations.</p>
           </div>
         </div>
@@ -357,7 +358,7 @@
             </div>
             <button class="btn-secondary" id="analyzeGapBtn">Run AI Analysis</button>
           </div>
-          <div id="scoreGapContent" class="gap-analysis">
+          <div id="scoreGapContent" class="gap-analysis" aria-live="polite">
             <div class="gap-visual" id="gapVisual"></div>
           </div>
         </div>
@@ -390,7 +391,7 @@
 </main>
 
 <!-- ═══════════════════════ TOAST NOTIFICATION ═══════════════════════ -->
-<div class="toast hidden" id="toast"></div>
+<div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
 
 <!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
 <script src="src/scripts/data.js"></script>

@@ -75,7 +75,9 @@ function initNavigation() {
   });
 
   document.getElementById("hamburger").addEventListener("click", () => {
-    document.getElementById("sidebar").classList.toggle("open");
+    const sidebar = document.getElementById("sidebar");
+    const isOpen = sidebar.classList.toggle("open");
+    document.getElementById("hamburger").setAttribute("aria-expanded", String(isOpen));
   });
 }
 
@@ -87,17 +89,30 @@ function getNavSection(section) {
 
 function navigateTo(section) {
   // Update sidebar
-  document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
+  document.querySelectorAll(".nav-link").forEach(l => {
+    l.classList.remove("active");
+    l.removeAttribute("aria-current");
+  });
   const activeLink = document.querySelector(`.nav-link[data-section="${getNavSection(section)}"]`);
-  if (activeLink) activeLink.classList.add("active");
+  if (activeLink) {
+    activeLink.classList.add("active");
+    activeLink.setAttribute("aria-current", "page");
+  }
 
   // Show section
-  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+  document.querySelectorAll(".section").forEach(s => {
+    s.classList.remove("active");
+    s.setAttribute("hidden", "");
+  });
   const el = document.getElementById(`section-${section}`);
-  if (el) el.classList.add("active");
+  if (el) {
+    el.classList.add("active");
+    el.removeAttribute("hidden");
+  }
 
   // Page title
   document.getElementById("pageTitle").textContent = PAGE_TITLES[section] || SECTION_TITLES[section] || section;
+  document.getElementById("mainContent").focus?.();
 
   // Refresh content on navigate
   if (section === "dashboard") renderDashboard();
@@ -588,6 +603,86 @@ function cleanAIText(text) {
     .trim();
 }
 
+function getAIStatusCopy(err) {
+  const code = err?.code || "AI_REQUEST_FAILED";
+  const status = err?.status ? `HTTP ${err.status}` : "Local fallback";
+  const copies = {
+    RATE_LIMITED: {
+      tone: "warning",
+      label: "Rate limit",
+      title: "AI is taking a short break",
+      message: "Too many AI requests were sent recently. Your local plan is still ready to use."
+    },
+    AI_TIMEOUT: {
+      tone: "warning",
+      label: "Timeout",
+      title: "AI took too long to answer",
+      message: "The coach switched to a local fallback so you can keep preparing without waiting."
+    },
+    AI_UNAVAILABLE: {
+      tone: "danger",
+      label: "Unavailable",
+      title: "AI is not available right now",
+      message: "The Groq connection or API key is not ready. Local recommendations are shown instead."
+    },
+    INVALID_AI_RESPONSE: {
+      tone: "warning",
+      label: "Invalid response",
+      title: "AI response could not be used",
+      message: "The app protected the plan quality and replaced the response with a structured fallback."
+    },
+    VALIDATION_ERROR: {
+      tone: "danger",
+      label: "Data issue",
+      title: "The request needs cleaner data",
+      message: "Some study data did not pass validation. A local plan is shown while the data is corrected."
+    },
+    AI_PROXY_ERROR: {
+      tone: "danger",
+      label: "Server error",
+      title: "AI proxy had a problem",
+      message: "The backend could not complete the AI request. You can keep working with the local plan."
+    },
+    AI_REQUEST_FAILED: {
+      tone: "danger",
+      label: "Fallback",
+      title: "AI plan could not be generated",
+      message: "The app switched to local recommendations so the preparation flow stays usable."
+    }
+  };
+  return { ...copies[code] || copies.AI_REQUEST_FAILED, detail: err?.message || status, code };
+}
+
+function renderAIStatus(state, options = {}) {
+  const detail = options.showDetail === false ? "" : `<small>${escapeHtml(state.detail)}</small>`;
+  const action = options.action ? `<span class="ai-state-action">${escapeHtml(options.action)}</span>` : "";
+  return `
+    <div class="ai-state-card ai-state-${state.tone}" role="status">
+      <div class="ai-state-icon">${state.tone === "danger" ? "!" : "i"}</div>
+      <div class="ai-state-copy">
+        <div class="ai-state-topline">
+          <span class="ai-state-label">${escapeHtml(state.label)}</span>
+          ${action}
+        </div>
+        <strong>${escapeHtml(state.title)}</strong>
+        <p>${escapeHtml(state.message)}</p>
+        ${detail}
+      </div>
+    </div>`;
+}
+
+function renderAILoading(message) {
+  return `
+    <div class="ai-state-card ai-state-loading" role="status">
+      <div class="spinner"></div>
+      <div class="ai-state-copy">
+        <span class="ai-state-label">AI working</span>
+        <strong>${escapeHtml(message)}</strong>
+        <p>Using your current score, weak zones, confidence, and target pace.</p>
+      </div>
+    </div>`;
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -600,10 +695,10 @@ function escapeHtml(value) {
 async function refreshTodayAIPlan() {
   const btn = document.getElementById("refreshAIBtn");
   btn.disabled = true;
-  btn.textContent = "⏳ Generating...";
+  btn.textContent = "Generating...";
 
   const container = document.getElementById("todayPlan");
-  container.innerHTML = `<div class="ai-loading"><div class="spinner"></div> Building your structured AI plan...</div>`;
+  container.innerHTML = renderAILoading("Building your structured AI plan...");
 
   try {
     const result = await fetchAIStudyPlan();
@@ -613,9 +708,11 @@ async function refreshTodayAIPlan() {
     saveProfile(profile);
     showToast("AI plan updated.", "success");
   } catch (err) {
-    // Fallback to local
-    container.innerHTML = renderPlanHtml(normalizeStudyPlan(null, profile));
-    showToast(`AI unavailable. Using local plan. (${err.message})`, "error");
+    const state = getAIStatusCopy(err);
+    container.innerHTML = `
+      ${renderAIStatus(state, { action: "Local plan is active" })}
+      ${renderPlanHtml(normalizeStudyPlan(null, profile))}`;
+    showToast("AI unavailable. Local plan is active.", state.tone === "danger" ? "error" : "info");
   }
 
   btn.disabled = false;
@@ -1362,8 +1459,8 @@ function initAIPlan() {
     const btn = document.getElementById("generatePlanBtn");
     const out = document.getElementById("studyPlanContent");
     btn.disabled = true;
-    btn.textContent = "⏳ Generating...";
-    out.innerHTML = `<div class="ai-loading"><div class="spinner"></div> Building your structured AI study plan...</div>`;
+    btn.textContent = "Generating...";
+    out.innerHTML = renderAILoading("Building your structured AI study plan...");
 
     try {
       const result = await fetchAIStudyPlan();
@@ -1373,8 +1470,11 @@ function initAIPlan() {
       saveProfile(profile);
       showToast("AI plan ready.", "success");
     } catch (err) {
-      out.innerHTML = renderPlanHtml(normalizeStudyPlan(null, profile));
-      showToast(`Using local plan. AI: ${err.message}`, "error");
+      const state = getAIStatusCopy(err);
+      out.innerHTML = `
+        ${renderAIStatus(state, { action: "Fallback recommendations" })}
+        ${renderPlanHtml(normalizeStudyPlan(null, profile))}`;
+      showToast("AI unavailable. Fallback plan is ready.", state.tone === "danger" ? "error" : "info");
     }
 
     btn.disabled = false;
@@ -1385,12 +1485,12 @@ function initAIPlan() {
     const btn = document.getElementById("analyzeGapBtn");
     const out = document.getElementById("scoreGapContent");
     btn.disabled = true;
-    btn.textContent = "⏳ Analyzing...";
+    btn.textContent = "Analyzing...";
 
     profile = loadProfile();
     const gapHtml = renderScoreGapVisual(profile);
     out.innerHTML = `<div class="gap-visual">${gapHtml}</div>
-      <div class="ai-loading ai-loading-spaced"><div class="spinner"></div> Running AI gap analysis...</div>`;
+      <div class="ai-loading-spaced">${renderAILoading("Running AI gap analysis...")}</div>`;
 
     try {
       const result = await fetchScoreGapAnalysis();
@@ -1398,12 +1498,12 @@ function initAIPlan() {
         <div class="gap-visual">${gapHtml}</div>
         ${renderGapAnalysisHtml(result, profile)}`;
       showToast("Gap analysis complete.", "success");
-    } catch {
+    } catch (err) {
+      const state = getAIStatusCopy(err);
       out.innerHTML = `<div class="gap-visual">${gapHtml}</div>
-        <div class="feedback-box info gap-fallback">
-          Gap of ${Math.max(0, profile.targetScore - calcPredictedScore(profile))} points.
-          Focus on your weakest skills to close the gap fastest.
-        </div>`;
+        ${renderAIStatus(state, { action: "Local gap summary" })}
+        ${renderGapAnalysisHtml(null, profile)}`;
+      showToast("AI gap analysis unavailable. Local summary is shown.", state.tone === "danger" ? "error" : "info");
     }
 
     btn.disabled = false;
@@ -1514,6 +1614,7 @@ function renderAnalytics() {
   const readiness = analytics.readiness || { level: "not-ready", overall: 0 };
 
   container.innerHTML = `
+    ${renderAnalyticsInsight(analytics, accuracy, completed)}
     <div class="analytics-kpi-grid">
       ${renderKpi("Current TOEFL", current, "Predicted score")}
       ${renderKpi("Accuracy", `${accuracy}%`, `${correct}/${completed} correct`)}
@@ -1527,21 +1628,25 @@ function renderAnalytics() {
         <div class="trajectory-chart analytics-trajectory" id="analyticsTrajectory"></div>
       </div>
       <div class="card skill-distribution-card">
-        <div class="card-kicker">Skill distribution</div>
+        <div class="section-heading"><div><div class="card-kicker">Skill distribution</div><h2 class="card-title">Score, progress, confidence</h2></div></div>
         ${skills.map(skill => renderSkillDistribution(skill)).join("")}
       </div>
+      <div class="card target-pace-card">
+        <div class="card-kicker">Target pace</div>
+        ${renderTargetPace(analytics)}
+      </div>
       <div class="card weak-areas-card">
-        <div class="card-kicker">Weak areas</div>
+        <div class="section-heading"><div><div class="card-kicker">Weak areas</div><h2 class="card-title">Most repeated pressure points</h2></div></div>
         <div class="error-list">
-          ${weak.slice(0, 5).map(w => renderWeakArea(w)).join("")}
+          ${weak.length ? weak.slice(0, 5).map(w => renderWeakArea(w)).join("") : renderAnalyticsEmpty("Complete practice tasks to reveal weak areas.")}
         </div>
       </div>
       <div class="card mistake-analysis-card">
-        <div class="card-kicker">Mistake analysis</div>
+        <div class="section-heading"><div><div class="card-kicker">Mistake analysis</div><h2 class="card-title">What keeps repeating</h2></div></div>
         <div id="mistakeBankReview" class="error-list"></div>
       </div>
       <div class="card progress-history-card">
-        <div class="card-kicker">Progress history</div>
+        <div class="section-heading"><div><div class="card-kicker">Progress history</div><h2 class="card-title">Last 7 days</h2></div></div>
         <div id="weeklyReport" class="error-list"></div>
       </div>
     </div>`;
@@ -1554,15 +1659,73 @@ function renderKpi(label, value, note) {
   return `<div class="card analytics-kpi"><span>${label}</span><strong>${value}</strong><small>${note}</small></div>`;
 }
 
+function renderAnalyticsInsight(analytics, accuracy, completed) {
+  const confidence = analytics.confidence || { level: "none", score: 0 };
+  const readiness = analytics.readiness || { level: "not-ready", overall: 0 };
+  const gap = Math.max(0, profile.targetScore - analytics.predictedScore);
+  const weak = analytics.weakZones?.[0];
+  const weakLabel = weak ? SKILL_META[weak.skill]?.label || weak.skill : "mixed practice";
+  const confidenceCopy = confidence.score < 45
+    ? "Prediction confidence is still low, so new practice will move the model more."
+    : "Prediction confidence is stable enough to track directional progress.";
+  return `
+    <div class="card analytics-insight">
+      <div>
+        <div class="card-kicker">Score evidence</div>
+        <h2 class="card-title">${gap} points to close</h2>
+        <p>${completed} completed tasks, ${accuracy}% accuracy, ${readiness.overall}% readiness. ${confidenceCopy}</p>
+      </div>
+      <div class="analytics-insight-tags">
+        <span>${escapeHtml(confidence.level)} confidence</span>
+        <span>${escapeHtml(readiness.level)} readiness</span>
+        <span>${escapeHtml(weakLabel)} focus</span>
+      </div>
+    </div>`;
+}
+
+function renderTargetPace(analytics) {
+  const gap = Math.max(0, profile.targetScore - analytics.predictedScore);
+  const days = daysRemaining(profile);
+  const weeks = Math.max(1, Math.ceil(days / 7));
+  const pointsPerWeek = Math.max(0, round(gap / weeks, 1));
+  const weeklyTasks = Math.max(12, Math.min(34, Math.round((gap || 20) / 2)));
+  return `
+    <div class="pace-grid">
+      <div class="pace-stat"><span>Gap</span><strong>${gap}</strong><small>points</small></div>
+      <div class="pace-stat"><span>Weeks</span><strong>${weeks}</strong><small>left</small></div>
+      <div class="pace-stat"><span>Pace</span><strong>${pointsPerWeek}</strong><small>pts / week</small></div>
+      <div class="pace-stat"><span>Workload</span><strong>${weeklyTasks}</strong><small>tasks / week</small></div>
+    </div>
+    <p class="pace-note">Use this as a planning signal, not a promise. Confidence rises as the sample size grows.</p>`;
+}
+
+function renderAnalyticsEmpty(text) {
+  return `<div class="analytics-empty">${escapeHtml(text)}</div>`;
+}
+
 function renderSkillDistribution(skill) {
   const meta = SKILL_META[skill];
+  const analytics = buildAnalyticsModel(profile);
+  const skillData = analytics.skills.find(item => item.skill === skill);
   const score = skill === "vocabulary" ? (profile.progress[skill] || 0) : (profile.scores[skill] || 0);
   const pct = skill === "vocabulary" ? score : Math.round((score / 30) * 100);
+  const confidence = skillData?.confidence?.level || "none";
+  const readiness = skillData?.readiness?.readiness ?? pct;
+  const source = skillData?.source || "profile";
   return `
-    <div class="bar-chart-row">
-      <span class="bar-chart-label">${meta.label}</span>
-      <div class="bar-chart-track"><div class="bar-chart-fill fill-${skill} ${percentClass("w", pct)}"></div></div>
-      <span class="bar-chart-pct">${skill === "vocabulary" ? pct + "%" : score + "/30"}</span>
+    <div class="skill-distribution-row">
+      <div class="skill-distribution-head">
+        <span class="bar-chart-label">${meta.label}</span>
+        <span class="skill-distribution-note">${confidence} confidence · ${source}</span>
+      </div>
+      <div class="bar-chart-row">
+        <div class="bar-chart-track"><div class="bar-chart-fill fill-${skill} ${percentClass("w", pct)}"></div></div>
+        <span class="bar-chart-pct">${skill === "vocabulary" ? pct + "%" : score + "/30"}</span>
+      </div>
+      <div class="skill-distribution-foot">
+        <span>Readiness ${readiness}%</span>
+        <span>Proficiency ${skillData?.proficiency ?? pct}%</span>
+      </div>
     </div>`;
 }
 

@@ -47,11 +47,26 @@ async function callGemini(action, extraContext = null) {
 
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({ error: "Network error" }));
-    throw new Error(err.error || `HTTP ${resp.status}`);
+    const requestError = new Error(err.error || `HTTP ${resp.status}`);
+    requestError.status = resp.status;
+    requestError.code = err.code || inferAIErrorCode(resp.status, requestError.message);
+    requestError.action = action;
+    throw requestError;
   }
 
   const data = await resp.json();
   return data.result || "";
+}
+
+function inferAIErrorCode(status, message = "") {
+  const text = String(message).toLowerCase();
+  if (status === 429) return "RATE_LIMITED";
+  if (status === 504 || text.includes("timed out")) return "AI_TIMEOUT";
+  if (status === 503 || text.includes("not configured")) return "AI_UNAVAILABLE";
+  if (status === 502 || text.includes("invalid json")) return "INVALID_AI_RESPONSE";
+  if (status === 400) return "VALIDATION_ERROR";
+  if (status >= 500) return "AI_PROXY_ERROR";
+  return "AI_REQUEST_FAILED";
 }
 
 function buildStudyReferenceSummary() {
