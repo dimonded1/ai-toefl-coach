@@ -37,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initPracticeSection("writing");
   initMiniTest();
   initAIPlan();
+  initCalendar();
   initAnalytics();
   renderAppShell();
 
@@ -345,9 +346,10 @@ function renderTrajectoryBars(container, predicted) {
 
   container.innerHTML = points.map((score, index) => {
     const pct = Math.max(18, Math.min(100, Math.round((score / Math.max(target, 1)) * 100)));
+    const heightBand = Math.max(20, Math.min(100, Math.round(pct / 10) * 10));
     return `
       <div class="trajectory-week">
-        <span class="trajectory-bar" style="--bar-height:${pct}%"></span>
+        <span class="trajectory-bar bar-h-${heightBand}"></span>
         <small>W${index + 1}</small>
       </div>`;
   }).join("");
@@ -1544,8 +1546,8 @@ function renderAIPlanSection() {
   const gapHtml = renderScoreGapVisual(profile);
   document.getElementById("gapVisual").innerHTML = gapHtml;
   renderStudyGoalOverview();
-  renderRoadmap();
   renderWeeklyTargets();
+  renderCalendar();
   if (!document.getElementById("studyPlanContent").dataset.hydrated) {
     document.getElementById("studyPlanContent").innerHTML = renderPlanHtml(normalizeStudyPlan(profile.lastAIPlan, profile));
     document.getElementById("studyPlanContent").dataset.hydrated = "true";

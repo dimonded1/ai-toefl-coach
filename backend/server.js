@@ -1,12 +1,20 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const geminiRouter = require("./routes/gemini");
+const aiRouter = require("./routes/ai");
+const legacyGeminiRouter = require("./routes/gemini");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
+app.disable("x-powered-by");
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("X-Frame-Options", "DENY");
+  next();
+});
 app.use(cors({
   origin: [
     "http://localhost:8080",
@@ -20,14 +28,14 @@ app.use(cors({
 app.use(express.json({ limit: "10kb" }));
 
 // Routes
-app.use("/api/gemini", geminiRouter);
+app.use("/api/ai", aiRouter);
+app.use("/api/gemini", legacyGeminiRouter);
 
 // Health check
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
-    service: "AI TOEFL Coach Backend",
-    groqConfigured: !!process.env.GROQ_API_KEY
+    service: "AI TOEFL Coach Backend"
   });
 });
 
@@ -44,5 +52,5 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`✅ AI TOEFL Coach backend running on port ${PORT}`);
-  console.log(`   Groq API: ${process.env.GROQ_API_KEY ? "configured ✅" : "⚠️  NOT configured — add GROQ_API_KEY to .env"}`);
+  console.log(`   Groq API: ${process.env.GROQ_API_KEY ? "configured" : "not configured — add GROQ_API_KEY to .env"}`);
 });

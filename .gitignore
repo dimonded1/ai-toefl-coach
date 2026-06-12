@@ -1,6 +1,8 @@
 # Local secrets. Do not commit real API keys.
 .env
 backend/.env
+backend/node_modules/
+node_modules/
 
 # Local OS/editor noise.
 .DS_Store
