@@ -38,6 +38,9 @@ function initDb(db) {
       mistake_bank_json TEXT,
       achievements_json TEXT,
       last_ai_plan_json TEXT,
+      learning_progress_json TEXT,
+      vocabulary_progress_json TEXT,
+      notes_json TEXT,
       last_ai_plan_date TEXT,
       scoring_model_version TEXT,
       created_at TEXT NOT NULL,
@@ -53,6 +56,18 @@ function initDb(db) {
       FOREIGN KEY(user_id) REFERENCES users(id)
     );
   `);
+
+  ensureColumn(db, "profiles", "learning_progress_json", "TEXT");
+  ensureColumn(db, "profiles", "vocabulary_progress_json", "TEXT");
+  ensureColumn(db, "profiles", "notes_json", "TEXT");
+}
+
+function ensureColumn(db, table, column, type) {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all();
+  const exists = columns.some(item => item.name === column);
+  if (!exists) {
+    db.prepare(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`).run();
+  }
 }
 
 module.exports = initDb;

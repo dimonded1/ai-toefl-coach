@@ -31,7 +31,19 @@ const DEFAULT_PROFILE = {
   achievements: [],
   lastAIPlan: null,
   lastAIPlanDate: null,
-  scoringModelVersion: "legacy"
+  scoringModelVersion: "legacy",
+  learningProgress: {
+    completedLessons: [],
+    savedLessons: [],
+    currentLessonId: "toefl-structure"
+  },
+  vocabularyProgress: {
+    savedWords: [],
+    masteredWords: [],
+    missedWords: [],
+    reviews: []
+  },
+  notes: []
 };
 
 const JSON_FIELDS = {
@@ -51,7 +63,10 @@ const JSON_FIELDS = {
   activity_log_json: "activityLog",
   mistake_bank_json: "mistakeBank",
   achievements_json: "achievements",
-  last_ai_plan_json: "lastAIPlan"
+  last_ai_plan_json: "lastAIPlan",
+  learning_progress_json: "learningProgress",
+  vocabulary_progress_json: "vocabularyProgress",
+  notes_json: "notes"
 };
 
 router.get("/", requireAuth, (req, res) => {
@@ -114,14 +129,16 @@ function saveProfileForUser(userId, rawProfile, defaults = {}) {
       scores_json, baseline_scores_json, mistakes_json, total_tasks_json, correct_json,
       progress_json, proficiency_json, confidence_json, readiness_json, weak_zones_json,
       attempts_json, mini_test_history_json, xp, streak_json, activity_log_json,
-      mistake_bank_json, achievements_json, last_ai_plan_json, last_ai_plan_date,
+      mistake_bank_json, achievements_json, last_ai_plan_json, learning_progress_json,
+      vocabulary_progress_json, notes_json, last_ai_plan_date,
       scoring_model_version, created_at, updated_at
     ) VALUES (
       @user_id, @name, @exam, @target_score, @preparation_days, @level, @goal, @start_date,
       @scores_json, @baseline_scores_json, @mistakes_json, @total_tasks_json, @correct_json,
       @progress_json, @proficiency_json, @confidence_json, @readiness_json, @weak_zones_json,
       @attempts_json, @mini_test_history_json, @xp, @streak_json, @activity_log_json,
-      @mistake_bank_json, @achievements_json, @last_ai_plan_json, @last_ai_plan_date,
+      @mistake_bank_json, @achievements_json, @last_ai_plan_json, @learning_progress_json,
+      @vocabulary_progress_json, @notes_json, @last_ai_plan_date,
       @scoring_model_version, @created_at, @updated_at
     )
     ON CONFLICT(user_id) DO UPDATE SET
@@ -150,6 +167,9 @@ function saveProfileForUser(userId, rawProfile, defaults = {}) {
       mistake_bank_json = excluded.mistake_bank_json,
       achievements_json = excluded.achievements_json,
       last_ai_plan_json = excluded.last_ai_plan_json,
+      learning_progress_json = excluded.learning_progress_json,
+      vocabulary_progress_json = excluded.vocabulary_progress_json,
+      notes_json = excluded.notes_json,
       last_ai_plan_date = excluded.last_ai_plan_date,
       scoring_model_version = excluded.scoring_model_version,
       updated_at = excluded.updated_at

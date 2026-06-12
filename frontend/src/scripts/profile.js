@@ -79,7 +79,21 @@ const DEFAULT_PROFILE = {
 
   // AI plan cache
   lastAIPlan: null,
-  lastAIPlanDate: null
+  lastAIPlanDate: null,
+
+  // Learning layer
+  learningProgress: {
+    completedLessons: [],
+    savedLessons: [],
+    currentLessonId: "toefl-structure"
+  },
+  vocabularyProgress: {
+    savedWords: [],
+    masteredWords: [],
+    missedWords: [],
+    reviews: []
+  },
+  notes: []
 };
 
 // ─── CRUD ────────────────────────────────────────

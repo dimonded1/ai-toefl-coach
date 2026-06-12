@@ -27,6 +27,7 @@
   </div>
   <ul class="sidebar-nav">
     <li><a href="#" class="nav-link active" data-section="dashboard" aria-current="page"><span class="nav-icon">D</span><span>Dashboard</span></a></li>
+    <li><a href="#" class="nav-link" data-section="learn"><span class="nav-icon">L</span><span>Learn</span></a></li>
     <li><a href="#" class="nav-link" data-section="practice"><span class="nav-icon">P</span><span>Practice</span></a></li>
     <li><a href="#" class="nav-link" data-section="aiplan"><span class="nav-icon">S</span><span>Study Plan</span></a></li>
     <li><a href="#" class="nav-link" data-section="analytics"><span class="nav-icon">A</span><span>Analytics</span></a></li>
@@ -116,6 +117,108 @@
         <div class="weak-list" id="weakList"></div>
       </div>
     </div>
+  </section>
+
+  <!-- ─── SECTION: LEARN ─── -->
+  <section class="section" id="section-learn">
+    <div class="learn-workspace">
+      <div class="hub-header">
+        <h2>What should I learn next?</h2>
+        <p>Short TOEFL lessons, modules, study path, vocabulary, and personal notes.</p>
+      </div>
+
+      <div class="learn-toolbar">
+        <label class="learn-search">
+          <span>Search topics</span>
+          <input class="text-input" id="learnSearchInput" type="search" placeholder="inference, lecture notes, academic discussion" />
+        </label>
+        <div class="learn-filter-row" id="learnSkillFilters">
+          <button class="btn-option selected" data-learn-filter="all">All</button>
+          <button class="btn-option" data-learn-filter="reading">Reading</button>
+          <button class="btn-option" data-learn-filter="listening">Listening</button>
+          <button class="btn-option" data-learn-filter="speaking">Speaking</button>
+          <button class="btn-option" data-learn-filter="writing">Writing</button>
+          <button class="btn-option" data-learn-filter="vocabulary">Vocabulary</button>
+          <button class="btn-option" data-learn-filter="strategy">Strategy</button>
+        </div>
+      </div>
+
+      <div class="learn-overview-grid">
+        <div class="card study-path-card">
+          <div class="section-heading">
+            <div>
+              <div class="card-kicker">Study path</div>
+              <h2 class="card-title">8-week preparation map</h2>
+            </div>
+            <span class="action-badge" id="learnPathProgress">0%</span>
+          </div>
+          <div class="study-path-list" id="studyPathList"></div>
+        </div>
+
+        <div class="card mistake-lessons-card">
+          <div class="section-heading">
+            <div>
+              <div class="card-kicker">Mistake lessons</div>
+              <h2 class="card-title">Repair repeated errors</h2>
+            </div>
+          </div>
+          <div class="mistake-lesson-list" id="mistakeLessonList"></div>
+        </div>
+      </div>
+
+      <div class="learn-content-grid">
+        <div class="card modules-card">
+          <div class="section-heading">
+            <div>
+              <div class="card-kicker">Modules</div>
+              <h2 class="card-title">Preparation courses</h2>
+            </div>
+          </div>
+          <div class="module-grid" id="moduleGrid"></div>
+        </div>
+
+        <div class="card topic-library-card">
+          <div class="section-heading">
+            <div>
+              <div class="card-kicker">Topic library</div>
+              <h2 class="card-title">Short lessons</h2>
+            </div>
+            <span class="action-badge" id="lessonCountBadge">0 lessons</span>
+          </div>
+          <div class="lesson-grid" id="lessonGrid"></div>
+        </div>
+
+        <div class="card vocabulary-system-card">
+          <div class="section-heading">
+            <div>
+              <div class="card-kicker">Vocabulary system</div>
+              <h2 class="card-title">Academic words</h2>
+            </div>
+          </div>
+          <div class="vocab-card-list" id="vocabCardList"></div>
+        </div>
+
+        <div class="card notebook-card">
+          <div class="section-heading">
+            <div>
+              <div class="card-kicker">Notebook</div>
+              <h2 class="card-title">My notes</h2>
+            </div>
+          </div>
+          <div class="note-input-row">
+            <input class="text-input" id="noteTitleInput" type="text" placeholder="Rule or phrase title" />
+            <button class="btn-primary" id="addNoteBtn" type="button">Add note</button>
+          </div>
+          <textarea class="text-input note-textarea" id="noteContentInput" placeholder="Write a phrase, mistake pattern, template, or personal TOEFL rule."></textarea>
+          <div class="notebook-list" id="notebookList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SECTION: LESSON ─── -->
+  <section class="section" id="section-lesson">
+    <div class="lesson-workspace" id="lessonWorkspace"></div>
   </section>
 
   <!-- ─── SECTION: PRACTICE HUB ─── -->
@@ -362,6 +465,32 @@
           <p>Calendar, weekly targets, and Groq-backed recommendations live here.</p>
       </div>
       <div class="study-plan-grid">
+        <div class="card calendar-card">
+          <div class="section-heading">
+            <div>
+              <div class="card-kicker">Study calendar</div>
+              <h2 class="card-title">Countdown and roadmap</h2>
+            </div>
+          </div>
+          <div class="calendar-container">
+            <div class="cal-countdown-card" id="calCountdown" aria-live="polite"></div>
+            <div class="cal-month-card">
+              <div class="cal-month-head">
+                <button class="cal-nav-btn" id="calPrev" type="button" aria-label="Previous month">‹</button>
+                <div class="cal-month-title" id="calMonthTitle"></div>
+                <button class="cal-nav-btn" id="calNext" type="button" aria-label="Next month">›</button>
+                <button class="cal-today-btn" id="calToday" type="button">Today</button>
+              </div>
+              <div class="cal-weekdays" id="calWeekdays"></div>
+              <div class="cal-grid" id="calGrid"></div>
+              <div class="cal-legend" id="calLegend"></div>
+            </div>
+            <div class="cal-roadmap-card">
+              <div class="card-kicker">8-week roadmap</div>
+              <div class="cal-roadmap" id="calRoadmap"></div>
+            </div>
+          </div>
+        </div>
         <div class="card plan-goal-card">
           <div class="card-kicker">Goal overview</div>
           <div id="studyGoalOverview"></div>
@@ -392,32 +521,6 @@
           </div>
           <div id="scoreGapContent" class="gap-analysis" aria-live="polite">
             <div class="gap-visual" id="gapVisual"></div>
-          </div>
-        </div>
-        <div class="card calendar-card">
-          <div class="section-heading">
-            <div>
-              <div class="card-kicker">Study calendar</div>
-              <h2 class="card-title">Countdown and roadmap</h2>
-            </div>
-          </div>
-          <div class="calendar-container">
-            <div class="cal-countdown-card" id="calCountdown" aria-live="polite"></div>
-            <div class="cal-month-card">
-              <div class="cal-month-head">
-                <button class="cal-nav-btn" id="calPrev" type="button" aria-label="Previous month">‹</button>
-                <div class="cal-month-title" id="calMonthTitle"></div>
-                <button class="cal-nav-btn" id="calNext" type="button" aria-label="Next month">›</button>
-                <button class="cal-today-btn" id="calToday" type="button">Today</button>
-              </div>
-              <div class="cal-weekdays" id="calWeekdays"></div>
-              <div class="cal-grid" id="calGrid"></div>
-              <div class="cal-legend" id="calLegend"></div>
-            </div>
-            <div class="cal-roadmap-card">
-              <div class="card-kicker">8-week roadmap</div>
-              <div class="cal-roadmap" id="calRoadmap"></div>
-            </div>
           </div>
         </div>
       </div>
@@ -456,6 +559,7 @@
 <script src="src/scripts/scoring.js"></script>
 <script src="src/scripts/analyticsModel.js"></script>
 <script src="src/scripts/auth.js"></script>
+<script src="src/scripts/learningData.js"></script>
 <script src="src/scripts/profile.js"></script>
 <script src="src/scripts/aiPlan.js"></script>
 <script src="src/scripts/calendar.js"></script>
