@@ -1010,11 +1010,18 @@ a {
 }
 
 .avatar {
-  display: inline-grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
   border-radius: 999px;
   color: #fff;
   font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0;
+  overflow: hidden;
+  text-align: center;
+  white-space: nowrap;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.22);
 }
 
@@ -3802,16 +3809,16 @@ a {
   gap: 12px;
 }
 
-.profile-summary-head strong,
-.profile-summary-head span {
+.profile-summary-head > div > strong,
+.profile-summary-head > div > span {
   display: block;
 }
 
-.profile-summary-head strong {
+.profile-summary-head > div > strong {
   font-weight: 900;
 }
 
-.profile-summary-head span {
+.profile-summary-head > div > span {
   color: var(--muted);
   font-size: .84rem;
 }
