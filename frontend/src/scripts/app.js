@@ -3,8 +3,57 @@
 // ─── State ───────────────────────────────────────
 let profile = loadProfile();
 let accountSyncState = { state: "local", message: "Local mode" };
+let authGateMode = "register";
+let onboardingStepIndex = 0;
+const onboardingAnswers = {};
+const AUTH_GATE_DISMISSED_KEY = "toefl_coach_auth_gate_dismissed";
 
 const AVATAR_TONES = ["teal", "blue", "violet", "rose", "amber", "mint", "indigo", "sky", "green", "pink", "slate", "cyan"];
+
+const ONBOARDING_STEPS = [
+  {
+    key: "targetScore",
+    title: "Let's build your TOEFL plan",
+    copy: "First, choose the score you want the coach to plan around.",
+    options: [
+      { value: 70, label: "70", note: "Foundation target" },
+      { value: 80, label: "80", note: "Common university minimum" },
+      { value: 95, label: "95", note: "Strong academic target" },
+      { value: 100, label: "100", note: "Competitive programs" },
+      { value: 110, label: "110", note: "Top-score goal" }
+    ]
+  },
+  {
+    key: "preparationDays",
+    title: "How much time do you have?",
+    copy: "Your deadline changes the weekly pace and daily practice load.",
+    options: [
+      { value: 30, label: "30 days", note: "Fast review" },
+      { value: 60, label: "60 days", note: "Balanced plan" },
+      { value: 90, label: "90 days", note: "Steady preparation" }
+    ]
+  },
+  {
+    key: "level",
+    title: "What is your current level?",
+    copy: "This helps us estimate your starting point before the diagnostic.",
+    options: [
+      { value: "beginner", label: "Beginner", note: "I need the basics" },
+      { value: "intermediate", label: "Intermediate", note: "I can handle mixed practice" },
+      { value: "advanced", label: "Advanced", note: "I need exam polish" }
+    ]
+  },
+  {
+    key: "goal",
+    title: "Why are you studying?",
+    copy: "This context shapes examples, priorities, and the first study focus.",
+    options: [
+      { value: "study abroad", label: "Study abroad", note: "University admission" },
+      { value: "work", label: "Work", note: "Career or relocation" },
+      { value: "immigration", label: "Immigration", note: "Documents and requirements" }
+    ]
+  }
+];
 
 const PAGE_TITLES = {
   dashboard: "Dashboard",
@@ -46,6 +95,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
   initGoalForm();
   initAccountSync();
+  initAuthGate();
+  initOnboarding();
   initLearning();
   initDashboard();
   initPracticeSection("vocabulary");
@@ -928,24 +979,13 @@ function initGoalForm() {
   updateSetupPreview();
 
   document.getElementById("saveGoalBtn").addEventListener("click", () => {
-    profile.name             = document.getElementById("profileNameInput").value.trim() || "Alex Carter";
-    profile.targetScore      = parseInt(getSelected("targetScoreGroup")) || 95;
-    profile.preparationDays  = parseInt(getSelected("prepDaysGroup"))    || 60;
-    profile.level            = getSelected("levelGroup")  || "intermediate";
-    profile.goal             = getSelected("goalGroup")   || "study abroad";
-    profile.startDate        = profile.startDate || new Date().toISOString();
-
-    // Set initial scores based on level
-    const levelScores = { beginner: 8, intermediate: 14, advanced: 20 };
-    const base = levelScores[profile.level] || 14;
-    if (profile.totalTasks.reading === 0) {
-      profile.scores = { reading: base, listening: base, speaking: base, writing: base };
-      profile.baselineScores = { ...profile.scores };
-    }
-
-    saveProfile(profile);
-    renderAppShell();
-    updateSetupPreview();
+    applyStudySetup({
+      name: document.getElementById("profileNameInput").value.trim() || "Alex Carter",
+      targetScore: parseInt(getSelected("targetScoreGroup")) || 95,
+      preparationDays: parseInt(getSelected("prepDaysGroup")) || 60,
+      level: getSelected("levelGroup") || "intermediate",
+      goal: getSelected("goalGroup") || "study abroad"
+    });
     document.getElementById("goalSaved").classList.remove("hidden");
     showToast("Goal saved. Let's start preparing.", "success");
     setTimeout(() => {
@@ -955,10 +995,143 @@ function initGoalForm() {
   });
 }
 
+function applyStudySetup({ name, targetScore, preparationDays, level, goal }) {
+  profile.name = name || profile.name || "Alex Carter";
+  profile.exam = "TOEFL iBT";
+  profile.targetScore = Number(targetScore) || 95;
+  profile.preparationDays = Number(preparationDays) || 60;
+  profile.level = level || "intermediate";
+  profile.goal = goal || "study abroad";
+  profile.startDate = profile.startDate || new Date().toISOString();
+
+  const levelScores = { beginner: 8, intermediate: 14, advanced: 20 };
+  const base = levelScores[profile.level] || 14;
+  if ((profile.totalTasks?.reading || 0) === 0) {
+    profile.scores = { reading: base, listening: base, speaking: base, writing: base };
+    profile.baselineScores = { ...profile.scores };
+  }
+
+  saveProfile(profile);
+  renderAppShell();
+  updateSetupPreview();
+}
+
+function initOnboarding() {
+  document.getElementById("onboardingBackBtn")?.addEventListener("click", () => {
+    if (onboardingStepIndex === 0) return;
+    onboardingStepIndex -= 1;
+    renderOnboardingStep();
+  });
+
+  document.getElementById("onboardingNextBtn")?.addEventListener("click", () => {
+    const step = ONBOARDING_STEPS[onboardingStepIndex];
+    if (!step || onboardingAnswers[step.key] == null) {
+      showToast("Choose one option to continue.", "info");
+      return;
+    }
+
+    if (onboardingStepIndex < ONBOARDING_STEPS.length - 1) {
+      onboardingStepIndex += 1;
+      renderOnboardingStep();
+      return;
+    }
+
+    finishOnboardingFlow();
+  });
+}
+
+function startOnboardingFlow({ prefill = false } = {}) {
+  ONBOARDING_STEPS.forEach(step => {
+    if (prefill) {
+      onboardingAnswers[step.key] = profile[step.key];
+      return;
+    }
+    delete onboardingAnswers[step.key];
+  });
+  onboardingStepIndex = 0;
+  renderOnboardingStep();
+  const modal = document.getElementById("onboardingModal");
+  modal?.classList.remove("hidden");
+  document.body.classList.add("auth-gate-open");
+}
+
+function renderOnboardingStep() {
+  const step = ONBOARDING_STEPS[onboardingStepIndex];
+  if (!step) return;
+
+  setText("onboardingStepText", `Step ${onboardingStepIndex + 1} of ${ONBOARDING_STEPS.length}`);
+  setText("onboardingTitle", step.title);
+  setText("onboardingCopy", step.copy);
+  const completedSteps = onboardingStepIndex + (onboardingAnswers[step.key] != null ? 1 : 0);
+  const progress = Math.round((completedSteps / ONBOARDING_STEPS.length) * 100);
+  document.getElementById("onboardingProgressFill")?.style.setProperty("--onboarding-progress", `${progress}%`);
+  document.getElementById("onboardingBuilding")?.classList.add("hidden");
+
+  const dots = document.getElementById("onboardingDots");
+  if (dots) {
+    dots.innerHTML = ONBOARDING_STEPS
+      .map((_, index) => `<span class="${index === onboardingStepIndex ? "active" : ""}"></span>`)
+      .join("");
+  }
+
+  const options = document.getElementById("onboardingOptions");
+  if (options) {
+    options.innerHTML = step.options.map(option => `
+      <button class="onboarding-option ${String(onboardingAnswers[step.key]) === String(option.value) ? "selected" : ""}" type="button" data-onboarding-value="${option.value}">
+        <strong>${option.label}</strong>
+        <span>${option.note}</span>
+      </button>
+    `).join("");
+    options.querySelectorAll("[data-onboarding-value]").forEach(button => {
+      button.addEventListener("click", () => {
+        onboardingAnswers[step.key] = button.dataset.onboardingValue;
+        if (step.key === "targetScore" || step.key === "preparationDays") {
+          onboardingAnswers[step.key] = Number(onboardingAnswers[step.key]);
+        }
+        renderOnboardingStep();
+      });
+    });
+  }
+
+  const backBtn = document.getElementById("onboardingBackBtn");
+  if (backBtn) backBtn.disabled = onboardingStepIndex === 0;
+  setText("onboardingNextBtn", onboardingStepIndex === ONBOARDING_STEPS.length - 1 ? "Save setup" : "Next");
+}
+
+function finishOnboardingFlow() {
+  const nextBtn = document.getElementById("onboardingNextBtn");
+  const backBtn = document.getElementById("onboardingBackBtn");
+  const building = document.getElementById("onboardingBuilding");
+  if (nextBtn) nextBtn.disabled = true;
+  if (backBtn) backBtn.disabled = true;
+  building?.classList.remove("hidden");
+  document.getElementById("onboardingProgressFill")?.style.setProperty("--onboarding-progress", "100%");
+
+  applyStudySetup({
+    name: profile.name,
+    targetScore: onboardingAnswers.targetScore,
+    preparationDays: onboardingAnswers.preparationDays,
+    level: onboardingAnswers.level,
+    goal: onboardingAnswers.goal
+  });
+
+  window.setTimeout(() => {
+    document.getElementById("onboardingModal")?.classList.add("hidden");
+    document.body.classList.remove("auth-gate-open");
+    if (nextBtn) nextBtn.disabled = false;
+    if (backBtn) backBtn.disabled = false;
+    renderProfileScreen();
+    renderAccountSync();
+    showToast("Personal plan is ready.", "success");
+    navigateTo("dashboard");
+  }, 900);
+}
+
 function initAccountSync() {
   window.addEventListener("profile-sync-state", event => {
     accountSyncState = event.detail || accountSyncState;
     renderAccountSync();
+    renderAuthGate();
   });
 
   document.getElementById("createAccountBtn")?.addEventListener("click", async () => {
@@ -967,31 +1140,131 @@ function initAccountSync() {
   document.getElementById("signInBtn")?.addEventListener("click", async () => {
     await handleAuthSubmit("login");
   });
+  document.getElementById("openAuthGateBtn")?.addEventListener("click", () => {
+    openAuthGate("login");
+  });
+  document.getElementById("topbarSyncStatus")?.addEventListener("click", event => {
+    if (typeof isAuthenticated === "function" && isAuthenticated()) return;
+    event.preventDefault();
+    event.stopPropagation();
+    openAuthGate("login");
+  });
   document.getElementById("syncNowBtn")?.addEventListener("click", async () => {
     await handleManualSync();
   });
   document.getElementById("logoutBtn")?.addEventListener("click", () => {
     logoutUser();
+    localStorage.removeItem(AUTH_GATE_DISMISSED_KEY);
     renderAccountSync();
-    showToast("Signed out. Local mode is active.", "info");
+    renderAuthGate();
+    showToast("Signed out.", "info");
   });
 
   renderAccountSync();
 }
 
-async function handleAuthSubmit(mode) {
-  const nameInput = document.getElementById("authNameInput");
-  const emailInput = document.getElementById("authEmailInput");
-  const passwordInput = document.getElementById("authPasswordInput");
-  const createBtn = document.getElementById("createAccountBtn");
-  const signInBtn = document.getElementById("signInBtn");
+function openAuthGate(mode = "login") {
+  if (typeof isAuthenticated === "function" && isAuthenticated()) return;
+  localStorage.removeItem(AUTH_GATE_DISMISSED_KEY);
+  setAuthGateMode(mode);
+  renderAuthGate();
+}
 
-  const name = (nameInput?.value || document.getElementById("profileNameInput")?.value || profile.name || "").trim();
-  const email = (emailInput?.value || "").trim();
-  const password = passwordInput?.value || "";
+function initAuthGate() {
+  document.querySelectorAll("[data-auth-gate-mode]").forEach(button => {
+    button.addEventListener("click", () => setAuthGateMode(button.dataset.authGateMode || "register"));
+  });
 
-  createBtn.disabled = true;
-  signInBtn.disabled = true;
+  document.getElementById("authGateSubmitBtn")?.addEventListener("click", async () => {
+    await handleAuthSubmit(authGateMode, "gate");
+  });
+
+  document.getElementById("continueLocalBtn")?.addEventListener("click", () => {
+    localStorage.setItem(AUTH_GATE_DISMISSED_KEY, "1");
+    renderAuthGate();
+    showToast("Local demo mode is active.", "info");
+  });
+
+  setAuthGateMode(authGateMode);
+  renderAuthGate();
+}
+
+function setAuthGateMode(mode) {
+  authGateMode = mode === "login" ? "login" : "register";
+  document.querySelectorAll("[data-auth-gate-mode]").forEach(button => {
+    button.classList.toggle("active", button.dataset.authGateMode === authGateMode);
+  });
+  const nameField = document.getElementById("authGateNameField");
+  if (nameField) nameField.classList.toggle("hidden", authGateMode === "login");
+  setText("authGateSubmitBtn", authGateMode === "login" ? "Sign in" : "Create account");
+}
+
+function shouldShowAuthGate() {
+  return typeof isAuthenticated === "function"
+    && !isAuthenticated()
+    && localStorage.getItem(AUTH_GATE_DISMISSED_KEY) !== "1";
+}
+
+function renderAuthGate() {
+  const gate = document.getElementById("authGate");
+  if (!gate) return;
+  const visible = shouldShowAuthGate();
+  const onboardingModal = document.getElementById("onboardingModal");
+  const onboardingOpen = Boolean(onboardingModal && !onboardingModal.classList.contains("hidden"));
+  gate.hidden = !visible;
+  document.body.classList.toggle("auth-gate-open", visible || onboardingOpen);
+}
+
+function getAuthFormValues(source = "profile") {
+  const prefix = source === "gate" ? "authGate" : "auth";
+  const nameInput = document.getElementById(`${prefix}NameInput`);
+  const emailInput = document.getElementById(`${prefix}EmailInput`);
+  const passwordInput = document.getElementById(`${prefix}PasswordInput`);
+  return {
+    nameInput,
+    emailInput,
+    passwordInput,
+    name: (nameInput?.value || document.getElementById("profileNameInput")?.value || profile.name || "").trim(),
+    email: (emailInput?.value || "").trim(),
+    password: passwordInput?.value || ""
+  };
+}
+
+function setAuthButtonsDisabled(source, disabled) {
+  const ids = source === "gate"
+    ? ["authGateSubmitBtn", "continueLocalBtn", "authGateCreateTab", "authGateSignInTab"]
+    : ["createAccountBtn", "signInBtn"];
+  ids.forEach(id => {
+    const button = document.getElementById(id);
+    if (button) button.disabled = disabled;
+  });
+}
+
+function setAuthMessage(source, message = "", type = "info") {
+  const id = source === "gate" ? "authGateMessage" : "authProfileMessage";
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = message;
+  el.className = `auth-message ${message ? "" : "hidden"} ${type}`;
+}
+
+function setAuthSubmitLabel(source, mode, busy = false) {
+  if (source === "gate") {
+    setText("authGateSubmitBtn", busy
+      ? (mode === "register" ? "Creating account..." : "Signing in...")
+      : (mode === "register" ? "Create account" : "Sign in"));
+    return;
+  }
+
+  setText("createAccountBtn", busy && mode === "register" ? "Creating..." : "Create account");
+  setText("signInBtn", busy && mode === "login" ? "Signing in..." : "Sign in");
+}
+
+async function handleAuthSubmit(mode, source = "profile") {
+  const { name, email, password, passwordInput } = getAuthFormValues(source);
+  setAuthMessage(source, "");
+  setAuthSubmitLabel(source, mode, true);
+  setAuthButtonsDisabled(source, true);
 
   try {
     if (mode === "register") {
@@ -999,22 +1272,30 @@ async function handleAuthSubmit(mode) {
       profile.name = name || profile.name;
       cacheProfile(profile);
       await apiSaveProfile(profile);
-      showToast("Signed in. Progress is synced.", "success");
+      showToast("Account created. Set your TOEFL goal next.", "success");
     } else {
       await loginUser({ email, password });
       const syncedProfile = await syncProfileFromBackend();
       if (syncedProfile) profile = syncedProfile;
       showToast("Signed in.", "success");
     }
-    passwordInput.value = "";
+    localStorage.removeItem(AUTH_GATE_DISMISSED_KEY);
+    if (passwordInput) passwordInput.value = "";
+    setAuthMessage(source, mode === "register" ? "Account created. Preparing setup..." : "Signed in.", "success");
     renderAppShell();
     renderCurrentSection();
+    renderAuthGate();
+    if (mode === "register" || !profile.startDate) {
+      startOnboardingFlow();
+    }
   } catch (err) {
-    showToast(err.message || "Sign in failed.", "error");
+    const message = err.message || "Sign in failed.";
+    setAuthMessage(source, message, "error");
+    showToast(message, "error");
     if (typeof setProfileSyncState === "function") setProfileSyncState("failed", "Sync failed");
   } finally {
-    createBtn.disabled = false;
-    signInBtn.disabled = false;
+    setAuthButtonsDisabled(source, false);
+    setAuthSubmitLabel(source, mode, false);
     renderAccountSync();
   }
 }
@@ -1067,6 +1348,8 @@ function renderAccountSync() {
   const user = getCurrentUser() || {};
   setText("accountName", user.name || profile.name || "Student");
   setText("accountEmail", user.email || "");
+  setText("accountPlan", titleCase(user.plan || "free"));
+  setText("accountBilling", user.subscriptionStatus === "active" ? "Active" : "Not connected");
   setAvatar("accountAvatar", user.name || profile.name);
 
   const statusCopy = getSyncStatusCopy(accountSyncState);
@@ -1086,9 +1369,9 @@ function renderTopbarSyncStatus(signedIn) {
   if (!topbarStatus) return;
 
   if (!signedIn) {
-    topbarStatus.textContent = "Local";
+    topbarStatus.textContent = "Sign in";
     topbarStatus.className = "sync-topbar-status sync-topbar-local";
-    topbarStatus.title = "Local mode. Create an account to sync progress.";
+    topbarStatus.title = "Open the sign-in screen.";
     return;
   }
 
@@ -1102,18 +1385,41 @@ function renderTopbarSyncStatus(signedIn) {
   if (state === "saving" || state === "syncing") {
     topbarStatus.textContent = "Saving";
     topbarStatus.className = "sync-topbar-status sync-topbar-saving";
-    topbarStatus.title = "Saving profile to SQLite.";
+    topbarStatus.title = "Saving your profile.";
     return;
   }
 
   topbarStatus.textContent = "Synced";
   topbarStatus.className = "sync-topbar-status sync-topbar-synced";
-  topbarStatus.title = "Progress is synced to SQLite.";
+  topbarStatus.title = "Your progress is saved.";
 }
 
 function renderProfileScreen() {
   profile = loadProfile();
   document.getElementById("profileNameInput").value = profile.name || "Alex Carter";
+  setActiveBtn("targetScoreGroup", String(profile.targetScore || 95));
+  setActiveBtn("prepDaysGroup", String(profile.preparationDays || 60));
+  setActiveBtn("levelGroup", profile.level || "intermediate");
+  setActiveBtn("goalGroup", profile.goal || "study abroad");
+  const signedIn = typeof isAuthenticated === "function" && isAuthenticated();
+  const showDisplay = signedIn && Boolean(profile.startDate);
+  const displayPanel = document.getElementById("profileDisplayPanel");
+  const editPanel = document.getElementById("profileEditPanel");
+  const user = typeof getCurrentUser === "function" ? getCurrentUser() || {} : {};
+
+  displayPanel?.classList.toggle("hidden", !showDisplay);
+  editPanel?.classList.toggle("hidden", showDisplay);
+
+  if (showDisplay) {
+    setText("profileDisplayName", profile.name || user.name || "Student");
+    setText("profileDisplayEmail", user.email || "Signed in");
+    setText("profileDisplayTarget", profile.targetScore || 95);
+    setText("profileDisplayDays", `${profile.preparationDays || 60} days`);
+    setText("profileDisplayLevel", titleCase(profile.level || "intermediate"));
+    setText("profileDisplayGoal", titleCase(profile.goal || "study abroad"));
+    setAvatar("profileDisplayAvatar", profile.name || user.name || "Student");
+  }
+
   updateSetupPreview();
 }
 
