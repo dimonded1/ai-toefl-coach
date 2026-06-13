@@ -11,7 +11,7 @@ An interactive TOEFL iBT preparation web app with a personalized AI study plan p
 - 🗓️ Study Calendar with exam countdown and 8-week roadmap
 - 🧠 Mistake Bank, XP, streaks, achievements, and weekly progress
 - 📈 Results & Analytics
-- 💾 Progress saved in localStorage
+- 💾 Progress saved locally and synced to the account backend after sign-in
 
 ---
 
@@ -28,8 +28,11 @@ cp backend/.env.example backend/.env
 
 Then edit `backend/.env`:
 ```
+JWT_SECRET=replace_with_a_long_random_secret
 GROQ_API_KEY=your_actual_key_here
 GROQ_MODEL=llama-3.1-8b-instant
+FRONTEND_ORIGINS=http://localhost:8080
+DATABASE_PATH=/app/database/app.sqlite
 PORT=3001
 ```
 
@@ -42,6 +45,36 @@ docker-compose up --build
 ```
 http://localhost:8080
 ```
+
+---
+
+## Server Deploy Notes
+
+The app is deployed as two services:
+- `backend`: Node/Express API with auth, profile sync, SQLite, and Groq calls.
+- `frontend`: nginx static app that proxies `/api/` to the backend.
+
+Backend environment variables:
+```
+NODE_ENV=production
+PORT=3001
+JWT_SECRET=replace_with_a_long_random_secret
+GROQ_API_KEY=your_actual_key_here
+GROQ_MODEL=llama-3.1-8b-instant
+AI_TIMEOUT_MS=15000
+RATE_LIMIT_MAX_REQUESTS=20
+FRONTEND_ORIGINS=https://ai-toefl-coach.onrender.com
+DATABASE_PATH=/app/database/app.sqlite
+```
+
+Frontend environment variables:
+```
+PORT=80
+BACKEND_ORIGIN=https://ai-toefl-backend.onrender.com
+BACKEND_HOST=ai-toefl-backend.onrender.com
+```
+
+For Render, set these in each service's Environment panel. Do not commit real secrets.
 
 ---
 
@@ -71,6 +104,10 @@ ai-toefl-coach/
 ├── backend/
 │   ├── server.js          # Express app
 │   ├── routes/ai.js       # Groq-backed AI API proxy
+│   ├── routes/auth.js     # Registration/login API
+│   ├── routes/profile.js  # Account profile sync API
+│   ├── database/          # SQLite init and connection
+│   ├── middleware/        # JWT auth middleware
 │   ├── routes/gemini.js   # Legacy API alias
 │   ├── package-lock.json
 │   ├── package.json
@@ -89,7 +126,7 @@ ai-toefl-coach/
 │   │       ├── calendar.js # Study calendar + roadmap
 │   │       ├── app.js     # Main app logic + UI
 │   │       └── scoring.examples.js # Scoring control examples
-│   ├── nginx.conf
+│   ├── nginx.conf         # nginx template with BACKEND_ORIGIN/BACKEND_HOST
 │   ├── .dockerignore
 │   └── Dockerfile
 ├── scripts/
@@ -112,6 +149,6 @@ This verifies the scoring edge cases for zero tasks, small samples, all-correct/
 
 ## Tech Stack
 - **Frontend:** HTML5, CSS3, Vanilla JS, localStorage
-- **Backend:** Node.js, Express
+- **Backend:** Node.js, Express, SQLite, JWT auth
 - **AI:** Groq chat completions API
 - **Deploy:** Docker + nginx

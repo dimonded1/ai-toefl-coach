@@ -99,7 +99,7 @@ async function authRequest(path, { method = "GET", body = null, auth = false } =
       body: body ? JSON.stringify(body) : undefined
     });
   } catch {
-    throw new Error("Cannot reach the backend. Start the backend on port 3001 and try again.");
+    throw new Error("Cannot reach the backend. Check that the deployed API service is running and connected.");
   }
 
   const data = await response.json().catch(() => ({}));

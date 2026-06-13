@@ -9,6 +9,10 @@ require("./database/db");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const DEFAULT_FRONTEND_ORIGINS = ["https://ai-toefl-coach.onrender.com"];
+const allowedOrigins = parseAllowedOrigins(process.env.FRONTEND_ORIGINS || process.env.CORS_ORIGINS)
+  || DEFAULT_FRONTEND_ORIGINS;
+const allowedLocalOrigins = [/^http:\/\/localhost:\d+$/, /^http:\/\/127\.0\.0\.1:\d+$/];
 
 // Middleware
 app.disable("x-powered-by");
@@ -18,15 +22,11 @@ app.use((req, res, next) => {
   res.setHeader("X-Frame-Options", "DENY");
   next();
 });
-const allowedLocalOrigins = [/^http:\/\/localhost:\d+$/, /^http:\/\/127\.0\.0\.1:\d+$/];
-
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || origin === "null" || allowedLocalOrigins.some(pattern => pattern.test(origin))) {
-      callback(null, true);
-      return;
-    }
-    callback(new Error("Not allowed by CORS"));
+    const isLocalDev = origin === "null" || allowedLocalOrigins.some(pattern => pattern.test(origin));
+    const isAllowedServerOrigin = allowedOrigins.includes(origin);
+    callback(null, !origin || isLocalDev || isAllowedServerOrigin);
   },
   methods: ["GET", "POST", "PUT"],
   allowedHeaders: ["Content-Type", "Authorization"]
@@ -45,7 +45,6 @@ app.get("/health", (req, res) => {
     ok: true,
     status: "ok",
     service: "AI TOEFL Coach Backend",
-    groqConfigured: !!process.env.GROQ_API_KEY,
     database: "sqlite"
   });
 });
@@ -65,3 +64,12 @@ app.listen(PORT, () => {
   console.log(`✅ AI TOEFL Coach backend running on port ${PORT}`);
   console.log(`   Groq API: ${process.env.GROQ_API_KEY ? "configured" : "not configured — add GROQ_API_KEY to .env"}`);
 });
+
+function parseAllowedOrigins(value) {
+  if (!value) return null;
+  const origins = String(value)
+    .split(",")
+    .map(origin => origin.trim())
+    .filter(Boolean);
+  return origins.length ? origins : null;
+}
