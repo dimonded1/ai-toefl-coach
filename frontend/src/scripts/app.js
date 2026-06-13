@@ -152,6 +152,12 @@ const I18N = {
     "learn.copy": "Short TOEFL lessons, modules, study path, vocabulary, and personal notes.",
     "learn.search": "Search topics",
     "learn.searchPlaceholder": "inference, lecture notes, academic discussion",
+    "learn.level": "Level",
+    "learn.level.all": "All levels",
+    "learn.time": "Time",
+    "learn.time.all": "Any time",
+    "learn.time.short": "Under 5 min",
+    "learn.time.medium": "5-6 min",
     "learn.filter.all": "All",
     "learn.studyPath": "Study path",
     "learn.map": "8-week preparation map",
@@ -234,6 +240,14 @@ const I18N = {
     "practice.accuracy": "{pct}% accuracy from {total} tasks",
     "practice.meta": "{mistakes} mistakes · readiness {readiness}%",
     "practice.miniCopy": "Mixed diagnostic across all skills. Updates prediction and weak zones.",
+    "feedback.correct": "Correct (Верно)",
+    "feedback.incorrect": "Incorrect (Неверно)",
+    "feedback.correctExplain": "Good. The selected option matches the question focus.",
+    "feedback.defaultExplain": "Compare your choice with the green option and review the question focus before moving on.",
+    "feedback.vocabularyExplain": "The green option matches the word meaning in an academic context.",
+    "feedback.readingExplain": "Return to the passage evidence. The green option is the only choice directly supported by the text.",
+    "feedback.listeningExplain": "Use the lecture detail or signal closest to the question. The green option matches that spoken evidence.",
+    "feedback.writingExplain": "The green option has clearer academic logic, structure, or support than the selected answer.",
     "plan.title": "How will I reach my goal?",
     "plan.copy": "Calendar, weekly targets, and Groq-backed recommendations live here.",
     "plan.calendar": "Study calendar",
@@ -358,6 +372,12 @@ const I18N = {
     "learn.copy": "Короткие TOEFL-уроки, модули, учебный путь, словарь и личные заметки.",
     "learn.search": "Поиск тем",
     "learn.searchPlaceholder": "inference, lecture notes, academic discussion",
+    "learn.level": "Уровень",
+    "learn.level.all": "Все уровни",
+    "learn.time": "Время",
+    "learn.time.all": "Любое время",
+    "learn.time.short": "До 5 мин",
+    "learn.time.medium": "5-6 мин",
     "learn.filter.all": "Все",
     "learn.studyPath": "Учебный путь",
     "learn.map": "Карта подготовки на 8 недель",
@@ -440,6 +460,14 @@ const I18N = {
     "practice.accuracy": "{pct}% точности на {total} заданиях",
     "practice.meta": "{mistakes} ошибок · готовность {readiness}%",
     "practice.miniCopy": "Смешанная диагностика по всем навыкам. Обновляет прогноз и слабые зоны.",
+    "feedback.correct": "Верно",
+    "feedback.incorrect": "Неверно",
+    "feedback.correctExplain": "Хорошо. Выбранный вариант совпадает с фокусом вопроса.",
+    "feedback.defaultExplain": "Сравни свой выбор с зелёным вариантом и проверь фокус вопроса перед следующим заданием.",
+    "feedback.vocabularyExplain": "Зелёный вариант передаёт значение слова в академическом контексте.",
+    "feedback.readingExplain": "Вернись к evidence в тексте. Зелёный вариант напрямую подтверждается passage.",
+    "feedback.listeningExplain": "Опирайся на ближайшую деталь или сигнал из лекции. Зелёный вариант совпадает с услышанным evidence.",
+    "feedback.writingExplain": "Зелёный вариант сильнее по академической логике, структуре или поддержке.",
     "plan.title": "Как дойти до цели?",
     "plan.copy": "Календарь, недельные цели и рекомендации Groq находятся здесь.",
     "plan.calendar": "Учебный календарь",
@@ -564,6 +592,12 @@ const I18N = {
     "learn.copy": "Leçons courtes TOEFL, modules, parcours, vocabulaire et notes.",
     "learn.search": "Rechercher",
     "learn.searchPlaceholder": "inference, lecture notes, academic discussion",
+    "learn.level": "Niveau",
+    "learn.level.all": "Tous les niveaux",
+    "learn.time": "Temps",
+    "learn.time.all": "Tout temps",
+    "learn.time.short": "Moins de 5 min",
+    "learn.time.medium": "5-6 min",
     "learn.filter.all": "Tout",
     "learn.studyPath": "Parcours",
     "learn.map": "Carte de préparation sur 8 semaines",
@@ -642,6 +676,14 @@ const I18N = {
     "practice.accuracy": "{pct}% de précision sur {total} tâches",
     "practice.meta": "{mistakes} erreurs · préparation {readiness}%",
     "practice.miniCopy": "Diagnostic mixte pour toutes les compétences. Met à jour le score et les zones faibles.",
+    "feedback.correct": "Correct",
+    "feedback.incorrect": "Incorrect",
+    "feedback.correctExplain": "Bien. L'option choisie correspond au focus de la question.",
+    "feedback.defaultExplain": "Compare ton choix avec l'option verte et revois le focus de la question avant de continuer.",
+    "feedback.vocabularyExplain": "L'option verte correspond au sens du mot dans un contexte académique.",
+    "feedback.readingExplain": "Reviens aux preuves du passage. L'option verte est directement soutenue par le texte.",
+    "feedback.listeningExplain": "Utilise le détail ou le signal le plus proche de la question. L'option verte correspond à l'audio.",
+    "feedback.writingExplain": "L'option verte a une logique, une structure ou un soutien académique plus clair.",
     "plan.title": "Comment atteindre mon objectif ?",
     "plan.copy": "Calendrier, objectifs hebdomadaires et recommandations Groq.",
     "plan.calendar": "Calendrier d'étude",
@@ -766,6 +808,12 @@ const I18N = {
     "learn.copy": "Lecciones TOEFL cortas, módulos, ruta, vocabulario y notas.",
     "learn.search": "Buscar temas",
     "learn.searchPlaceholder": "inference, lecture notes, academic discussion",
+    "learn.level": "Nivel",
+    "learn.level.all": "Todos los niveles",
+    "learn.time": "Tiempo",
+    "learn.time.all": "Cualquier tiempo",
+    "learn.time.short": "Menos de 5 min",
+    "learn.time.medium": "5-6 min",
     "learn.filter.all": "Todo",
     "learn.studyPath": "Ruta",
     "learn.map": "Mapa de 8 semanas",
@@ -844,6 +892,14 @@ const I18N = {
     "practice.accuracy": "{pct}% de acierto en {total} tareas",
     "practice.meta": "{mistakes} errores · preparación {readiness}%",
     "practice.miniCopy": "Diagnóstico mixto de todas las habilidades. Actualiza predicción y zonas débiles.",
+    "feedback.correct": "Correcto",
+    "feedback.incorrect": "Incorrecto",
+    "feedback.correctExplain": "Bien. La opción elegida coincide con el enfoque de la pregunta.",
+    "feedback.defaultExplain": "Compara tu elección con la opción verde y revisa el enfoque de la pregunta antes de continuar.",
+    "feedback.vocabularyExplain": "La opción verde coincide con el significado de la palabra en contexto académico.",
+    "feedback.readingExplain": "Vuelve a la evidencia del pasaje. La opción verde es la única apoyada directamente por el texto.",
+    "feedback.listeningExplain": "Usa el detalle o señal de la clase más cercano a la pregunta. La opción verde coincide con lo escuchado.",
+    "feedback.writingExplain": "La opción verde tiene lógica, estructura o apoyo académico más claro.",
     "plan.title": "¿Cómo llego a mi objetivo?",
     "plan.copy": "Calendario, metas semanales y recomendaciones Groq.",
     "plan.calendar": "Calendario de estudio",
@@ -2899,10 +2955,49 @@ function renderModules() {
   }).join("");
 }
 
+function buildLearnSearchGroups(query) {
+  return String(query || "")
+    .toLowerCase()
+    .split(/[;,]+/)
+    .map(group => group.trim().split(/\s+/).filter(Boolean))
+    .filter(group => group.length);
+}
+
+function buildLessonSearchText(lesson) {
+  const sectionText = (lesson.sections || [])
+    .map(section => [
+      section.title,
+      section.body,
+      ...(section.bullets || [])
+    ].filter(Boolean).join(" "))
+    .join(" ");
+  const exampleText = lesson.example
+    ? [lesson.example.prompt, lesson.example.answer, lesson.example.why].filter(Boolean).join(" ")
+    : "";
+  return [
+    lesson.title,
+    lesson.summary,
+    lesson.skill,
+    lesson.level,
+    lesson.minutes,
+    ...(lesson.tags || []),
+    ...(lesson.repairTopics || []),
+    sectionText,
+    exampleText
+  ].filter(Boolean).join(" ").toLowerCase();
+}
+
+function lessonMatchesLearnSearch(lesson, searchGroups) {
+  if (!searchGroups.length) return true;
+  const haystack = buildLessonSearchText(lesson);
+  return searchGroups.some(group => group.every(term => haystack.includes(term)));
+}
+
 function renderLessonLibrary() {
   const container = document.getElementById("lessonGrid");
   if (!container) return;
   const query = (document.getElementById("learnSearchInput")?.value || "").trim().toLowerCase();
+  const searchGroups = buildLearnSearchGroups(query);
   const completed = new Set(profile.learningProgress.completedLessons);
   const lessons = LEARNING_LESSONS.filter(lesson => {
     const matchesSkill = learnSkillFilter === "all" || lesson.skill === learnSkillFilter;
@@ -2910,8 +3005,7 @@ function renderLessonLibrary() {
     const matchesTime = learnTimeFilter === "all"
       || (learnTimeFilter === "short" && lesson.minutes < 5)
       || (learnTimeFilter === "medium" && lesson.minutes >= 5 && lesson.minutes <= 6);
-    const haystack = `${lesson.title} ${lesson.summary} ${lesson.tags.join(" ")} ${lesson.skill} ${lesson.level}`.toLowerCase();
-    return matchesSkill && matchesLevel && matchesTime && (!query || haystack.includes(query));
+    return matchesSkill && matchesLevel && matchesTime && lessonMatchesLearnSearch(lesson, searchGroups);
   });
 
   setText("lessonCountBadge", `${lessons.length} ${lessons.length === 1 ? "lesson" : "lessons"}`);
@@ -3533,6 +3627,29 @@ function renderCoachFeedback(rawFeedback) {
   return cleanAIText(rawFeedback).split("\n").map(escapeHtml).join("<br>");
 }
 
+function getAnswerExplanation(question, skill, correct) {
+  const explicit = question?.explanation || question?.why || question?.rationale;
+  if (explicit) return explicit;
+  if (correct) return t("feedback.correctExplain");
+
+  const normalizedSkill = String(skill || question?.skill || "").toLowerCase();
+  if (normalizedSkill === "vocabulary") return t("feedback.vocabularyExplain");
+  if (normalizedSkill === "reading") return t("feedback.readingExplain");
+  if (normalizedSkill === "listening") return t("feedback.listeningExplain");
+  if (normalizedSkill === "writing") return t("feedback.writingExplain");
+  return t("feedback.defaultExplain");
+}
+
+function renderAnswerFeedback(question, skill, correct) {
+  const title = correct ? t("feedback.correct") : t("feedback.incorrect");
+  const explanation = getAnswerExplanation(question, skill, correct);
+  return `
+    <div class="feedback-box ${correct ? "correct" : "wrong"}">
+      <strong class="feedback-title">${escapeHtml(title)}</strong>
+      <span class="feedback-explanation">${escapeHtml(explanation)}</span>
+    </div>`;
+}
+
 // ─── Option handler (MCQ) ─────────────────────────
 function attachOptionHandlers(container, q, skill, isMiniTest) {
   container.querySelectorAll(".option-btn").forEach(btn => {
@@ -3558,11 +3675,7 @@ function attachOptionHandlers(container, q, skill, isMiniTest) {
       // Feedback
       const fb = container.querySelector("#feedback");
       if (fb) {
-        fb.innerHTML = `<div class="feedback-box ${correct ? "correct" : "wrong"}">
-          ${correct
-            ? "Correct. Well done."
-            : `Incorrect. The correct answer is: <strong>${q.correctAnswer}</strong>`}
-        </div>
+        fb.innerHTML = `${renderAnswerFeedback(q, skill, correct)}
         ${correct ? "" : renderRepairLessonPrompt(q, skill)}`;
       }
 
@@ -3792,10 +3905,7 @@ function renderMiniMCQ(q, container) {
         else if (b === btn && !correct)         b.classList.add("wrong");
       });
 
-      container.querySelector("#feedback").innerHTML = `
-        <div class="feedback-box ${correct ? "correct" : "wrong"}">
-          ${correct ? "Correct." : `Correct answer: <strong>${q.correctAnswer}</strong>`}
-        </div>`;
+      container.querySelector("#feedback").innerHTML = renderAnswerFeedback(q, q.skill?.toLowerCase(), correct);
 
       const nextBtn = container.querySelector("#nextBtn");
       nextBtn.classList.remove("hidden");
@@ -3832,10 +3942,7 @@ function renderMiniReading(q, container) {
         if (b.dataset.val === q.correctAnswer) b.classList.add("correct");
         else if (b === btn && !correct)         b.classList.add("wrong");
       });
-      container.querySelector("#feedback").innerHTML = `
-        <div class="feedback-box ${correct ? "correct" : "wrong"}">
-          ${correct ? "Correct." : `Correct: <strong>${q.correctAnswer}</strong>`}
-        </div>`;
+      container.querySelector("#feedback").innerHTML = renderAnswerFeedback(q, "reading", correct);
       const nb = container.querySelector("#nextBtn");
       nb.classList.remove("hidden");
       nb.addEventListener("click", () => { state.idx++; renderMiniQuestion(); }, { once: true });
@@ -3908,10 +4015,7 @@ function renderMiniListening(q, container) {
         if (b.dataset.val === q.correctAnswer) b.classList.add("correct");
         else if (b === btn && !correct)         b.classList.add("wrong");
       });
-      container.querySelector("#feedback").innerHTML = `
-        <div class="feedback-box ${correct ? "correct" : "wrong"}">
-          ${correct ? "Correct." : `Correct: <strong>${q.correctAnswer}</strong>`}
-        </div>`;
+      container.querySelector("#feedback").innerHTML = renderAnswerFeedback(q, "listening", correct);
       const nb = container.querySelector("#nextBtn");
       nb.classList.remove("hidden");
       nb.addEventListener("click", () => { state.idx++; renderMiniQuestion(); }, { once: true });

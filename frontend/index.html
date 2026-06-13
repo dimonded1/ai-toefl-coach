@@ -228,20 +228,20 @@
           <input class="text-input" id="learnSearchInput" type="search" placeholder="inference, lecture notes, academic discussion" data-i18n-placeholder="learn.searchPlaceholder" />
         </label>
         <label class="learn-select">
-          <span>Level</span>
+          <span data-i18n="learn.level">Level</span>
           <select class="text-input" id="learnLevelSelect">
-            <option value="all">All levels</option>
-            <option value="beginner">Beginner</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="advanced">Advanced</option>
+            <option value="all" data-i18n="learn.level.all">All levels</option>
+            <option value="beginner" data-i18n="level.beginner">Beginner</option>
+            <option value="intermediate" data-i18n="level.intermediate">Intermediate</option>
+            <option value="advanced" data-i18n="level.advanced">Advanced</option>
           </select>
         </label>
         <label class="learn-select">
-          <span>Time</span>
+          <span data-i18n="learn.time">Time</span>
           <select class="text-input" id="learnTimeSelect">
-            <option value="all">Any time</option>
-            <option value="short">Under 5 min</option>
-            <option value="medium">5-6 min</option>
+            <option value="all" data-i18n="learn.time.all">Any time</option>
+            <option value="short" data-i18n="learn.time.short">Under 5 min</option>
+            <option value="medium" data-i18n="learn.time.medium">5-6 min</option>
           </select>
         </label>
         <div class="learn-filter-row" id="learnSkillFilters">
@@ -567,6 +567,7 @@
               <div class="cal-weekdays" id="calWeekdays"></div>
               <div class="cal-grid" id="calGrid"></div>
               <div class="cal-legend" id="calLegend"></div>
+              <div class="cal-selected-day" id="calSelectedDay" aria-live="polite"></div>
             </div>
             <div class="cal-roadmap-card">
               <div class="card-kicker" data-i18n="plan.roadmap">8-week roadmap</div>
