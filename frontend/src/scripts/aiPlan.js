@@ -104,6 +104,15 @@ async function fetchAnswerFeedback(skill, userAnswer, taskType) {
   return callGroqAI("feedback", { skill, userAnswer, taskType });
 }
 
+async function fetchCoachChat(message, history = [], context = {}) {
+  return callGroqAI("chat", {
+    message,
+    history,
+    page: context.page,
+    selectedSkill: context.selectedSkill
+  });
+}
+
 // ─── RENDER: Score Gap Visual ────────────────────
 
 function renderScoreGapVisual(profile) {

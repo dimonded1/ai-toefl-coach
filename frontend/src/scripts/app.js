@@ -7,6 +7,7 @@ let authGateMode = "register";
 let onboardingStepIndex = 0;
 const onboardingAnswers = {};
 const AUTH_GATE_DISMISSED_KEY = "toefl_coach_auth_gate_dismissed";
+let coachChatHistory = [];
 
 const AVATAR_TONES = ["teal", "blue", "violet", "rose", "amber", "mint", "indigo", "sky", "green", "pink", "slate", "cyan"];
 
@@ -106,6 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initPracticeSection("writing");
   initMiniTest();
   initAIPlan();
+  initCoachChat();
   initCalendar();
   initAnalytics();
   renderAppShell();
@@ -924,6 +926,195 @@ function renderAILoading(message) {
         <p>Using your current score, weak zones, confidence, and target pace.</p>
       </div>
     </div>`;
+}
+
+function initCoachChat() {
+  const toggle = document.getElementById("coachChatToggle");
+  const panel = document.getElementById("coachChatPanel");
+  const close = document.getElementById("coachChatClose");
+  const form = document.getElementById("coachChatForm");
+  const input = document.getElementById("coachChatInput");
+  const suggestions = document.getElementById("coachChatSuggestions");
+  const messages = document.getElementById("coachChatMessages");
+  if (!toggle || !panel || !form || !input || !messages) return;
+
+  if (!messages.dataset.ready) {
+    appendCoachMessage("assistant", getCoachWelcomeMessage());
+    messages.dataset.ready = "true";
+  }
+
+  toggle.addEventListener("click", () => setCoachChatOpen(panel.classList.contains("hidden")));
+  close?.addEventListener("click", () => setCoachChatOpen(false));
+
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    await submitCoachChat(input.value);
+  });
+
+  input.addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  suggestions?.addEventListener("click", event => {
+    const prompt = event.target.closest("[data-chat-prompt]")?.dataset.chatPrompt;
+    if (!prompt) return;
+    input.value = prompt;
+    form.requestSubmit();
+  });
+}
+
+function setCoachChatOpen(isOpen) {
+  const panel = document.getElementById("coachChatPanel");
+  const toggle = document.getElementById("coachChatToggle");
+  if (!panel || !toggle) return;
+  panel.classList.toggle("hidden", !isOpen);
+  toggle.setAttribute("aria-expanded", String(isOpen));
+  if (isOpen) {
+    document.getElementById("coachChatInput")?.focus();
+    scrollCoachChatToBottom();
+  }
+}
+
+function getCoachWelcomeMessage() {
+  const total = totalCompletedTasks(profile);
+  if (total === 0) {
+    return "I can help you choose the next TOEFL step. Start with the mini diagnostic, then I will use your weak zones and score gap for sharper advice.";
+  }
+  return "I can use your score, weak zones, confidence, and recent mistakes to suggest the next focused TOEFL step.";
+}
+
+async function submitCoachChat(rawMessage) {
+  const input = document.getElementById("coachChatInput");
+  const send = document.getElementById("coachChatSend");
+  const message = cleanCoachText(rawMessage);
+  if (!message) return;
+
+  input.value = "";
+  appendCoachMessage("user", message);
+  const loadingId = appendCoachMessage("assistant", "Thinking through your TOEFL data...", { loading: true });
+  if (send) send.disabled = true;
+
+  try {
+    const result = await fetchCoachChat(message, coachChatHistory.slice(-6), getCoachChatContext());
+    replaceCoachMessage(loadingId, renderCoachAnswer(result));
+  } catch (err) {
+    replaceCoachMessage(loadingId, renderCoachAnswer({
+      answer: getLocalCoachFallback(message),
+      followUps: ["Run the mini diagnostic", "Review today's focus"]
+    }));
+    showToast("AI coach used a local fallback.", "error");
+  } finally {
+    if (send) send.disabled = false;
+    input.focus();
+  }
+}
+
+function getCoachChatContext() {
+  const active = document.querySelector(".section.active")?.id?.replace("section-", "") || "dashboard";
+  const selectedSkill = PRACTICE_SECTIONS.includes(active) ? active : "";
+  return { page: PAGE_TITLES[active] || SECTION_TITLES[active] || active, selectedSkill };
+}
+
+function appendCoachMessage(role, text, options = {}) {
+  const messages = document.getElementById("coachChatMessages");
+  if (!messages) return "";
+
+  const id = `coach-msg-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const item = document.createElement("div");
+  item.className = `coach-message coach-message-${role}${options.loading ? " coach-message-loading" : ""}`;
+  item.dataset.messageId = id;
+  item.innerHTML = role === "assistant" && options.loading
+    ? `<div class="coach-typing"><span></span><span></span><span></span></div><p>${escapeHtml(text)}</p>`
+    : renderCoachMessageContent(role, text);
+  messages.appendChild(item);
+
+  if (!options.loading) rememberCoachMessage(role, text);
+  scrollCoachChatToBottom();
+  return id;
+}
+
+function replaceCoachMessage(id, html) {
+  const item = document.querySelector(`[data-message-id="${id}"]`);
+  if (!item) return;
+  item.classList.remove("coach-message-loading");
+  item.innerHTML = html;
+  const plainText = item.textContent.replace(/\s+/g, " ").trim();
+  rememberCoachMessage("assistant", plainText);
+  bindCoachFollowUps(item);
+  scrollCoachChatToBottom();
+}
+
+function renderCoachMessageContent(role, text) {
+  const cleaned = cleanCoachText(text);
+  return `<p>${escapeHtml(cleaned)}</p>`;
+}
+
+function renderCoachAnswer(result) {
+  const parsed = parseJsonFromAI(result) || {};
+  const answer = cleanCoachText(parsed.answer || result?.answer || result || getLocalCoachFallback(""));
+  const paragraphs = answer.split(/\n+/).map(part => part.trim()).filter(Boolean);
+  const followUps = Array.isArray(parsed.followUps || result?.followUps)
+    ? (parsed.followUps || result.followUps).map(cleanCoachText).filter(Boolean).slice(0, 3)
+    : [];
+
+  return `
+    <div class="coach-answer">
+      ${paragraphs.map(part => `<p>${escapeHtml(part)}</p>`).join("")}
+      ${followUps.length ? `
+        <div class="coach-followups">
+          ${followUps.map(item => `<button type="button" data-chat-prompt="${escapeHtml(item)}">${escapeHtml(item)}</button>`).join("")}
+        </div>` : ""}
+    </div>`;
+}
+
+function bindCoachFollowUps(scope) {
+  scope.querySelectorAll("[data-chat-prompt]").forEach(button => {
+    button.addEventListener("click", () => {
+      const input = document.getElementById("coachChatInput");
+      input.value = button.dataset.chatPrompt || "";
+      document.getElementById("coachChatForm")?.requestSubmit();
+    });
+  });
+}
+
+function rememberCoachMessage(role, text) {
+  coachChatHistory.push({ role, text: cleanCoachText(text).slice(0, 500) });
+  coachChatHistory = coachChatHistory.slice(-10);
+}
+
+function cleanCoachText(value) {
+  return String(value || "")
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`+/g, "")
+    .replace(/\*\*/g, "")
+    .replace(/\*/g, "")
+    .replace(/^#{1,6}\s*/gm, "")
+    .replace(/^\s*[-•]\s+/gm, "")
+    .replace(/^\s*\d+[.)]\s+/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function getLocalCoachFallback(message) {
+  const total = totalCompletedTasks(profile);
+  if (total === 0) {
+    return "Start with the 10-question mini diagnostic. After that, the coach can use real weak zones, confidence, and score gap instead of guessing.";
+  }
+  const weak = calcWeaknessScores(profile).filter(item => item.total > 0)[0];
+  if (weak) {
+    const label = SKILL_META[weak.skill]?.label || weak.skill;
+    return `Focus on ${label} next. Your recent answers show this is the fastest place to reduce mistakes before adding more general practice.`;
+  }
+  return "Choose one focused practice set, answer it fully, then review every missed question before moving to a new skill.";
+}
+
+function scrollCoachChatToBottom() {
+  const messages = document.getElementById("coachChatMessages");
+  if (messages) messages.scrollTop = messages.scrollHeight;
 }
 
 function escapeHtml(value) {
