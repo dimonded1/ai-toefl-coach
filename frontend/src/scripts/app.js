@@ -7,6 +7,8 @@ let authGateMode = "register";
 let onboardingStepIndex = 0;
 const onboardingAnswers = {};
 let coachChatHistory = [];
+const THEME_STORAGE_KEY = "toefl_coach_theme";
+const LANGUAGE_STORAGE_KEY = "toefl_coach_language";
 
 const AVATAR_TONES = ["teal", "blue", "violet", "rose", "amber", "mint", "indigo", "sky", "green", "pink", "slate", "cyan"];
 
@@ -65,6 +67,812 @@ const PAGE_TITLES = {
   goal: "Profile"
 };
 
+const LANGUAGES = {
+  en: { flag: "🇬🇧", label: "English" },
+  ru: { flag: "🇷🇺", label: "Русский" },
+  fr: { flag: "🇫🇷", label: "Français" },
+  es: { flag: "🇪🇸", label: "Español" }
+};
+
+const I18N = {
+  en: {
+    "common.skip": "Skip to content",
+    "common.target": "Target",
+    "common.day": "Day",
+    "common.current": "Current",
+    "common.gap": "Gap",
+    "common.daysLeft": "Days left",
+    "common.level": "Level",
+    "common.goal": "Goal",
+    "common.today": "Today",
+    "common.close": "Close",
+    "common.dark": "Dark",
+    "common.light": "Light",
+    "common.task": "task",
+    "common.tasks": "tasks",
+    "common.taskCount": "{total} tasks",
+    "common.days": "days",
+    "common.questions10": "10 questions",
+    "brand.subtitle": "Score cockpit",
+    "nav.primary": "Primary navigation",
+    "nav.openDashboard": "Open dashboard",
+    "page.dashboard": "Dashboard",
+    "page.learn": "Learn",
+    "page.lesson": "Lesson",
+    "page.practice": "Practice",
+    "page.aiplan": "Study Plan",
+    "page.analytics": "Analytics",
+    "page.goal": "Profile",
+    "theme.toggle": "Toggle color theme",
+    "theme.toLight": "Switch to light theme",
+    "theme.toDark": "Switch to dark theme",
+    "language.button": "Language",
+    "language.select": "Select language",
+    "language.options": "Language options",
+    "sidebar.studyStreak": "Study streak",
+    "sidebar.reset": "Reset Progress",
+    "sidebar.currentToGoal": "Current {current} to Goal {target}",
+    "sidebar.dayCount": "{current} / {total}",
+    "dashboard.heroTitle": "What should I do right now?",
+    "dashboard.defaultInsight": "Run one focused action, then let the coach update your next step.",
+    "dashboard.atTarget": "You are at or above target. Keep the rhythm and protect your strongest sections.",
+    "dashboard.runDiagnosticInsight": "Run the diagnostic first. The coach will turn your answers into a focused plan.",
+    "dashboard.gapInsight": "{gap} points to close over {days} days. Prioritize the weakest skill before adding volume.",
+    "dashboard.nextBestAction": "Next best action",
+    "dashboard.runDiagnostic": "Run a 10-question diagnostic",
+    "dashboard.diagnosticReason": "Start with a mixed mini test so the coach can find your first weak zones.",
+    "dashboard.choosePractice": "Choose a focused practice set",
+    "dashboard.practiceReason": "Keep daily practice moving while your data builds up.",
+    "dashboard.mixedSkills": "Mixed skills",
+    "dashboard.diagnostic": "Diagnostic",
+    "dashboard.dailyLoop": "Daily loop",
+    "dashboard.startFocus": "Start focus session",
+    "dashboard.refreshAI": "Refresh AI Plan",
+    "dashboard.generating": "Generating...",
+    "dashboard.todayFocus": "Today's focus",
+    "dashboard.twoActions": "Two actions for today",
+    "dashboard.skillsSnapshot": "Skills snapshot",
+    "dashboard.effortTitle": "Where to spend effort",
+    "dashboard.weakPreview": "Weak zones preview",
+    "dashboard.repairAreas": "Top repair areas",
+    "dashboard.fullAnalysis": "Full analysis",
+    "dashboard.priority": "Priority",
+    "dashboard.needsPractice": "Needs practice",
+    "dashboard.stable": "Stable",
+    "dashboard.highPriority": "High priority",
+    "dashboard.mediumPriority": "Medium priority",
+    "dashboard.errorRate": "{pct}% error rate across {total} tasks.",
+    "dashboard.readingInference": "Reading inference",
+    "dashboard.readingCopy": "Train evidence matching before timed passages.",
+    "dashboard.listeningDetails": "Listening details",
+    "dashboard.listeningCopy": "Catch speaker intent, examples, and lecture turns.",
+    "dashboard.writingStructure": "Writing structure",
+    "dashboard.writingCopy": "Build claim, support, and paragraph flow.",
+    "learn.title": "What should I learn next?",
+    "learn.copy": "Short TOEFL lessons, modules, study path, vocabulary, and personal notes.",
+    "learn.search": "Search topics",
+    "learn.searchPlaceholder": "inference, lecture notes, academic discussion",
+    "learn.filter.all": "All",
+    "learn.studyPath": "Study path",
+    "learn.map": "8-week preparation map",
+    "learn.mistakeLessons": "Mistake lessons",
+    "learn.repairErrors": "Repair repeated errors",
+    "learn.modules": "Modules",
+    "learn.courses": "Preparation courses",
+    "learn.topicLibrary": "Topic library",
+    "learn.shortLessons": "Short lessons",
+    "learn.vocabSystem": "Vocabulary system",
+    "learn.academicWords": "Academic words",
+    "profile.title": "Who is preparing?",
+    "profile.copy": "Keep your name and TOEFL goal accurate. Your avatar is generated automatically.",
+    "profile.name": "Your Name",
+    "profile.examType": "Exam Type",
+    "profile.targetScore": "Target Score",
+    "profile.prepTime": "Preparation Time",
+    "profile.days30": "30 days",
+    "profile.days60": "60 days",
+    "profile.days90": "90 days",
+    "profile.daysLabel": "{days} days",
+    "profile.currentLevel": "Current Level",
+    "profile.studyGoal": "Study Goal",
+    "profile.saveStart": "Save & Start Preparation",
+    "profile.saved": "Profile saved. Go to Dashboard to start.",
+    "profile.summary": "Personal summary",
+    "profile.setup": "Your study setup",
+    "profile.currentToefl": "current TOEFL",
+    "profile.timeline": "Timeline",
+    "level.beginner": "Beginner",
+    "level.intermediate": "Intermediate",
+    "level.advanced": "Advanced",
+    "goal.studyAbroad": "Study Abroad",
+    "goal.work": "Work",
+    "goal.immigration": "Immigration",
+    "account.kicker": "Account Sync",
+    "account.saveProgress": "Save progress",
+    "account.copy": "Use local mode for quick practice, or create an account to save your progress in SQLite.",
+    "account.name": "Name",
+    "account.email": "Email",
+    "account.password": "Password",
+    "account.passwordPlaceholder": "At least 6 characters",
+    "account.create": "Create account",
+    "account.signIn": "Sign in",
+    "account.syncedCopy": "Progress is synced.",
+    "account.syncNow": "Sync now",
+    "account.logout": "Log out",
+    "account.localMode": "Local mode",
+    "account.local": "Local",
+    "account.synced": "Synced",
+    "account.saving": "Saving",
+    "account.syncFailed": "Sync failed",
+    "account.localTitle": "Local mode. Create an account to sync progress.",
+    "account.failedTitle": "Sync failed. Open Profile to try again.",
+    "account.savingTitle": "Saving profile to SQLite.",
+    "account.syncedTitle": "Progress is synced to SQLite.",
+    "skill.reading": "Reading",
+    "skill.listening": "Listening",
+    "skill.speaking": "Speaking",
+    "skill.writing": "Writing",
+    "skill.vocabulary": "Vocabulary",
+    "skill.strategy": "Strategy",
+    "practice.title": "What should I train?",
+    "practice.copy": "Pick a skill based on readiness, recent accuracy, and mistakes.",
+    "practice.vocabulary": "Vocabulary Practice",
+    "practice.reading": "Reading Practice",
+    "practice.listening": "Listening Practice",
+    "practice.speaking": "Speaking Practice",
+    "practice.writing": "Writing Practice",
+    "practice.miniTest": "Mini TOEFL Test",
+    "practice.today": "Today's practice",
+    "practice.startDrill": "Start recommended drill",
+    "practice.notStarted": "Not started",
+    "practice.shortDrill": "Start with a short drill",
+    "practice.accuracy": "{pct}% accuracy from {total} tasks",
+    "practice.meta": "{mistakes} mistakes · readiness {readiness}%",
+    "practice.miniCopy": "Mixed diagnostic across all skills. Updates prediction and weak zones.",
+    "plan.title": "How will I reach my goal?",
+    "plan.copy": "Calendar, weekly targets, and Groq-backed recommendations live here.",
+    "plan.calendar": "Study calendar",
+    "plan.countdown": "Countdown and roadmap",
+    "plan.prevMonth": "Previous month",
+    "plan.nextMonth": "Next month",
+    "plan.roadmap": "8-week roadmap",
+    "plan.goalOverview": "Goal overview",
+    "plan.weeklyTargets": "Weekly targets",
+    "plan.groq": "Groq recommendations",
+    "plan.focusPlan": "Focus plan",
+    "plan.generate": "Generate Study Plan",
+    "plan.placeholder": "Click \"Generate Study Plan\" to get your personalized recommendations.",
+    "plan.gapAnalysis": "Gap analysis",
+    "plan.currentToTarget": "Current to target",
+    "plan.runAnalysis": "Run AI Analysis",
+    "mistakes.title": "Mistakes",
+    "mistakes.copy": "Review missed tasks and decide what to repair first.",
+    "analytics.title": "Why is my score changing?",
+    "analytics.copy": "Analytics explains movement, accuracy, weak areas, and mistakes.",
+    "tools.coach": "Coach",
+    "tools.notes": "Notes",
+    "notebook.kicker": "Notebook",
+    "notebook.title": "My notes",
+    "notebook.close": "Close notebook",
+    "notebook.titlePlaceholder": "Rule or phrase title",
+    "notebook.contentPlaceholder": "Write a phrase, mistake pattern, template, or personal TOEFL rule.",
+    "notebook.add": "Add note",
+    "notebook.empty": "Save useful phrases, personal rules, templates, or AI advice here.",
+    "coach.kicker": "AI Coach",
+    "coach.title": "Ask about your next step",
+    "coach.close": "Close chat",
+    "coach.today": "Today",
+    "coach.weakZones": "Weak zones",
+    "coach.thisWeek": "This week",
+    "coach.placeholder": "Ask your TOEFL coach...",
+    "coach.send": "Send",
+    "toast.setGoal": "Set your TOEFL goal to get started.",
+    "toast.confirmReset": "Reset all progress? This cannot be undone.",
+    "toast.reset": "Progress reset.",
+    "toast.goalSaved": "Goal saved. Let's start preparing.",
+    "toast.signedOut": "Signed out. Local mode is active.",
+    "toast.signedInSynced": "Signed in. Progress is synced.",
+    "toast.signedIn": "Signed in.",
+    "toast.syncFailed": "Sync failed. Local changes are still saved.",
+    "toast.synced": "Synced."
+  },
+  ru: {
+    "common.skip": "Перейти к содержимому",
+    "common.target": "Цель",
+    "common.day": "День",
+    "common.current": "Сейчас",
+    "common.gap": "Разрыв",
+    "common.daysLeft": "Дней осталось",
+    "common.level": "Уровень",
+    "common.goal": "Цель",
+    "common.today": "Сегодня",
+    "common.close": "Закрыть",
+    "common.dark": "Тёмная",
+    "common.light": "Светлая",
+    "common.task": "задание",
+    "common.tasks": "заданий",
+    "common.taskCount": "{total} заданий",
+    "common.days": "дней",
+    "common.questions10": "10 вопросов",
+    "brand.subtitle": "Панель балла",
+    "nav.primary": "Основная навигация",
+    "nav.openDashboard": "Открыть дашборд",
+    "page.dashboard": "Дашборд",
+    "page.learn": "Обучение",
+    "page.lesson": "Урок",
+    "page.practice": "Практика",
+    "page.aiplan": "План",
+    "page.analytics": "Аналитика",
+    "page.goal": "Профиль",
+    "theme.toggle": "Переключить тему",
+    "theme.toLight": "Включить светлую тему",
+    "theme.toDark": "Включить тёмную тему",
+    "language.button": "Language",
+    "language.select": "Выбрать язык",
+    "language.options": "Варианты языка",
+    "sidebar.studyStreak": "Серия занятий",
+    "sidebar.reset": "Сбросить прогресс",
+    "sidebar.currentToGoal": "Сейчас {current}, цель {target}",
+    "sidebar.dayCount": "{current} / {total}",
+    "dashboard.heroTitle": "Что делать прямо сейчас?",
+    "dashboard.defaultInsight": "Сделай одно сфокусированное действие, и коуч обновит следующий шаг.",
+    "dashboard.atTarget": "Ты уже на цели или выше. Сохраняй ритм и защищай сильные секции.",
+    "dashboard.runDiagnosticInsight": "Сначала пройди диагностику. Коуч превратит ответы в сфокусированный план.",
+    "dashboard.gapInsight": "Нужно закрыть {gap} баллов за {days} дней. Сначала усиливай самый слабый навык.",
+    "dashboard.nextBestAction": "Лучший следующий шаг",
+    "dashboard.runDiagnostic": "Пройти диагностику из 10 вопросов",
+    "dashboard.diagnosticReason": "Начни со смешанного мини-теста, чтобы коуч нашёл первые слабые зоны.",
+    "dashboard.choosePractice": "Выбрать фокусную практику",
+    "dashboard.practiceReason": "Поддерживай ежедневную практику, пока данных становится больше.",
+    "dashboard.mixedSkills": "Смешанные навыки",
+    "dashboard.diagnostic": "Диагностика",
+    "dashboard.dailyLoop": "Ежедневный цикл",
+    "dashboard.startFocus": "Начать фокус-сессию",
+    "dashboard.refreshAI": "Обновить AI-план",
+    "dashboard.generating": "Генерирую...",
+    "dashboard.todayFocus": "Фокус на сегодня",
+    "dashboard.twoActions": "Два действия на сегодня",
+    "dashboard.skillsSnapshot": "Срез навыков",
+    "dashboard.effortTitle": "Куда вложить усилия",
+    "dashboard.weakPreview": "Слабые зоны",
+    "dashboard.repairAreas": "Главные зоны ремонта",
+    "dashboard.fullAnalysis": "Полный анализ",
+    "dashboard.priority": "Приоритет",
+    "dashboard.needsPractice": "Нужна практика",
+    "dashboard.stable": "Стабильно",
+    "dashboard.highPriority": "Высокий приоритет",
+    "dashboard.mediumPriority": "Средний приоритет",
+    "dashboard.errorRate": "{pct}% ошибок на {total} заданиях.",
+    "dashboard.readingInference": "Reading: выводы",
+    "dashboard.readingCopy": "Тренируй поиск доказательств перед заданиями на время.",
+    "dashboard.listeningDetails": "Listening: детали",
+    "dashboard.listeningCopy": "Лови намерение спикера, примеры и повороты лекции.",
+    "dashboard.writingStructure": "Writing: структура",
+    "dashboard.writingCopy": "Собирай тезис, поддержку и логику абзацев.",
+    "learn.title": "Что изучать дальше?",
+    "learn.copy": "Короткие TOEFL-уроки, модули, учебный путь, словарь и личные заметки.",
+    "learn.search": "Поиск тем",
+    "learn.searchPlaceholder": "inference, lecture notes, academic discussion",
+    "learn.filter.all": "Все",
+    "learn.studyPath": "Учебный путь",
+    "learn.map": "Карта подготовки на 8 недель",
+    "learn.mistakeLessons": "Уроки по ошибкам",
+    "learn.repairErrors": "Разобрать повторяющиеся ошибки",
+    "learn.modules": "Модули",
+    "learn.courses": "Курсы подготовки",
+    "learn.topicLibrary": "Библиотека тем",
+    "learn.shortLessons": "Короткие уроки",
+    "learn.vocabSystem": "Словарная система",
+    "learn.academicWords": "Академические слова",
+    "profile.title": "Кто готовится?",
+    "profile.copy": "Держи имя и TOEFL-цель актуальными. Аватар создаётся автоматически.",
+    "profile.name": "Имя",
+    "profile.examType": "Тип экзамена",
+    "profile.targetScore": "Целевой балл",
+    "profile.prepTime": "Время подготовки",
+    "profile.days30": "30 дней",
+    "profile.days60": "60 дней",
+    "profile.days90": "90 дней",
+    "profile.daysLabel": "{days} дней",
+    "profile.currentLevel": "Текущий уровень",
+    "profile.studyGoal": "Цель обучения",
+    "profile.saveStart": "Сохранить и начать",
+    "profile.saved": "Профиль сохранён. Перейди в дашборд, чтобы начать.",
+    "profile.summary": "Краткий профиль",
+    "profile.setup": "Твои настройки подготовки",
+    "profile.currentToefl": "текущий TOEFL",
+    "profile.timeline": "Срок",
+    "level.beginner": "Начальный",
+    "level.intermediate": "Средний",
+    "level.advanced": "Продвинутый",
+    "goal.studyAbroad": "Учёба за рубежом",
+    "goal.work": "Работа",
+    "goal.immigration": "Иммиграция",
+    "account.kicker": "Синхронизация",
+    "account.saveProgress": "Сохранить прогресс",
+    "account.copy": "Можно быстро заниматься локально или создать аккаунт, чтобы сохранить прогресс в SQLite.",
+    "account.name": "Имя",
+    "account.email": "Email",
+    "account.password": "Пароль",
+    "account.passwordPlaceholder": "Минимум 6 символов",
+    "account.create": "Создать аккаунт",
+    "account.signIn": "Войти",
+    "account.syncedCopy": "Прогресс синхронизирован.",
+    "account.syncNow": "Синхронизировать",
+    "account.logout": "Выйти",
+    "account.localMode": "Локальный режим",
+    "account.local": "Локально",
+    "account.synced": "Синхронизировано",
+    "account.saving": "Сохранение",
+    "account.syncFailed": "Ошибка синхронизации",
+    "account.localTitle": "Локальный режим. Создай аккаунт, чтобы синхронизировать прогресс.",
+    "account.failedTitle": "Синхронизация не удалась. Открой профиль и попробуй снова.",
+    "account.savingTitle": "Сохраняем профиль в SQLite.",
+    "account.syncedTitle": "Прогресс синхронизирован с SQLite.",
+    "skill.reading": "Reading",
+    "skill.listening": "Listening",
+    "skill.speaking": "Speaking",
+    "skill.writing": "Writing",
+    "skill.vocabulary": "Vocabulary",
+    "skill.strategy": "Стратегия",
+    "practice.title": "Что тренировать?",
+    "practice.copy": "Выбирай навык по готовности, свежей точности и ошибкам.",
+    "practice.vocabulary": "Практика Vocabulary",
+    "practice.reading": "Практика Reading",
+    "practice.listening": "Практика Listening",
+    "practice.speaking": "Практика Speaking",
+    "practice.writing": "Практика Writing",
+    "practice.miniTest": "Мини TOEFL-тест",
+    "practice.today": "Практика на сегодня",
+    "practice.startDrill": "Начать рекомендованную тренировку",
+    "practice.notStarted": "Не начато",
+    "practice.shortDrill": "Начни с короткой тренировки",
+    "practice.accuracy": "{pct}% точности на {total} заданиях",
+    "practice.meta": "{mistakes} ошибок · готовность {readiness}%",
+    "practice.miniCopy": "Смешанная диагностика по всем навыкам. Обновляет прогноз и слабые зоны.",
+    "plan.title": "Как дойти до цели?",
+    "plan.copy": "Календарь, недельные цели и рекомендации Groq находятся здесь.",
+    "plan.calendar": "Учебный календарь",
+    "plan.countdown": "Отсчёт и дорожная карта",
+    "plan.prevMonth": "Предыдущий месяц",
+    "plan.nextMonth": "Следующий месяц",
+    "plan.roadmap": "Дорожная карта на 8 недель",
+    "plan.goalOverview": "Обзор цели",
+    "plan.weeklyTargets": "Недельные цели",
+    "plan.groq": "Рекомендации Groq",
+    "plan.focusPlan": "Фокус-план",
+    "plan.generate": "Сгенерировать план",
+    "plan.placeholder": "Нажми «Сгенерировать план», чтобы получить персональные рекомендации.",
+    "plan.gapAnalysis": "Анализ разрыва",
+    "plan.currentToTarget": "От текущего к цели",
+    "plan.runAnalysis": "Запустить AI-анализ",
+    "mistakes.title": "Ошибки",
+    "mistakes.copy": "Посмотри пропущенные задания и выбери, что чинить первым.",
+    "analytics.title": "Почему меняется мой балл?",
+    "analytics.copy": "Аналитика объясняет движение балла, точность, слабые зоны и ошибки.",
+    "tools.coach": "Коуч",
+    "tools.notes": "Заметки",
+    "notebook.kicker": "Блокнот",
+    "notebook.title": "Мои заметки",
+    "notebook.close": "Закрыть блокнот",
+    "notebook.titlePlaceholder": "Название правила или фразы",
+    "notebook.contentPlaceholder": "Запиши фразу, шаблон ошибки, структуру ответа или личное TOEFL-правило.",
+    "notebook.add": "Добавить",
+    "notebook.empty": "Сохраняй здесь полезные фразы, правила, шаблоны и советы AI.",
+    "coach.kicker": "AI-коуч",
+    "coach.title": "Спроси про следующий шаг",
+    "coach.close": "Закрыть чат",
+    "coach.today": "Сегодня",
+    "coach.weakZones": "Слабые зоны",
+    "coach.thisWeek": "Неделя",
+    "coach.placeholder": "Спроси TOEFL-коуча...",
+    "coach.send": "Отправить",
+    "toast.setGoal": "Задай TOEFL-цель, чтобы начать.",
+    "toast.confirmReset": "Сбросить весь прогресс? Это действие нельзя отменить.",
+    "toast.reset": "Прогресс сброшен.",
+    "toast.goalSaved": "Цель сохранена. Начинаем подготовку.",
+    "toast.signedOut": "Вы вышли. Активен локальный режим.",
+    "toast.signedInSynced": "Вход выполнен. Прогресс синхронизирован.",
+    "toast.signedIn": "Вход выполнен.",
+    "toast.syncFailed": "Синхронизация не удалась. Локальные изменения сохранены.",
+    "toast.synced": "Синхронизировано."
+  },
+  fr: {
+    "common.skip": "Aller au contenu",
+    "common.target": "Objectif",
+    "common.day": "Jour",
+    "common.current": "Actuel",
+    "common.gap": "Écart",
+    "common.daysLeft": "Jours restants",
+    "common.level": "Niveau",
+    "common.goal": "But",
+    "common.today": "Aujourd'hui",
+    "common.close": "Fermer",
+    "common.dark": "Sombre",
+    "common.light": "Clair",
+    "common.task": "tâche",
+    "common.tasks": "tâches",
+    "common.taskCount": "{total} tâches",
+    "common.days": "jours",
+    "common.questions10": "10 questions",
+    "brand.subtitle": "Tableau du score",
+    "nav.primary": "Navigation principale",
+    "nav.openDashboard": "Ouvrir le tableau",
+    "page.dashboard": "Tableau",
+    "page.learn": "Apprendre",
+    "page.lesson": "Leçon",
+    "page.practice": "Pratique",
+    "page.aiplan": "Plan",
+    "page.analytics": "Analyse",
+    "page.goal": "Profil",
+    "theme.toggle": "Changer le thème",
+    "theme.toLight": "Passer au thème clair",
+    "theme.toDark": "Passer au thème sombre",
+    "language.button": "Language",
+    "language.select": "Choisir la langue",
+    "language.options": "Options de langue",
+    "sidebar.studyStreak": "Série d'étude",
+    "sidebar.reset": "Réinitialiser",
+    "sidebar.currentToGoal": "Actuel {current}, objectif {target}",
+    "sidebar.dayCount": "{current} / {total}",
+    "dashboard.heroTitle": "Que dois-je faire maintenant ?",
+    "dashboard.defaultInsight": "Fais une action ciblée, puis le coach mettra à jour la prochaine étape.",
+    "dashboard.atTarget": "Tu es à l'objectif ou au-dessus. Garde le rythme.",
+    "dashboard.runDiagnosticInsight": "Commence par le diagnostic. Le coach transformera tes réponses en plan ciblé.",
+    "dashboard.gapInsight": "{gap} points à gagner en {days} jours. Priorise la compétence la plus faible.",
+    "dashboard.nextBestAction": "Meilleure prochaine action",
+    "dashboard.runDiagnostic": "Lancer un diagnostic de 10 questions",
+    "dashboard.diagnosticReason": "Commence par un mini-test mixte pour trouver les premières zones faibles.",
+    "dashboard.choosePractice": "Choisir une pratique ciblée",
+    "dashboard.practiceReason": "Garde une pratique quotidienne pendant que les données s'accumulent.",
+    "dashboard.mixedSkills": "Compétences mixtes",
+    "dashboard.diagnostic": "Diagnostic",
+    "dashboard.dailyLoop": "Routine quotidienne",
+    "dashboard.startFocus": "Démarrer la session",
+    "dashboard.refreshAI": "Actualiser le plan AI",
+    "dashboard.generating": "Génération...",
+    "dashboard.todayFocus": "Focus du jour",
+    "dashboard.twoActions": "Deux actions aujourd'hui",
+    "dashboard.skillsSnapshot": "Aperçu des compétences",
+    "dashboard.effortTitle": "Où concentrer l'effort",
+    "dashboard.weakPreview": "Zones faibles",
+    "dashboard.repairAreas": "Priorités à corriger",
+    "dashboard.fullAnalysis": "Analyse complète",
+    "dashboard.priority": "Priorité",
+    "dashboard.needsPractice": "À pratiquer",
+    "dashboard.stable": "Stable",
+    "dashboard.highPriority": "Haute priorité",
+    "dashboard.mediumPriority": "Priorité moyenne",
+    "dashboard.errorRate": "{pct}% d'erreurs sur {total} tâches.",
+    "dashboard.readingInference": "Reading : inférence",
+    "dashboard.readingCopy": "Travaille la correspondance avec les preuves avant les passages chronométrés.",
+    "dashboard.listeningDetails": "Listening : détails",
+    "dashboard.listeningCopy": "Repère l'intention, les exemples et la structure de la conférence.",
+    "dashboard.writingStructure": "Writing : structure",
+    "dashboard.writingCopy": "Construis thèse, soutien et logique des paragraphes.",
+    "learn.title": "Que dois-je apprendre ensuite ?",
+    "learn.copy": "Leçons courtes TOEFL, modules, parcours, vocabulaire et notes.",
+    "learn.search": "Rechercher",
+    "learn.searchPlaceholder": "inference, lecture notes, academic discussion",
+    "learn.filter.all": "Tout",
+    "learn.studyPath": "Parcours",
+    "learn.map": "Carte de préparation sur 8 semaines",
+    "learn.mistakeLessons": "Leçons d'erreurs",
+    "learn.repairErrors": "Corriger les erreurs répétées",
+    "learn.modules": "Modules",
+    "learn.courses": "Cours de préparation",
+    "learn.topicLibrary": "Bibliothèque",
+    "learn.shortLessons": "Leçons courtes",
+    "learn.vocabSystem": "Vocabulaire",
+    "learn.academicWords": "Mots académiques",
+    "profile.title": "Qui se prépare ?",
+    "profile.copy": "Garde ton nom et ton objectif TOEFL à jour. L'avatar est généré automatiquement.",
+    "profile.name": "Nom",
+    "profile.examType": "Type d'examen",
+    "profile.targetScore": "Score cible",
+    "profile.prepTime": "Temps de préparation",
+    "profile.days30": "30 jours",
+    "profile.days60": "60 jours",
+    "profile.days90": "90 jours",
+    "profile.daysLabel": "{days} jours",
+    "profile.currentLevel": "Niveau actuel",
+    "profile.studyGoal": "But d'étude",
+    "profile.saveStart": "Enregistrer et commencer",
+    "profile.saved": "Profil enregistré. Va au tableau pour commencer.",
+    "profile.summary": "Résumé personnel",
+    "profile.setup": "Configuration d'étude",
+    "profile.currentToefl": "TOEFL actuel",
+    "profile.timeline": "Calendrier",
+    "level.beginner": "Débutant",
+    "level.intermediate": "Intermédiaire",
+    "level.advanced": "Avancé",
+    "goal.studyAbroad": "Études à l'étranger",
+    "goal.work": "Travail",
+    "goal.immigration": "Immigration",
+    "account.kicker": "Synchronisation",
+    "account.saveProgress": "Enregistrer la progression",
+    "account.copy": "Utilise le mode local ou crée un compte pour enregistrer ta progression dans SQLite.",
+    "account.name": "Nom",
+    "account.email": "Email",
+    "account.password": "Mot de passe",
+    "account.passwordPlaceholder": "Au moins 6 caractères",
+    "account.create": "Créer un compte",
+    "account.signIn": "Connexion",
+    "account.syncedCopy": "La progression est synchronisée.",
+    "account.syncNow": "Synchroniser",
+    "account.logout": "Déconnexion",
+    "account.localMode": "Mode local",
+    "account.local": "Local",
+    "account.synced": "Synchronisé",
+    "account.saving": "Enregistrement",
+    "account.syncFailed": "Échec sync",
+    "skill.reading": "Reading",
+    "skill.listening": "Listening",
+    "skill.speaking": "Speaking",
+    "skill.writing": "Writing",
+    "skill.vocabulary": "Vocabulary",
+    "skill.strategy": "Stratégie",
+    "practice.title": "Que dois-je entraîner ?",
+    "practice.copy": "Choisis selon la préparation, la précision récente et les erreurs.",
+    "practice.vocabulary": "Pratique Vocabulary",
+    "practice.reading": "Pratique Reading",
+    "practice.listening": "Pratique Listening",
+    "practice.speaking": "Pratique Speaking",
+    "practice.writing": "Pratique Writing",
+    "practice.miniTest": "Mini test TOEFL",
+    "practice.today": "Pratique du jour",
+    "practice.startDrill": "Démarrer l'exercice recommandé",
+    "practice.notStarted": "Non commencé",
+    "practice.shortDrill": "Commence par un exercice court",
+    "practice.accuracy": "{pct}% de précision sur {total} tâches",
+    "practice.meta": "{mistakes} erreurs · préparation {readiness}%",
+    "practice.miniCopy": "Diagnostic mixte pour toutes les compétences. Met à jour le score et les zones faibles.",
+    "plan.title": "Comment atteindre mon objectif ?",
+    "plan.copy": "Calendrier, objectifs hebdomadaires et recommandations Groq.",
+    "plan.calendar": "Calendrier d'étude",
+    "plan.countdown": "Compte à rebours et feuille de route",
+    "plan.prevMonth": "Mois précédent",
+    "plan.nextMonth": "Mois suivant",
+    "plan.roadmap": "Feuille de route 8 semaines",
+    "plan.goalOverview": "Vue d'objectif",
+    "plan.weeklyTargets": "Objectifs hebdo",
+    "plan.groq": "Recommandations Groq",
+    "plan.focusPlan": "Plan de focus",
+    "plan.generate": "Générer le plan",
+    "plan.placeholder": "Clique sur « Générer le plan » pour obtenir des recommandations.",
+    "plan.gapAnalysis": "Analyse de l'écart",
+    "plan.currentToTarget": "Actuel vers objectif",
+    "plan.runAnalysis": "Lancer l'analyse AI",
+    "mistakes.title": "Erreurs",
+    "mistakes.copy": "Revois les tâches manquées et choisis quoi corriger.",
+    "analytics.title": "Pourquoi mon score change ?",
+    "analytics.copy": "L'analyse explique score, précision, zones faibles et erreurs.",
+    "tools.coach": "Coach",
+    "tools.notes": "Notes",
+    "notebook.kicker": "Carnet",
+    "notebook.title": "Mes notes",
+    "notebook.close": "Fermer le carnet",
+    "notebook.titlePlaceholder": "Titre de règle ou phrase",
+    "notebook.contentPlaceholder": "Écris une phrase, un modèle d'erreur ou une règle TOEFL.",
+    "notebook.add": "Ajouter",
+    "notebook.empty": "Enregistre ici phrases, règles, modèles et conseils AI.",
+    "coach.kicker": "Coach AI",
+    "coach.title": "Demande la prochaine étape",
+    "coach.close": "Fermer le chat",
+    "coach.today": "Aujourd'hui",
+    "coach.weakZones": "Zones faibles",
+    "coach.thisWeek": "Cette semaine",
+    "coach.placeholder": "Demande au coach TOEFL...",
+    "coach.send": "Envoyer",
+    "toast.setGoal": "Définis ton objectif TOEFL pour commencer.",
+    "toast.confirmReset": "Réinitialiser toute la progression ? Cette action est définitive.",
+    "toast.reset": "Progression réinitialisée.",
+    "toast.goalSaved": "Objectif enregistré. La préparation commence.",
+    "toast.signedOut": "Déconnecté. Le mode local est actif.",
+    "toast.signedInSynced": "Connecté. La progression est synchronisée.",
+    "toast.signedIn": "Connecté.",
+    "toast.syncFailed": "Échec de synchronisation. Les changements locaux sont conservés.",
+    "toast.synced": "Synchronisé."
+  },
+  es: {
+    "common.skip": "Saltar al contenido",
+    "common.target": "Objetivo",
+    "common.day": "Día",
+    "common.current": "Actual",
+    "common.gap": "Brecha",
+    "common.daysLeft": "Días restantes",
+    "common.level": "Nivel",
+    "common.goal": "Meta",
+    "common.today": "Hoy",
+    "common.close": "Cerrar",
+    "common.dark": "Oscuro",
+    "common.light": "Claro",
+    "common.task": "tarea",
+    "common.tasks": "tareas",
+    "common.taskCount": "{total} tareas",
+    "common.days": "días",
+    "common.questions10": "10 preguntas",
+    "brand.subtitle": "Panel de puntuación",
+    "nav.primary": "Navegación principal",
+    "nav.openDashboard": "Abrir panel",
+    "page.dashboard": "Panel",
+    "page.learn": "Aprender",
+    "page.lesson": "Lección",
+    "page.practice": "Práctica",
+    "page.aiplan": "Plan",
+    "page.analytics": "Analítica",
+    "page.goal": "Perfil",
+    "theme.toggle": "Cambiar tema",
+    "theme.toLight": "Cambiar a tema claro",
+    "theme.toDark": "Cambiar a tema oscuro",
+    "language.button": "Language",
+    "language.select": "Seleccionar idioma",
+    "language.options": "Opciones de idioma",
+    "sidebar.studyStreak": "Racha de estudio",
+    "sidebar.reset": "Reiniciar progreso",
+    "sidebar.currentToGoal": "Actual {current}, objetivo {target}",
+    "sidebar.dayCount": "{current} / {total}",
+    "dashboard.heroTitle": "¿Qué debo hacer ahora?",
+    "dashboard.defaultInsight": "Haz una acción enfocada y el coach actualizará el siguiente paso.",
+    "dashboard.atTarget": "Estás en el objetivo o por encima. Mantén el ritmo.",
+    "dashboard.runDiagnosticInsight": "Primero haz el diagnóstico. El coach convertirá tus respuestas en un plan.",
+    "dashboard.gapInsight": "Faltan {gap} puntos en {days} días. Prioriza la habilidad más débil.",
+    "dashboard.nextBestAction": "Mejor siguiente acción",
+    "dashboard.runDiagnostic": "Hacer diagnóstico de 10 preguntas",
+    "dashboard.diagnosticReason": "Empieza con un mini test mixto para encontrar zonas débiles.",
+    "dashboard.choosePractice": "Elegir práctica enfocada",
+    "dashboard.practiceReason": "Mantén práctica diaria mientras se acumulan datos.",
+    "dashboard.mixedSkills": "Habilidades mixtas",
+    "dashboard.diagnostic": "Diagnóstico",
+    "dashboard.dailyLoop": "Rutina diaria",
+    "dashboard.startFocus": "Iniciar sesión",
+    "dashboard.refreshAI": "Actualizar plan AI",
+    "dashboard.generating": "Generando...",
+    "dashboard.todayFocus": "Foco de hoy",
+    "dashboard.twoActions": "Dos acciones para hoy",
+    "dashboard.skillsSnapshot": "Resumen de habilidades",
+    "dashboard.effortTitle": "Dónde esforzarse",
+    "dashboard.weakPreview": "Zonas débiles",
+    "dashboard.repairAreas": "Áreas principales",
+    "dashboard.fullAnalysis": "Análisis completo",
+    "dashboard.priority": "Prioridad",
+    "dashboard.needsPractice": "Necesita práctica",
+    "dashboard.stable": "Estable",
+    "dashboard.highPriority": "Alta prioridad",
+    "dashboard.mediumPriority": "Prioridad media",
+    "dashboard.errorRate": "{pct}% de error en {total} tareas.",
+    "dashboard.readingInference": "Reading: inferencia",
+    "dashboard.readingCopy": "Entrena evidencia antes de pasajes con tiempo.",
+    "dashboard.listeningDetails": "Listening: detalles",
+    "dashboard.listeningCopy": "Capta intención, ejemplos y cambios en la clase.",
+    "dashboard.writingStructure": "Writing: estructura",
+    "dashboard.writingCopy": "Construye tesis, apoyo y flujo de párrafos.",
+    "learn.title": "¿Qué debo aprender después?",
+    "learn.copy": "Lecciones TOEFL cortas, módulos, ruta, vocabulario y notas.",
+    "learn.search": "Buscar temas",
+    "learn.searchPlaceholder": "inference, lecture notes, academic discussion",
+    "learn.filter.all": "Todo",
+    "learn.studyPath": "Ruta",
+    "learn.map": "Mapa de 8 semanas",
+    "learn.mistakeLessons": "Lecciones de errores",
+    "learn.repairErrors": "Reparar errores repetidos",
+    "learn.modules": "Módulos",
+    "learn.courses": "Cursos de preparación",
+    "learn.topicLibrary": "Biblioteca",
+    "learn.shortLessons": "Lecciones cortas",
+    "learn.vocabSystem": "Sistema de vocabulario",
+    "learn.academicWords": "Palabras académicas",
+    "profile.title": "¿Quién se prepara?",
+    "profile.copy": "Mantén tu nombre y meta TOEFL actualizados. El avatar se genera automáticamente.",
+    "profile.name": "Nombre",
+    "profile.examType": "Tipo de examen",
+    "profile.targetScore": "Puntuación objetivo",
+    "profile.prepTime": "Tiempo de preparación",
+    "profile.days30": "30 días",
+    "profile.days60": "60 días",
+    "profile.days90": "90 días",
+    "profile.daysLabel": "{days} días",
+    "profile.currentLevel": "Nivel actual",
+    "profile.studyGoal": "Meta de estudio",
+    "profile.saveStart": "Guardar y empezar",
+    "profile.saved": "Perfil guardado. Ve al panel para empezar.",
+    "profile.summary": "Resumen personal",
+    "profile.setup": "Configuración de estudio",
+    "profile.currentToefl": "TOEFL actual",
+    "profile.timeline": "Plazo",
+    "level.beginner": "Inicial",
+    "level.intermediate": "Intermedio",
+    "level.advanced": "Avanzado",
+    "goal.studyAbroad": "Estudiar fuera",
+    "goal.work": "Trabajo",
+    "goal.immigration": "Inmigración",
+    "account.kicker": "Sincronización",
+    "account.saveProgress": "Guardar progreso",
+    "account.copy": "Usa modo local o crea una cuenta para guardar progreso en SQLite.",
+    "account.name": "Nombre",
+    "account.email": "Email",
+    "account.password": "Contraseña",
+    "account.passwordPlaceholder": "Al menos 6 caracteres",
+    "account.create": "Crear cuenta",
+    "account.signIn": "Iniciar sesión",
+    "account.syncedCopy": "El progreso está sincronizado.",
+    "account.syncNow": "Sincronizar",
+    "account.logout": "Salir",
+    "account.localMode": "Modo local",
+    "account.local": "Local",
+    "account.synced": "Sincronizado",
+    "account.saving": "Guardando",
+    "account.syncFailed": "Error de sync",
+    "skill.reading": "Reading",
+    "skill.listening": "Listening",
+    "skill.speaking": "Speaking",
+    "skill.writing": "Writing",
+    "skill.vocabulary": "Vocabulary",
+    "skill.strategy": "Estrategia",
+    "practice.title": "¿Qué debo entrenar?",
+    "practice.copy": "Elige según preparación, precisión reciente y errores.",
+    "practice.vocabulary": "Práctica Vocabulary",
+    "practice.reading": "Práctica Reading",
+    "practice.listening": "Práctica Listening",
+    "practice.speaking": "Práctica Speaking",
+    "practice.writing": "Práctica Writing",
+    "practice.miniTest": "Mini test TOEFL",
+    "practice.today": "Práctica de hoy",
+    "practice.startDrill": "Iniciar práctica recomendada",
+    "practice.notStarted": "No iniciado",
+    "practice.shortDrill": "Empieza con una práctica corta",
+    "practice.accuracy": "{pct}% de acierto en {total} tareas",
+    "practice.meta": "{mistakes} errores · preparación {readiness}%",
+    "practice.miniCopy": "Diagnóstico mixto de todas las habilidades. Actualiza predicción y zonas débiles.",
+    "plan.title": "¿Cómo llego a mi objetivo?",
+    "plan.copy": "Calendario, metas semanales y recomendaciones Groq.",
+    "plan.calendar": "Calendario de estudio",
+    "plan.countdown": "Cuenta atrás y ruta",
+    "plan.prevMonth": "Mes anterior",
+    "plan.nextMonth": "Mes siguiente",
+    "plan.roadmap": "Ruta de 8 semanas",
+    "plan.goalOverview": "Resumen del objetivo",
+    "plan.weeklyTargets": "Metas semanales",
+    "plan.groq": "Recomendaciones Groq",
+    "plan.focusPlan": "Plan de foco",
+    "plan.generate": "Generar plan",
+    "plan.placeholder": "Haz clic en «Generar plan» para recibir recomendaciones.",
+    "plan.gapAnalysis": "Análisis de brecha",
+    "plan.currentToTarget": "Actual a objetivo",
+    "plan.runAnalysis": "Ejecutar análisis AI",
+    "mistakes.title": "Errores",
+    "mistakes.copy": "Revisa tareas falladas y decide qué reparar primero.",
+    "analytics.title": "¿Por qué cambia mi puntuación?",
+    "analytics.copy": "La analítica explica movimiento, precisión, zonas débiles y errores.",
+    "tools.coach": "Coach",
+    "tools.notes": "Notas",
+    "notebook.kicker": "Notas",
+    "notebook.title": "Mis notas",
+    "notebook.close": "Cerrar notas",
+    "notebook.titlePlaceholder": "Título de regla o frase",
+    "notebook.contentPlaceholder": "Escribe una frase, patrón de error o regla TOEFL.",
+    "notebook.add": "Añadir",
+    "notebook.empty": "Guarda aquí frases, reglas, plantillas y consejos AI.",
+    "coach.kicker": "Coach AI",
+    "coach.title": "Pregunta por el siguiente paso",
+    "coach.close": "Cerrar chat",
+    "coach.today": "Hoy",
+    "coach.weakZones": "Zonas débiles",
+    "coach.thisWeek": "Esta semana",
+    "coach.placeholder": "Pregunta a tu coach TOEFL...",
+    "coach.send": "Enviar",
+    "toast.setGoal": "Define tu objetivo TOEFL para empezar.",
+    "toast.confirmReset": "¿Reiniciar todo el progreso? Esta acción no se puede deshacer.",
+    "toast.reset": "Progreso reiniciado.",
+    "toast.goalSaved": "Objetivo guardado. Empezamos la preparación.",
+    "toast.signedOut": "Sesión cerrada. El modo local está activo.",
+    "toast.signedInSynced": "Sesión iniciada. El progreso está sincronizado.",
+    "toast.signedIn": "Sesión iniciada.",
+    "toast.syncFailed": "Falló la sincronización. Los cambios locales siguen guardados.",
+    "toast.synced": "Sincronizado."
+  }
+};
+
 const PRACTICE_SECTIONS = ["vocabulary","reading","listening","speaking","writing","minitest"];
 let learnSkillFilter = "all";
 let learnLevelFilter = "all";
@@ -92,6 +900,8 @@ const listeningSpeechState = {
 
 // ─── INIT ────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
+  initThemeControls();
+  initLanguageControls();
   initNavigation();
   initGoalForm();
   initAccountSync();
@@ -111,6 +921,10 @@ document.addEventListener("DOMContentLoaded", () => {
   initAnalytics();
   renderAppShell();
 
+  // Start on dashboard unless no goal set
+  if (!profile.startDate) {
+    navigateTo("goal");
+      showToast(t("toast.setGoal"), "info");
   const authLocked = shouldShowAuthGate();
   if (authLocked) {
     setAuthGateMode("register");
@@ -127,7 +941,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.getElementById("resetBtn").addEventListener("click", () => {
-    if (confirm("Reset all progress? This cannot be undone.")) {
+    if (confirm(t("toast.confirmReset"))) {
       profile = resetProfile();
       practiceState.vocabulary.idx = 0;
       practiceState.reading.idx    = 0;
@@ -137,10 +951,141 @@ document.addEventListener("DOMContentLoaded", () => {
       initDashboard();
       renderAppShell();
       navigateTo("dashboard");
-      showToast("Progress reset.", "info");
+      showToast(t("toast.reset"), "info");
     }
   });
 });
+
+// ─── THEME ───────────────────────────────────────
+function initThemeControls() {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || document.documentElement.dataset.theme || "dark";
+  applyTheme(savedTheme === "light" ? "light" : "dark");
+
+  document.getElementById("themeToggle")?.addEventListener("click", () => {
+    const current = document.documentElement.dataset.theme === "light" ? "light" : "dark";
+    applyTheme(current === "dark" ? "light" : "dark");
+  });
+}
+
+function applyTheme(theme) {
+  const normalized = theme === "light" ? "light" : "dark";
+  document.documentElement.dataset.theme = normalized;
+  localStorage.setItem(THEME_STORAGE_KEY, normalized);
+
+  const label = document.getElementById("themeToggleLabel");
+  const button = document.getElementById("themeToggle");
+  if (label) label.textContent = normalized === "dark" ? t("common.dark") : t("common.light");
+  if (button) {
+    button.title = normalized === "dark" ? t("theme.toLight") : t("theme.toDark");
+    button.setAttribute("aria-pressed", String(normalized === "dark"));
+  }
+}
+
+// ─── LANGUAGE ────────────────────────────────────
+function initLanguageControls() {
+  const savedLanguage = getStoredLanguage();
+  applyLanguage(savedLanguage, { rerender: false });
+
+  const toggle = document.getElementById("languageToggle");
+  const menu = document.getElementById("languageMenu");
+
+  toggle?.addEventListener("click", event => {
+    event.stopPropagation();
+    const isOpen = menu?.classList.toggle("hidden") === false;
+    toggle.setAttribute("aria-expanded", String(isOpen));
+  });
+
+  menu?.addEventListener("click", event => {
+    const option = event.target.closest("[data-lang-option]");
+    if (!option) return;
+    applyLanguage(option.dataset.langOption || "en");
+    closeLanguageMenu();
+  });
+
+  document.addEventListener("click", event => {
+    if (!event.target.closest("#languageSwitcher")) closeLanguageMenu();
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeLanguageMenu();
+  });
+}
+
+function getStoredLanguage() {
+  try {
+    const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    return LANGUAGES[saved] ? saved : "en";
+  } catch {
+    return "en";
+  }
+}
+
+function closeLanguageMenu() {
+  document.getElementById("languageMenu")?.classList.add("hidden");
+  document.getElementById("languageToggle")?.setAttribute("aria-expanded", "false");
+}
+
+function getCurrentLanguage() {
+  const current = document.documentElement.dataset.lang || getStoredLanguage();
+  return LANGUAGES[current] ? current : "en";
+}
+
+function t(key, params = {}) {
+  const lang = getCurrentLanguage();
+  const value = I18N[lang]?.[key] ?? I18N.en[key] ?? key;
+  return String(value).replace(/\{(\w+)\}/g, (_, name) => params[name] ?? "");
+}
+
+function optionalT(key, fallback = "") {
+  const lang = getCurrentLanguage();
+  return I18N[lang]?.[key] ?? I18N.en[key] ?? fallback;
+}
+
+function applyLanguage(lang, options = {}) {
+  const normalized = LANGUAGES[lang] ? lang : "en";
+  document.documentElement.dataset.lang = normalized;
+  document.documentElement.lang = normalized;
+  try {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, normalized);
+  } catch {
+    // localStorage can be blocked in some embedded browsers.
+  }
+
+  const flag = document.getElementById("languageFlag");
+  if (flag) flag.textContent = LANGUAGES[normalized].flag;
+
+  document.querySelectorAll("[data-lang-option]").forEach(button => {
+    button.classList.toggle("active", button.dataset.langOption === normalized);
+  });
+
+  if (options.rerender !== false) {
+    renderAppShell();
+    renderCurrentSection();
+    renderAccountSync();
+  }
+
+  translateStaticInterface();
+  updateCurrentPageTitle();
+  applyTheme(document.documentElement.dataset.theme || "dark");
+}
+
+function translateStaticInterface() {
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    el.setAttribute("placeholder", t(el.dataset.i18nPlaceholder));
+  });
+  document.querySelectorAll("[data-i18n-aria]").forEach(el => {
+    el.setAttribute("aria-label", t(el.dataset.i18nAria));
+  });
+}
+
+function updateCurrentPageTitle() {
+  const section = document.querySelector(".section.active")?.id?.replace("section-", "") || "dashboard";
+  const sectionTitle = typeof SECTION_TITLES !== "undefined" ? SECTION_TITLES[section] : "";
+  setText("pageTitle", optionalT(`page.${section}`, PAGE_TITLES[section] || sectionTitle || section));
+}
 
 // ─── NAVIGATION ──────────────────────────────────
 function initNavigation() {
@@ -197,7 +1142,7 @@ function navigateTo(section) {
   }
 
   // Page title
-  document.getElementById("pageTitle").textContent = PAGE_TITLES[section] || SECTION_TITLES[section] || section;
+  updateCurrentPageTitle();
   document.getElementById("mainContent").focus?.();
 
   // Refresh content on navigate
@@ -220,9 +1165,9 @@ function renderAppShell() {
   const day = Math.min(profile.preparationDays || 60, Math.max(1, (profile.preparationDays || 60) - daysRemaining(profile) + 1));
   setText("topScore", predicted);
   setText("sidebarName", profile.name || "Alex Carter");
-  setText("sidebarScoreLine", `Current ${predicted} to Goal ${profile.targetScore}`);
+  setText("sidebarScoreLine", t("sidebar.currentToGoal", { current: predicted, target: profile.targetScore }));
   setText("sidebarTarget", profile.targetScore);
-  setText("sidebarDay", `${day} / ${profile.preparationDays || 60}`);
+  setText("sidebarDay", t("sidebar.dayCount", { current: day, total: profile.preparationDays || 60 }));
   setAvatar("sidebarAvatar", profile.name);
 }
 
@@ -430,8 +1375,8 @@ function renderDashboard() {
   setText("dashGapStat", gap);
   setText("dashDays", days);
   setText("topScore", predicted);
-  setText("dashTasks", `${taskCount} ${taskCount === 1 ? "task" : "tasks"}`);
-  setText("sidebarStreak", `${profile.streak?.current || 0} days`);
+  setText("dashTasks", `${taskCount} ${t(taskCount === 1 ? "common.task" : "common.tasks")}`);
+  setText("sidebarStreak", t("profile.daysLabel", { days: profile.streak?.current || 0 }));
   setText("dashboardInsight", buildDashboardInsight(predicted, gap, days));
   const ring = document.getElementById("scoreRing");
   if (ring) ring.style.setProperty("--score-progress", `${scoreProgress}%`);
@@ -448,14 +1393,18 @@ function setText(id, value) {
   if (el) el.textContent = value;
 }
 
+function skillLabel(skill) {
+  return optionalT(`skill.${skill}`, SKILL_META[skill]?.label || titleCase(skill));
+}
+
 function totalCompletedTasks(currentProfile) {
   return Object.values(currentProfile.totalTasks || {}).reduce((sum, value) => sum + (value || 0), 0);
 }
 
 function buildDashboardInsight(predicted, gap, days) {
-  if (gap <= 0) return "You are at or above target. Keep the rhythm and protect your strongest sections.";
-  if (totalCompletedTasks(profile) === 0) return "Run the diagnostic first. The coach will turn your answers into a focused plan.";
-  return `${gap} points to close over ${days} days. Prioritize the weakest skill before adding volume.`;
+  if (gap <= 0) return t("dashboard.atTarget");
+  if (totalCompletedTasks(profile) === 0) return t("dashboard.runDiagnosticInsight");
+  return t("dashboard.gapInsight", { gap, days });
 }
 
 function getPrimaryFocus(currentProfile) {
@@ -464,9 +1413,9 @@ function getPrimaryFocus(currentProfile) {
     return {
       section: "minitest",
       skill: "minitest",
-      title: "Run a 10-question diagnostic",
-      reason: "Start with a mixed mini test so the coach can find your first weak zones.",
-      meta: ["10 questions", "Mixed skills", "Diagnostic"]
+      title: t("dashboard.runDiagnostic"),
+      reason: t("dashboard.diagnosticReason"),
+      meta: [t("common.questions10"), t("dashboard.mixedSkills"), t("dashboard.diagnostic")]
     };
   }
 
@@ -476,9 +1425,9 @@ function getPrimaryFocus(currentProfile) {
     return {
       section: "practice",
       skill: "practice",
-      title: "Choose a focused practice set",
-      reason: "Keep daily practice moving while your data builds up.",
-      meta: ["Practice", "Daily loop"]
+      title: t("dashboard.choosePractice"),
+      reason: t("dashboard.practiceReason"),
+      meta: [t("page.practice"), t("dashboard.dailyLoop")]
     };
   }
 
@@ -487,7 +1436,7 @@ function getPrimaryFocus(currentProfile) {
     skill: task.skill,
     title: task.title,
     reason: task.reason,
-    meta: [SKILL_META[task.skill]?.label || task.skill, `${task.minutes} min`, task.type]
+    meta: [skillLabel(task.skill), `${task.minutes} min`, task.type]
   };
 }
 
@@ -514,7 +1463,7 @@ function renderSkillBars() {
       <div class="skill-row-modern">
         <div class="skill-row-top">
           <span class="skill-dot fill-${skill}"></span>
-          <span class="skill-bar-label">${meta.label}</span>
+          <span class="skill-bar-label">${skillLabel(skill)}</span>
           <strong>${score}/30</strong>
         </div>
         <div class="skill-bar-track">
@@ -522,16 +1471,16 @@ function renderSkillBars() {
         </div>
         <div class="skill-row-meta">
           <span class="skill-status ${status.className}">${status.label}</span>
-          <span>${total} tasks</span>
+          <span>${t("common.taskCount", { total })}</span>
         </div>
       </div>`;
   }).join("");
 }
 
 function getSkillStatus(score) {
-  if (score <= 14) return { label: "Priority", className: "priority" };
-  if (score <= 20) return { label: "Needs practice", className: "needs" };
-  return { label: "Stable", className: "stable" };
+  if (score <= 14) return { label: t("dashboard.priority"), className: "priority" };
+  if (score <= 20) return { label: t("dashboard.needsPractice"), className: "needs" };
+  return { label: t("dashboard.stable"), className: "stable" };
 }
 
 function renderWeakZones() {
@@ -540,9 +1489,9 @@ function renderWeakZones() {
 
   if (weak.length === 0) {
     const starterZones = [
-      { skill: "reading", title: "Reading inference", copy: "Train evidence matching before timed passages.", risk: "Priority" },
-      { skill: "listening", title: "Listening details", copy: "Catch speaker intent, examples, and lecture turns.", risk: "Priority" },
-      { skill: "writing", title: "Writing structure", copy: "Build claim, support, and paragraph flow.", risk: "Needs practice" }
+      { skill: "reading", title: t("dashboard.readingInference"), copy: t("dashboard.readingCopy"), risk: t("dashboard.priority") },
+      { skill: "listening", title: t("dashboard.listeningDetails"), copy: t("dashboard.listeningCopy"), risk: t("dashboard.priority") },
+      { skill: "writing", title: t("dashboard.writingStructure"), copy: t("dashboard.writingCopy"), risk: t("dashboard.needsPractice") }
     ];
     container.innerHTML = starterZones.map(item => `
       <button class="weak-zone-card" data-section="${item.skill}">
@@ -554,14 +1503,13 @@ function renderWeakZones() {
   }
 
   container.innerHTML = weak.slice(0, 4).map(w => {
-    const meta     = SKILL_META[w.skill];
     const errPct   = Math.round(w.score * 100);
-    const severity = w.score >= 0.5 ? "High priority" : "Medium priority";
+    const severity = w.score >= 0.5 ? t("dashboard.highPriority") : t("dashboard.mediumPriority");
     return `
       <button class="weak-zone-card" data-section="${w.skill}">
         <span class="weak-zone-tag">${severity}</span>
-        <strong>${meta.label}</strong>
-        <span>${errPct}% error rate across ${w.total} tasks.</span>
+        <strong>${skillLabel(w.skill)}</strong>
+        <span>${t("dashboard.errorRate", { pct: errPct, total: w.total })}</span>
       </button>`;
   }).join("");
 }
@@ -683,38 +1631,37 @@ function renderPracticeHub() {
   const skills = ["reading","listening","speaking","writing","vocabulary"];
   const focus = getPrimaryFocus(profile);
   const skillCards = skills.map(skill => {
-    const meta = SKILL_META[skill];
     const correct = profile.correct[skill] || 0;
     const total = profile.totalTasks[skill] || 0;
     const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
     const mistakes = profile.mistakes[skill] || 0;
     const readiness = skill === "vocabulary" ? pct : Math.round(((profile.scores[skill] || 0) / 30) * 100);
-    const status = total === 0 ? "Not started" : pct >= 75 ? "Stable" : pct >= 50 ? "Needs practice" : "Priority";
+    const status = total === 0 ? t("practice.notStarted") : pct >= 75 ? t("dashboard.stable") : pct >= 50 ? t("dashboard.needsPractice") : t("dashboard.priority");
 
     return `
       <button class="skill-practice-card" data-section="${skill}">
-        <span class="hub-icon">${meta.label.slice(0, 1)}</span>
-        <span class="hub-title">${meta.label}</span>
+        <span class="hub-icon">${skillLabel(skill).slice(0, 1)}</span>
+        <span class="hub-title">${skillLabel(skill)}</span>
         <span class="skill-status ${statusClass(status)}">${status}</span>
-        <span class="hub-copy">${total ? `${pct}% accuracy from ${total} tasks` : "Start with a short drill"}</span>
+        <span class="hub-copy">${total ? t("practice.accuracy", { pct, total }) : t("practice.shortDrill")}</span>
         <span class="hub-bar"><span class="hub-bar-fill fill-${skill} ${percentClass("w", readiness)}"></span></span>
-        <span class="hub-meta">${mistakes} mistakes · readiness ${readiness}%</span>
+        <span class="hub-meta">${t("practice.meta", { mistakes, readiness })}</span>
       </button>`;
   }).join("");
 
   container.innerHTML = `
     <div class="card today-practice-card">
-      <div class="card-kicker">Today's practice</div>
+      <div class="card-kicker">${t("practice.today")}</div>
       <h2>${escapeHtml(focus.title)}</h2>
       <p>${escapeHtml(focus.reason)}</p>
       <div class="focus-meta">${focus.meta.map(item => `<span class="plan-pill">${escapeHtml(item)}</span>`).join("")}</div>
-      <button class="btn-primary" data-section="${focus.section}">Start recommended drill</button>
+      <button class="btn-primary" data-section="${focus.section}">${t("practice.startDrill")}</button>
     </div>
     <button class="card mini-test-feature" data-section="minitest">
       <span class="hub-icon">10</span>
       <span>
-        <strong>Mini TOEFL Test</strong>
-        <small>Mixed diagnostic across all skills. Updates prediction and weak zones.</small>
+        <strong>${t("practice.miniTest")}</strong>
+        <small>${t("practice.miniCopy")}</small>
       </span>
     </button>
     <div class="practice-skills-grid">${skillCards}</div>`;
@@ -722,9 +1669,9 @@ function renderPracticeHub() {
 
 function statusClass(status) {
   const value = String(status).toLowerCase();
-  if (value.includes("priority")) return "priority";
-  if (value.includes("needs")) return "needs";
-  if (value.includes("stable")) return "stable";
+  if (status === t("dashboard.priority") || value.includes("priority") || value.includes("priorité") || value.includes("prioridad") || value.includes("приоритет")) return "priority";
+  if (status === t("dashboard.needsPractice") || value.includes("needs") || value.includes("prati") || value.includes("práct") || value.includes("практи")) return "needs";
+  if (status === t("dashboard.stable") || value.includes("stable") || value.includes("стабил")) return "stable";
   return "";
 }
 
@@ -976,9 +1923,29 @@ function setCoachChatOpen(isOpen) {
   if (!panel || !toggle) return;
   panel.classList.toggle("hidden", !isOpen);
   toggle.setAttribute("aria-expanded", String(isOpen));
+  toggle.classList.toggle("active", isOpen);
   if (isOpen) {
+    setNotebookOpen(false, { preserveFocus: true });
     document.getElementById("coachChatInput")?.focus();
     scrollCoachChatToBottom();
+  }
+}
+
+function setNotebookOpen(isOpen, options = {}) {
+  const panel = document.getElementById("notebookPanel");
+  const toggle = document.getElementById("notebookToggle");
+  if (!panel || !toggle) return;
+  panel.classList.toggle("hidden", !isOpen);
+  toggle.setAttribute("aria-expanded", String(isOpen));
+  toggle.classList.toggle("active", isOpen);
+  if (isOpen) {
+    const chatPanel = document.getElementById("coachChatPanel");
+    const chatToggle = document.getElementById("coachChatToggle");
+    chatPanel?.classList.add("hidden");
+    chatToggle?.setAttribute("aria-expanded", "false");
+    chatToggle?.classList.remove("active");
+    renderNotebook();
+    if (!options.preserveFocus) document.getElementById("noteTitleInput")?.focus();
   }
 }
 
@@ -1133,7 +2100,7 @@ function escapeHtml(value) {
 async function refreshTodayAIPlan() {
   const btn = document.getElementById("refreshAIBtn");
   btn.disabled = true;
-  btn.textContent = "Generating...";
+  btn.textContent = t("dashboard.generating");
 
   const container = document.getElementById("todayPlan");
   container.innerHTML = renderAILoading("Building your structured AI plan...");
@@ -1154,7 +2121,7 @@ async function refreshTodayAIPlan() {
   }
 
   btn.disabled = false;
-  btn.textContent = "Refresh AI Plan";
+  btn.textContent = t("dashboard.refreshAI");
 }
 
 // ─── GOAL SETUP ──────────────────────────────────
@@ -1182,7 +2149,7 @@ function initGoalForm() {
       goal: getSelected("goalGroup") || "study abroad"
     });
     document.getElementById("goalSaved").classList.remove("hidden");
-    showToast("Goal saved. Let's start preparing.", "success");
+    showToast(t("toast.goalSaved"), "success");
     setTimeout(() => {
       navigateTo("dashboard");
       document.getElementById("goalSaved").classList.add("hidden");
@@ -1350,6 +2317,7 @@ function initAccountSync() {
   document.getElementById("logoutBtn")?.addEventListener("click", () => {
     logoutUser();
     renderAccountSync();
+    showToast(t("toast.signedOut"), "info");
     setAuthGateMode("register");
     renderAuthGate();
   });
@@ -1459,12 +2427,13 @@ async function handleAuthSubmit(mode, source = "profile") {
       profile.name = name || profile.name;
       cacheProfile(profile);
       await apiSaveProfile(profile);
+      showToast(t("toast.signedInSynced"), "success");
       showToast("Account created. Set your TOEFL goal next.", "success");
     } else {
       await loginUser({ email, password });
       const syncedProfile = await syncProfileFromBackend();
       if (syncedProfile) profile = syncedProfile;
-      showToast("Signed in.", "success");
+      showToast(t("toast.signedIn"), "success");
     }
     if (passwordInput) passwordInput.value = "";
     setAuthMessage(source, mode === "register" ? "Account created. Preparing setup..." : "Signed in.", "success");
@@ -1496,12 +2465,12 @@ async function handleManualSync() {
     await apiSaveProfile(loadProfile());
     const syncedProfile = await syncProfileFromBackend();
     if (syncedProfile) profile = syncedProfile;
-    showToast("Synced.", "success");
+    showToast(t("toast.synced"), "success");
     renderAppShell();
     renderCurrentSection();
   } catch (err) {
     console.warn("Manual sync failed:", err);
-    showToast("Sync failed. Local changes are still saved.", "error");
+    showToast(t("toast.syncFailed"), "error");
     accountSyncState = { state: "failed", message: "Sync failed" };
   } finally {
     btn.disabled = false;
@@ -1519,6 +2488,8 @@ function renderAccountSync() {
   signedInPanel?.classList.toggle("hidden", !signedIn);
 
   if (!signedIn) {
+    status.textContent = t("account.localMode");
+    status.className = "sync-status sync-status-local";
     if (status) {
       status.textContent = "Sign-in required";
       status.className = "sync-status sync-status-local";
@@ -1544,9 +2515,9 @@ function renderAccountSync() {
 }
 
 function getSyncStatusCopy(state) {
-  if (state.state === "failed") return { label: "Sync failed", className: "sync-status-failed" };
-  if (state.state === "saving" || state.state === "syncing") return { label: "Saving", className: "sync-status-saving" };
-  return { label: "Synced", className: "sync-status-synced" };
+  if (state.state === "failed") return { label: t("account.syncFailed"), className: "sync-status-failed" };
+  if (state.state === "saving" || state.state === "syncing") return { label: t("account.saving"), className: "sync-status-saving" };
+  return { label: t("account.synced"), className: "sync-status-synced" };
 }
 
 function renderTopbarSyncStatus(signedIn) {
@@ -1554,6 +2525,9 @@ function renderTopbarSyncStatus(signedIn) {
   if (!topbarStatus) return;
 
   if (!signedIn) {
+    topbarStatus.textContent = t("account.local");
+    topbarStatus.className = "sync-topbar-status sync-topbar-local";
+    topbarStatus.title = t("account.localTitle");
     topbarStatus.textContent = "Sign in";
     topbarStatus.className = "sync-topbar-status sync-topbar-local";
     topbarStatus.title = "Open the sign-in screen.";
@@ -1562,20 +2536,22 @@ function renderTopbarSyncStatus(signedIn) {
 
   const state = accountSyncState.state;
   if (state === "failed") {
-    topbarStatus.textContent = "Sync failed";
+    topbarStatus.textContent = t("account.syncFailed");
     topbarStatus.className = "sync-topbar-status sync-topbar-failed";
-    topbarStatus.title = "Sync failed. Open Profile to try again.";
+    topbarStatus.title = t("account.failedTitle");
     return;
   }
   if (state === "saving" || state === "syncing") {
-    topbarStatus.textContent = "Saving";
+    topbarStatus.textContent = t("account.saving");
     topbarStatus.className = "sync-topbar-status sync-topbar-saving";
+    topbarStatus.title = t("account.savingTitle");
     topbarStatus.title = "Saving your profile.";
     return;
   }
 
-  topbarStatus.textContent = "Synced";
+  topbarStatus.textContent = t("account.synced");
   topbarStatus.className = "sync-topbar-status sync-topbar-synced";
+  topbarStatus.title = t("account.syncedTitle");
   topbarStatus.title = "Your progress is saved.";
 }
 
@@ -1616,12 +2592,21 @@ function updateSetupPreview() {
   const name = document.getElementById("profileNameInput")?.value.trim() || profile.name || "Alex Carter";
   setText("setupTarget", getSelected("targetScoreGroup") || profile.targetScore || 95);
   setText("setupCurrent", current);
-  setText("setupDays", `${getSelected("prepDaysGroup") || profile.preparationDays || 60} days`);
-  setText("setupLevel", titleCase(getSelected("levelGroup") || profile.level || "intermediate"));
-  setText("setupGoal", titleCase(getSelected("goalGroup") || profile.goal || "study abroad"));
+  setText("setupDays", t("profile.daysLabel", { days: getSelected("prepDaysGroup") || profile.preparationDays || 60 }));
+  setText("setupLevel", levelLabel(getSelected("levelGroup") || profile.level || "intermediate"));
+  setText("setupGoal", goalLabel(getSelected("goalGroup") || profile.goal || "study abroad"));
   setText("profilePreviewName", name);
-  setText("profilePreviewGoal", titleCase(getSelected("goalGroup") || profile.goal || "study abroad"));
+  setText("profilePreviewGoal", goalLabel(getSelected("goalGroup") || profile.goal || "study abroad"));
   setAvatar("profilePreviewAvatar", name);
+}
+
+function levelLabel(level) {
+  return optionalT(`level.${level}`, titleCase(level));
+}
+
+function goalLabel(goal) {
+  const key = String(goal || "").replace(/\s+(\w)/g, (_, char) => char.toUpperCase()).replace(/\s/g, "");
+  return optionalT(`goal.${key}`, titleCase(goal));
 }
 
 function titleCase(value) {
@@ -1742,6 +2727,11 @@ function initLearning() {
   });
 
   document.getElementById("addNoteBtn")?.addEventListener("click", addNotebookNoteFromForm);
+  document.getElementById("notebookToggle")?.addEventListener("click", () => {
+    const panel = document.getElementById("notebookPanel");
+    setNotebookOpen(panel?.classList.contains("hidden"));
+  });
+  document.getElementById("notebookClose")?.addEventListener("click", () => setNotebookOpen(false));
 }
 
 function renderLearn() {
