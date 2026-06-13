@@ -22,6 +22,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: toefl-frontend
+    environment:
+      - BACKEND_ORIGIN=http://backend:3001
+      - BACKEND_HOST=backend
     ports:
       - "8080:80"
     depends_on:

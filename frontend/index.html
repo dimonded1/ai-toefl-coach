@@ -16,10 +16,70 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="src/styles/main.css" />
+  <link rel="stylesheet" href="src/styles/main.css?v=20260613-authgate" />
 </head>
 <body>
 <a class="skip-link" href="#mainContent" data-i18n="common.skip">Skip to content</a>
+
+<!-- ═══════════════════════ AUTH ENTRY ═══════════════════════ -->
+<section class="auth-gate" id="authGate" hidden aria-labelledby="authGateTitle">
+  <div class="auth-gate-panel">
+    <div class="auth-gate-copy">
+      <span class="auth-product-mark">AI TOEFL Coach</span>
+      <h1 id="authGateTitle">Create your TOEFL workspace</h1>
+      <p>Create an account once, then keep your TOEFL goal, progress, mistakes, notes, and AI study plan ready when you return.</p>
+      <div class="auth-benefit-grid" aria-label="Account benefits">
+        <div><strong>Profile</strong><span>Target score and deadline</span></div>
+        <div><strong>Progress</strong><span>Practice history and weak zones</span></div>
+        <div><strong>Plan</strong><span>Free access for your study workspace</span></div>
+      </div>
+    </div>
+
+    <div class="auth-gate-card">
+      <div class="auth-tabs" role="tablist" aria-label="Authentication mode">
+        <button class="auth-tab active" id="authGateCreateTab" type="button" data-auth-gate-mode="register">Create account</button>
+        <button class="auth-tab" id="authGateSignInTab" type="button" data-auth-gate-mode="login">Sign in</button>
+      </div>
+
+      <div class="auth-gate-form">
+        <label id="authGateNameField">Name<input class="text-input" id="authGateNameInput" type="text" autocomplete="name" placeholder="Gosha" /></label>
+        <label>Email<input class="text-input" id="authGateEmailInput" type="email" autocomplete="email" placeholder="gosha@example.com" /></label>
+        <label>Password<input class="text-input" id="authGatePasswordInput" type="password" autocomplete="current-password" placeholder="At least 6 characters" /></label>
+      </div>
+
+      <button class="btn-primary btn-full" id="authGateSubmitBtn" type="button">Create account</button>
+      <div class="auth-message hidden" id="authGateMessage" role="status" aria-live="polite"></div>
+      <p class="auth-gate-note">Account registration is required before the study workspace opens.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ FIRST SETUP MODAL ═══════════════════════ -->
+<section class="onboarding-modal hidden" id="onboardingModal" aria-labelledby="onboardingTitle" aria-modal="true" role="dialog">
+  <div class="onboarding-card">
+    <div class="onboarding-meta">
+      <span id="onboardingStepText">Step 1 of 4</span>
+      <div class="onboarding-dots" id="onboardingDots" aria-hidden="true"></div>
+    </div>
+    <div class="onboarding-progress" aria-hidden="true">
+      <span id="onboardingProgressFill"></span>
+    </div>
+    <h2 id="onboardingTitle">What score do you need?</h2>
+    <p id="onboardingCopy">Choose the TOEFL target you want the coach to plan around.</p>
+    <div class="onboarding-options" id="onboardingOptions"></div>
+    <div class="onboarding-building hidden" id="onboardingBuilding">
+      <span class="onboarding-spinner" aria-hidden="true"></span>
+      <div>
+        <strong>Forming your personal plan</strong>
+        <span>Preparing dashboard, weak zones, and first study focus.</span>
+      </div>
+    </div>
+    <div class="onboarding-actions">
+      <button class="btn-secondary" id="onboardingBackBtn" type="button">Back</button>
+      <button class="btn-primary" id="onboardingNextBtn" type="button">Next</button>
+    </div>
+  </div>
+</section>
 
 <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
 <nav class="sidebar" id="sidebar" aria-label="Primary navigation" data-i18n-aria="nav.primary">
@@ -86,6 +146,7 @@
         </div>
       </div>
       <button class="sync-topbar-status sync-topbar-local" id="topbarSyncStatus" data-section="goal">Local mode</button>
+      <button class="sync-topbar-status sync-topbar-local" id="topbarSyncStatus" data-section="goal">Sign in</button>
       <span class="score-badge" id="topbarScore">TOEFL: <strong id="topScore">--</strong></span>
     </div>
   </header>
@@ -167,6 +228,23 @@
           <span data-i18n="learn.search">Search topics</span>
           <input class="text-input" id="learnSearchInput" type="search" placeholder="inference, lecture notes, academic discussion" data-i18n-placeholder="learn.searchPlaceholder" />
         </label>
+        <label class="learn-select">
+          <span>Level</span>
+          <select class="text-input" id="learnLevelSelect">
+            <option value="all">All levels</option>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </label>
+        <label class="learn-select">
+          <span>Time</span>
+          <select class="text-input" id="learnTimeSelect">
+            <option value="all">Any time</option>
+            <option value="short">Under 5 min</option>
+            <option value="medium">5-6 min</option>
+          </select>
+        </label>
         <div class="learn-filter-row" id="learnSkillFilters">
           <button class="btn-option selected" data-learn-filter="all" data-i18n="learn.filter.all">All</button>
           <button class="btn-option" data-learn-filter="reading" data-i18n="skill.reading">Reading</button>
@@ -220,6 +298,7 @@
             </div>
             <span class="action-badge" id="lessonCountBadge">0 lessons</span>
           </div>
+          <div class="topic-chip-row" id="topicQuickFilters"></div>
           <div class="lesson-grid" id="lessonGrid"></div>
         </div>
 
@@ -231,6 +310,38 @@
             </div>
           </div>
           <div class="vocab-card-list" id="vocabCardList"></div>
+        </div>
+
+        <div class="card notebook-card">
+          <div class="section-heading">
+            <div>
+              <div class="card-kicker">Notebook</div>
+              <h2 class="card-title">My notes</h2>
+            </div>
+          </div>
+          <div class="note-input-row">
+            <input class="text-input" id="noteTitleInput" type="text" placeholder="Rule or phrase title" />
+            <select class="text-input" id="noteTypeInput" aria-label="Note category">
+              <option value="personal">Personal</option>
+              <option value="lesson">Lesson</option>
+              <option value="mistake">Mistake</option>
+              <option value="template">Template</option>
+              <option value="phrase">Phrase</option>
+            </select>
+            <button class="btn-primary" id="addNoteBtn" type="button">Add note</button>
+          </div>
+          <textarea class="text-input note-textarea" id="noteContentInput" placeholder="Write a phrase, mistake pattern, template, or personal TOEFL rule."></textarea>
+          <div class="notebook-toolbar">
+            <input class="text-input" id="noteSearchInput" type="search" placeholder="Search notes" />
+            <div class="note-filter-row" id="noteTypeFilters">
+              <button class="btn-option selected" data-note-filter="all">All</button>
+              <button class="btn-option" data-note-filter="lesson">Lessons</button>
+              <button class="btn-option" data-note-filter="mistake">Mistakes</button>
+              <button class="btn-option" data-note-filter="template">Templates</button>
+              <button class="btn-option" data-note-filter="phrase">Phrases</button>
+            </div>
+          </div>
+          <div class="notebook-list" id="notebookList"></div>
         </div>
       </div>
     </div>
@@ -269,7 +380,13 @@
           <label data-i18n="profile.examType">Exam Type</label>
           <div class="radio-group">
             <label class="radio-option selected"><input type="radio" name="exam" value="TOEFL iBT" checked /> TOEFL iBT</label>
+        <div class="profile-form-head">
+          <div>
+            <div class="card-kicker">Profile settings</div>
+            <h2 class="profile-title">Your TOEFL setup</h2>
+            <p class="form-desc">Change your name, target score, timeline, level, or study goal. The dashboard and AI plan update from these settings.</p>
           </div>
+          <span class="sync-status sync-status-synced" id="accountSyncStatus">Synced</span>
         </div>
 
         <div class="form-group">
@@ -280,7 +397,14 @@
             <button class="btn-option selected" data-val="95">95</button>
             <button class="btn-option" data-val="100">100</button>
             <button class="btn-option" data-val="110">110</button>
+        <div class="profile-account-strip">
+          <span class="avatar avatar-sm" id="accountAvatar"></span>
+          <div>
+            <strong id="accountName">Alex Carter</strong>
+            <span id="accountEmail">alex@example.com</span>
           </div>
+          <button class="btn-secondary btn-compact" id="syncNowBtn" type="button">Sync</button>
+          <button class="btn-secondary btn-compact" id="logoutBtn" type="button">Log out</button>
         </div>
 
         <div class="form-group">
@@ -289,8 +413,11 @@
             <button class="btn-option" data-val="30" data-i18n="profile.days30">30 days</button>
             <button class="btn-option selected" data-val="60" data-i18n="profile.days60">60 days</button>
             <button class="btn-option" data-val="90" data-i18n="profile.days90">90 days</button>
+        <div id="profileEditPanel">
+          <div class="form-group">
+            <label>Your Name</label>
+            <input class="text-input" id="profileNameInput" type="text" value="Alex Carter" />
           </div>
-        </div>
 
         <div class="form-group">
           <label data-i18n="profile.currentLevel">Current Level</label>
@@ -298,8 +425,12 @@
             <button class="btn-option" data-val="beginner" data-i18n="level.beginner">Beginner</button>
             <button class="btn-option selected" data-val="intermediate" data-i18n="level.intermediate">Intermediate</button>
             <button class="btn-option" data-val="advanced" data-i18n="level.advanced">Advanced</button>
+          <div class="form-group">
+            <label>Exam Type</label>
+            <div class="radio-group">
+              <label class="radio-option selected"><input type="radio" name="exam" value="TOEFL iBT" checked /> TOEFL iBT</label>
+            </div>
           </div>
-        </div>
 
         <div class="form-group">
           <label data-i18n="profile.studyGoal">Study Goal</label>
@@ -320,8 +451,24 @@
             <div>
               <div class="card-kicker" data-i18n="account.kicker">Account Sync</div>
               <h2 class="card-title" data-i18n="account.saveProgress">Save progress</h2>
+          <div class="form-group">
+            <label>Target Score</label>
+            <div class="btn-group" id="targetScoreGroup">
+              <button class="btn-option" data-val="70">70</button>
+              <button class="btn-option" data-val="80">80</button>
+              <button class="btn-option selected" data-val="95">95</button>
+              <button class="btn-option" data-val="100">100</button>
+              <button class="btn-option" data-val="110">110</button>
             </div>
-            <span class="sync-status sync-status-local" id="accountSyncStatus">Local mode</span>
+          </div>
+
+          <div class="form-group">
+            <label>Preparation Time</label>
+            <div class="btn-group" id="prepDaysGroup">
+              <button class="btn-option" data-val="30">30 days</button>
+              <button class="btn-option selected" data-val="60">60 days</button>
+              <button class="btn-option" data-val="90">90 days</button>
+            </div>
           </div>
 
           <div id="accountSignedOut">
@@ -349,13 +496,40 @@
             <div class="sync-actions">
               <button class="btn-primary" id="syncNowBtn" data-i18n="account.syncNow">Sync now</button>
               <button class="btn-secondary" id="logoutBtn" data-i18n="account.logout">Log out</button>
+          <div class="form-group">
+            <label>Current Level</label>
+            <div class="btn-group" id="levelGroup">
+              <button class="btn-option" data-val="beginner">Beginner</button>
+              <button class="btn-option selected" data-val="intermediate">Intermediate</button>
+              <button class="btn-option" data-val="advanced">Advanced</button>
             </div>
           </div>
-        </div>
 
+          <div class="form-group">
+            <label>Study Goal</label>
+            <div class="btn-group" id="goalGroup">
+              <button class="btn-option selected" data-val="study abroad">Study Abroad</button>
+              <button class="btn-option" data-val="work">Work</button>
+              <button class="btn-option" data-val="immigration">Immigration</button>
+            </div>
+          </div>
+
+          <button class="btn-primary btn-full" id="saveGoalBtn">Save profile settings</button>
+          <div class="success-msg hidden" id="goalSaved">Profile saved. Dashboard and study plan are updated.</div>
+        </div>
+      </div>
+
+      <aside class="profile-side">
         <div class="card setup-preview-card">
           <div class="card-kicker" data-i18n="profile.summary">Personal summary</div>
           <h2 class="card-title" data-i18n="profile.setup">Your study setup</h2>
+          <div class="summary-topline">
+            <div>
+              <div class="card-kicker">Personal summary</div>
+              <h2 class="card-title">Your study setup</h2>
+            </div>
+            <span class="summary-pill" id="accountPlan">Free</span>
+          </div>
           <div class="profile-summary-head">
             <span class="avatar avatar-lg" id="profilePreviewAvatar"></span>
             <div>
@@ -376,7 +550,7 @@
           <div class="setup-mini-chart" aria-hidden="true">
             <span></span><span></span><span></span><span></span><span></span>
           </div>
-          <p class="setup-note">The dashboard will turn this setup into weak zones, daily focus, and score movement after practice.</p>
+          <p class="setup-note">Dashboard, lessons, practice, and the Groq study plan use these settings as the student baseline.</p>
         </div>
       </aside>
     </div>
@@ -627,15 +801,15 @@
 </div>
 
 <!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
-<script src="src/scripts/data.js"></script>
-<script src="src/scripts/scoring.js"></script>
-<script src="src/scripts/analyticsModel.js"></script>
-<script src="src/scripts/auth.js"></script>
-<script src="src/scripts/learningData.js"></script>
-<script src="src/scripts/profile.js"></script>
-<script src="src/scripts/aiPlan.js"></script>
-<script src="src/scripts/calendar.js"></script>
-<script src="src/scripts/app.js"></script>
+<script src="src/scripts/data.js?v=20260613-authgate"></script>
+<script src="src/scripts/scoring.js?v=20260613-authgate"></script>
+<script src="src/scripts/analyticsModel.js?v=20260613-authgate"></script>
+<script src="src/scripts/auth.js?v=20260613-authgate"></script>
+<script src="src/scripts/learningData.js?v=20260613-authgate"></script>
+<script src="src/scripts/profile.js?v=20260613-authgate"></script>
+<script src="src/scripts/aiPlan.js?v=20260613-authgate"></script>
+<script src="src/scripts/calendar.js?v=20260613-authgate"></script>
+<script src="src/scripts/app.js?v=20260613-authgate"></script>
 
 </body>
 </html>

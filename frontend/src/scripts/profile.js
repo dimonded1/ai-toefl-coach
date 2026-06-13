@@ -158,7 +158,7 @@ async function syncProfileFromBackend() {
 
 function scheduleProfileSync(profile) {
   if (typeof isAuthenticated !== "function" || !isAuthenticated()) {
-    emitProfileSyncState("local", "Saving locally");
+    emitProfileSyncState("signed-out", "Sign-in required");
     return;
   }
   if (typeof apiSaveProfile !== "function") return;
@@ -209,10 +209,11 @@ function recordAnswer(profile, skill, isCorrect, question = null) {
   profile.totalTasks[s] = (profile.totalTasks[s] || 0) + 1;
   if (isCorrect) {
     profile.correct[s] = (profile.correct[s] || 0) + 1;
+    if (s === "vocabulary") recordVocabularyReview(profile, question, "reviewed");
   } else {
     profile.mistakes[s] = (profile.mistakes[s] || 0) + 1;
     recordMistake(profile, s, question);
-    if (s === "vocabulary") recordVocabularyMiss(profile, question);
+    if (s === "vocabulary") recordVocabularyReview(profile, question, "missed");
   }
 
   recordAttempt(profile, s, isCorrect, question);
@@ -236,7 +237,7 @@ function extractVocabularyWordId(question) {
   return normalizeVocabularyWordId(quoted?.[1] || question?.word || question?.id);
 }
 
-function recordVocabularyMiss(profile, question) {
+function recordVocabularyReview(profile, question, action) {
   const wordId = extractVocabularyWordId(question);
   if (!wordId) return profile;
 
@@ -246,13 +247,13 @@ function recordVocabularyMiss(profile, question) {
   profile.vocabularyProgress.missedWords = profile.vocabularyProgress.missedWords || [];
   profile.vocabularyProgress.reviews = profile.vocabularyProgress.reviews || [];
 
-  if (!profile.vocabularyProgress.missedWords.includes(wordId)) {
+  if (action === "missed" && !profile.vocabularyProgress.missedWords.includes(wordId)) {
     profile.vocabularyProgress.missedWords.push(wordId);
   }
 
   profile.vocabularyProgress.reviews.push({
     wordId,
-    action: "missed",
+    action,
     questionId: question?.id || null,
     date: new Date().toISOString()
   });

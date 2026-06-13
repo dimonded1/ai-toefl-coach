@@ -4,8 +4,8 @@ const AUTH_TOKEN_KEY = "toefl_coach_auth_token";
 const AUTH_USER_KEY = "toefl_coach_current_user";
 
 const AUTH_API_BASE = (() => {
-  const localStaticHosts = new Set(["localhost:3000", "127.0.0.1:3000"]);
-  if (window.location.protocol === "file:" || localStaticHosts.has(window.location.host)) {
+  const localHosts = new Set(["localhost", "127.0.0.1", "::1"]);
+  if (window.location.protocol === "file:" || localHosts.has(window.location.hostname)) {
     return "http://localhost:3001/api";
   }
   return "/api";
@@ -37,7 +37,7 @@ function setCurrentUser(user) {
 }
 
 function isAuthenticated() {
-  return Boolean(getAuthToken());
+  return Boolean(getAuthToken() && getCurrentUser());
 }
 
 async function registerUser({ name, email, password }) {
@@ -60,7 +60,7 @@ async function loginUser({ email, password }) {
 
 function logoutUser() {
   clearAuthToken();
-  setProfileSyncState("local", "Signed out");
+  setProfileSyncState("signed-out", "Sign-in required");
 }
 
 async function apiGetProfile() {
@@ -91,11 +91,16 @@ async function authRequest(path, { method = "GET", body = null, auth = false } =
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${AUTH_API_BASE}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined
-  });
+  let response;
+  try {
+    response = await fetch(`${AUTH_API_BASE}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined
+    });
+  } catch {
+    throw new Error("Cannot reach the backend. Check that the deployed API service is running and connected.");
+  }
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {

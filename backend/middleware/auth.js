@@ -1,7 +1,15 @@
 const jwt = require("jsonwebtoken");
 const db = require("../database/db");
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
+function getJwtSecret() {
+  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("JWT_SECRET is required in production");
+  }
+  return "dev-secret-change-me";
+}
+
+const JWT_SECRET = getJwtSecret();
 
 function signToken(user) {
   return jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
@@ -13,6 +21,8 @@ function publicUser(user) {
     id: user.id,
     name: user.name,
     email: user.email,
+    plan: user.plan || "free",
+    subscriptionStatus: user.subscription_status || "free",
     createdAt: user.created_at
   };
 }
@@ -27,7 +37,7 @@ function requireAuth(req, res, next) {
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    const user = db.prepare("SELECT id, name, email, created_at FROM users WHERE id = ?").get(payload.sub);
+    const user = db.prepare("SELECT id, name, email, plan, subscription_status, created_at FROM users WHERE id = ?").get(payload.sub);
     if (!user) return res.status(401).json({ error: "User not found" });
     req.user = user;
     next();
@@ -37,7 +47,6 @@ function requireAuth(req, res, next) {
 }
 
 module.exports = {
-  JWT_SECRET,
   publicUser,
   requireAuth,
   signToken
