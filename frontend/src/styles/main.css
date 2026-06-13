@@ -53,6 +53,12 @@ body.auth-gate-open .toast {
   display: none;
 }
 
+body.auth-required .sidebar,
+body.auth-required .main-content {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 button,
 input,
 textarea {

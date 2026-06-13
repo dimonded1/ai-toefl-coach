@@ -158,7 +158,7 @@ async function syncProfileFromBackend() {
 
 function scheduleProfileSync(profile) {
   if (typeof isAuthenticated !== "function" || !isAuthenticated()) {
-    emitProfileSyncState("local", "Saving locally");
+    emitProfileSyncState("signed-out", "Sign-in required");
     return;
   }
   if (typeof apiSaveProfile !== "function") return;

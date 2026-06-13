@@ -37,7 +37,7 @@ function setCurrentUser(user) {
 }
 
 function isAuthenticated() {
-  return Boolean(getAuthToken());
+  return Boolean(getAuthToken() && getCurrentUser());
 }
 
 async function registerUser({ name, email, password }) {
@@ -60,7 +60,7 @@ async function loginUser({ email, password }) {
 
 function logoutUser() {
   clearAuthToken();
-  setProfileSyncState("local", "Signed out");
+  setProfileSyncState("signed-out", "Sign-in required");
 }
 
 async function apiGetProfile() {

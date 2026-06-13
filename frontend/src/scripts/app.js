@@ -2,11 +2,10 @@
 
 // ─── State ───────────────────────────────────────
 let profile = loadProfile();
-let accountSyncState = { state: "local", message: "Local mode" };
+let accountSyncState = { state: "signed-out", message: "Sign-in required" };
 let authGateMode = "register";
 let onboardingStepIndex = 0;
 const onboardingAnswers = {};
-const AUTH_GATE_DISMISSED_KEY = "toefl_coach_auth_gate_dismissed";
 let coachChatHistory = [];
 
 const AVATAR_TONES = ["teal", "blue", "violet", "rose", "amber", "mint", "indigo", "sky", "green", "pink", "slate", "cyan"];
@@ -93,7 +92,6 @@ const listeningSpeechState = {
 
 // ─── INIT ────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
-  localStorage.removeItem(AUTH_GATE_DISMISSED_KEY);
   initNavigation();
   initGoalForm();
   initAccountSync();
@@ -113,17 +111,20 @@ document.addEventListener("DOMContentLoaded", () => {
   initAnalytics();
   renderAppShell();
 
-  // Start on dashboard unless no goal set
-  if (!profile.startDate) {
-    navigateTo("goal");
-    if (typeof isAuthenticated !== "function" || isAuthenticated()) {
-      showToast("Set your TOEFL goal to get started.", "info");
-    }
+  const authLocked = shouldShowAuthGate();
+  if (authLocked) {
+    setAuthGateMode("register");
+    renderAuthGate();
   } else {
-    navigateTo("dashboard");
+    // Start on dashboard unless no goal set
+    if (!profile.startDate) {
+      navigateTo("goal");
+      showToast("Set your TOEFL goal to get started.", "info");
+    } else {
+      navigateTo("dashboard");
+    }
+    hydrateProfileFromBackend();
   }
-
-  hydrateProfileFromBackend();
 
   document.getElementById("resetBtn").addEventListener("click", () => {
     if (confirm("Reset all progress? This cannot be undone.")) {
@@ -1349,8 +1350,8 @@ function initAccountSync() {
   document.getElementById("logoutBtn")?.addEventListener("click", () => {
     logoutUser();
     renderAccountSync();
+    setAuthGateMode("register");
     renderAuthGate();
-    showToast("Signed out.", "info");
   });
 
   renderAccountSync();
@@ -1386,8 +1387,8 @@ function setAuthGateMode(mode) {
 }
 
 function shouldShowAuthGate() {
-  return typeof isAuthenticated === "function"
-    && !isAuthenticated();
+  return typeof isAuthenticated !== "function"
+    || !isAuthenticated();
 }
 
 function renderAuthGate() {
@@ -1397,6 +1398,7 @@ function renderAuthGate() {
   const onboardingModal = document.getElementById("onboardingModal");
   const onboardingOpen = Boolean(onboardingModal && !onboardingModal.classList.contains("hidden"));
   gate.hidden = !visible;
+  document.body.classList.toggle("auth-required", visible);
   document.body.classList.toggle("auth-gate-open", visible || onboardingOpen);
 }
 
