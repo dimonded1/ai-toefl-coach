@@ -2,6 +2,7 @@
 
 const CALENDAR_WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 let calendarViewDate = null;
+let selectedCalendarDateKey = null;
 
 function calendarEscape(value) {
   return String(value ?? "")
@@ -51,6 +52,19 @@ function calendarFormatLong(date) {
   });
 }
 
+function calendarDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function calendarDateFromKey(key) {
+  const [year, month, day] = String(key || "").split("-").map(Number);
+  if (!year || !month || !day) return null;
+  return calendarStartOfDay(new Date(year, month - 1, day));
+}
+
 function getCalendarAnchors() {
   const currentProfile = loadProfile();
   const start = calendarStartOfDay(currentProfile.startDate ? new Date(currentProfile.startDate) : new Date());
@@ -72,6 +86,14 @@ function initCalendar() {
   next.addEventListener("click", () => shiftCalendarMonth(1));
   todayBtn?.addEventListener("click", () => {
     calendarViewDate = null;
+    selectedCalendarDateKey = calendarDateKey(new Date());
+    renderCalendar();
+  });
+
+  document.getElementById("calGrid")?.addEventListener("click", event => {
+    const dayButton = event.target.closest("[data-cal-date]");
+    if (!dayButton) return;
+    selectedCalendarDateKey = dayButton.dataset.calDate;
     renderCalendar();
   });
 }
@@ -85,9 +107,11 @@ function shiftCalendarMonth(delta) {
 function renderCalendar() {
   if (!document.getElementById("calGrid")) return;
   const anchors = getCalendarAnchors();
+  selectedCalendarDateKey = selectedCalendarDateKey || calendarDateKey(anchors.today);
   renderCalendarCountdown(anchors);
   renderCalendarMonth(anchors);
   renderCalendarRoadmap(anchors);
+  renderCalendarSelectedDay(anchors);
 }
 
 function renderCalendarCountdown({ start, exam, today, prepDays }) {
@@ -153,6 +177,7 @@ function renderCalendarMonth({ start, exam, today }) {
     const isToday = calendarSameDay(date, today);
     const isExam = calendarSameDay(date, exam);
     const isStart = calendarSameDay(date, start);
+    const isSelected = calendarDateKey(date) === selectedCalendarDateKey;
     const isPast = date < today;
     const cls = ["cal-cell"];
 
@@ -161,12 +186,16 @@ function renderCalendarMonth({ start, exam, today }) {
     if (isStart) cls.push("start");
     if (isExam) cls.push("exam");
     if (isToday) cls.push("today");
+    if (isSelected) cls.push("selected");
 
     const marker = isExam ? `<span class="cal-flag">Exam</span>`
       : isStart ? `<span class="cal-flag">Start</span>`
       : inWindow && !isToday ? `<span class="cal-dot"></span>` : "";
 
-    cells.push(`<div class="${cls.join(" ")}"><span class="cal-day-num">${day}</span>${marker}</div>`);
+    cells.push(`
+      <button class="${cls.join(" ")}" type="button" data-cal-date="${calendarDateKey(date)}" aria-pressed="${isSelected}" aria-label="${calendarEscape(calendarFormatLong(date))}">
+        <span class="cal-day-num">${day}</span>${marker}
+      </button>`);
   }
 
   while (cells.length % 7 !== 0) {
@@ -181,6 +210,51 @@ function renderCalendarMonth({ start, exam, today }) {
       <span class="cal-leg"><span class="cal-leg-swatch exam"></span> Exam</span>
       <span class="cal-leg"><span class="cal-leg-swatch window"></span> Study window</span>`;
   }
+}
+
+function getCalendarWeekForDate(date, { start, prepDays }) {
+  const weeks = Array.isArray(TOEFL_REFERENCE_DB?.studyCalendar) ? TOEFL_REFERENCE_DB.studyCalendar : [];
+  if (!weeks.length) return null;
+  const dayIndex = Math.max(0, Math.min(prepDays - 1, calendarDayDiff(date, start)));
+  const phaseLen = prepDays / weeks.length;
+  const index = Math.max(0, Math.min(weeks.length - 1, Math.floor(dayIndex / Math.max(1, phaseLen))));
+  return weeks[index];
+}
+
+function renderCalendarSelectedDay({ start, exam, today, prepDays }) {
+  const el = document.getElementById("calSelectedDay");
+  if (!el) return;
+
+  const selected = calendarDateFromKey(selectedCalendarDateKey) || today;
+  const inWindow = selected >= start && selected <= exam;
+  const isToday = calendarSameDay(selected, today);
+  const isStart = calendarSameDay(selected, start);
+  const isExam = calendarSameDay(selected, exam);
+  const dayNumber = Math.max(1, Math.min(prepDays, calendarDayDiff(selected, start) + 1));
+  const week = inWindow ? getCalendarWeekForDate(selected, { start, prepDays }) : null;
+  const tasks = week?.tasks?.length ? week.tasks : [
+    "Complete one focused practice set",
+    "Review mistakes",
+    "Update notes"
+  ];
+
+  const status = isExam ? "Exam day"
+    : isStart ? "Start day"
+    : isToday ? "Today"
+    : inWindow ? `Day ${dayNumber} of ${prepDays}`
+    : selected < start ? "Before prep window"
+    : "After exam window";
+  const focus = week?.focus || (inWindow ? "Keep the daily practice loop active." : "Use this day for planning or review.");
+
+  el.innerHTML = `
+    <div class="cal-selected-head">
+      <span>${calendarEscape(status)}</span>
+      <strong>${calendarEscape(calendarFormatLong(selected))}</strong>
+    </div>
+    <p>${calendarEscape(focus)}</p>
+    <div class="cal-selected-tasks">
+      ${tasks.slice(0, 3).map(task => `<span>${calendarEscape(task)}</span>`).join("")}
+    </div>`;
 }
 
 function renderCalendarRoadmap({ start, today, prepDays }) {
