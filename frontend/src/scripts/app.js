@@ -4,6 +4,7 @@
 let profile = loadProfile();
 let accountSyncState = { state: "local", message: "Local mode" };
 let coachChatHistory = [];
+const THEME_STORAGE_KEY = "toefl_coach_theme";
 
 const AVATAR_TONES = ["teal", "blue", "violet", "rose", "amber", "mint", "indigo", "sky", "green", "pink", "slate", "cyan"];
 
@@ -40,6 +41,7 @@ const listeningSpeechState = {
 
 // ─── INIT ────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
+  initThemeControls();
   initNavigation();
   initGoalForm();
   initAccountSync();
@@ -82,6 +84,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+// ─── THEME ───────────────────────────────────────
+function initThemeControls() {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || document.documentElement.dataset.theme || "dark";
+  applyTheme(savedTheme === "light" ? "light" : "dark");
+
+  document.getElementById("themeToggle")?.addEventListener("click", () => {
+    const current = document.documentElement.dataset.theme === "light" ? "light" : "dark";
+    applyTheme(current === "dark" ? "light" : "dark");
+  });
+}
+
+function applyTheme(theme) {
+  const normalized = theme === "light" ? "light" : "dark";
+  document.documentElement.dataset.theme = normalized;
+  localStorage.setItem(THEME_STORAGE_KEY, normalized);
+
+  const label = document.getElementById("themeToggleLabel");
+  const button = document.getElementById("themeToggle");
+  if (label) label.textContent = normalized === "dark" ? "Dark" : "Light";
+  if (button) {
+    button.title = normalized === "dark" ? "Switch to light theme" : "Switch to dark theme";
+    button.setAttribute("aria-pressed", String(normalized === "dark"));
+  }
+}
 
 // ─── NAVIGATION ──────────────────────────────────
 function initNavigation() {
@@ -912,9 +939,29 @@ function setCoachChatOpen(isOpen) {
   if (!panel || !toggle) return;
   panel.classList.toggle("hidden", !isOpen);
   toggle.setAttribute("aria-expanded", String(isOpen));
+  toggle.classList.toggle("active", isOpen);
   if (isOpen) {
+    setNotebookOpen(false, { preserveFocus: true });
     document.getElementById("coachChatInput")?.focus();
     scrollCoachChatToBottom();
+  }
+}
+
+function setNotebookOpen(isOpen, options = {}) {
+  const panel = document.getElementById("notebookPanel");
+  const toggle = document.getElementById("notebookToggle");
+  if (!panel || !toggle) return;
+  panel.classList.toggle("hidden", !isOpen);
+  toggle.setAttribute("aria-expanded", String(isOpen));
+  toggle.classList.toggle("active", isOpen);
+  if (isOpen) {
+    const chatPanel = document.getElementById("coachChatPanel");
+    const chatToggle = document.getElementById("coachChatToggle");
+    chatPanel?.classList.add("hidden");
+    chatToggle?.setAttribute("aria-expanded", "false");
+    chatToggle?.classList.remove("active");
+    renderNotebook();
+    if (!options.preserveFocus) document.getElementById("noteTitleInput")?.focus();
   }
 }
 
@@ -1398,6 +1445,11 @@ function initLearning() {
   });
 
   document.getElementById("addNoteBtn")?.addEventListener("click", addNotebookNoteFromForm);
+  document.getElementById("notebookToggle")?.addEventListener("click", () => {
+    const panel = document.getElementById("notebookPanel");
+    setNotebookOpen(panel?.classList.contains("hidden"));
+  });
+  document.getElementById("notebookClose")?.addEventListener("click", () => setNotebookOpen(false));
 }
 
 function renderLearn() {

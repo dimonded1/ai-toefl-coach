@@ -4,6 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI TOEFL Coach</title>
+  <script>
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem("toefl_coach_theme") || "dark";
+    } catch {
+      document.documentElement.dataset.theme = "dark";
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -14,6 +21,16 @@
 
 <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
 <nav class="sidebar" id="sidebar" aria-label="Primary navigation">
+  <button class="sidebar-logo" type="button" data-section="dashboard" aria-label="Open dashboard">
+    <span class="logo-icon" aria-hidden="true">
+      <span class="logo-orbit"></span>
+      <span class="logo-core">AI</span>
+    </span>
+    <span class="logo-mark">
+      <span class="logo-text">AI TOEFL Coach</span>
+      <span class="logo-subtext">Score cockpit</span>
+    </span>
+  </button>
   <div class="sidebar-user" data-section="goal">
     <span class="avatar avatar-md" id="sidebarAvatar"></span>
     <span class="sidebar-user-copy">
@@ -50,6 +67,10 @@
     <button class="hamburger" id="hamburger" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">☰</button>
     <h1 class="page-title" id="pageTitle">Dashboard</h1>
     <div class="topbar-right">
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle color theme">
+        <span class="theme-toggle-dot" aria-hidden="true"></span>
+        <span id="themeToggleLabel">Dark</span>
+      </button>
       <button class="sync-topbar-status sync-topbar-local" id="topbarSyncStatus" data-section="goal">Local mode</button>
       <span class="score-badge" id="topbarScore">TOEFL: <strong id="topScore">--</strong></span>
     </div>
@@ -196,21 +217,6 @@
             </div>
           </div>
           <div class="vocab-card-list" id="vocabCardList"></div>
-        </div>
-
-        <div class="card notebook-card">
-          <div class="section-heading">
-            <div>
-              <div class="card-kicker">Notebook</div>
-              <h2 class="card-title">My notes</h2>
-            </div>
-          </div>
-          <div class="note-input-row">
-            <input class="text-input" id="noteTitleInput" type="text" placeholder="Rule or phrase title" />
-            <button class="btn-primary" id="addNoteBtn" type="button">Add note</button>
-          </div>
-          <textarea class="text-input note-textarea" id="noteContentInput" placeholder="Write a phrase, mistake pattern, template, or personal TOEFL rule."></textarea>
-          <div class="notebook-list" id="notebookList"></div>
         </div>
       </div>
     </div>
@@ -554,12 +560,37 @@
 <!-- ═══════════════════════ TOAST NOTIFICATION ═══════════════════════ -->
 <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
 
-<!-- ═══════════════════════ AI COACH CHAT ═══════════════════════ -->
-<div class="coach-chat" id="coachChat">
-  <button class="coach-chat-toggle" id="coachChatToggle" type="button" aria-expanded="false" aria-controls="coachChatPanel">
-    <span class="coach-chat-mark">AI</span>
-    <span>Coach</span>
-  </button>
+<!-- ═══════════════════════ SIDE TOOLS ═══════════════════════ -->
+<div class="side-tools" id="sideTools">
+  <div class="side-tool-stack" aria-label="Quick tools">
+    <button class="side-tool-btn coach-chat-toggle" id="coachChatToggle" type="button" aria-expanded="false" aria-controls="coachChatPanel">
+      <span class="coach-chat-mark">AI</span>
+      <span>Coach</span>
+    </button>
+    <button class="side-tool-btn notebook-toggle" id="notebookToggle" type="button" aria-expanded="false" aria-controls="notebookPanel">
+      <span class="tool-mark">N</span>
+      <span>Notes</span>
+    </button>
+  </div>
+
+  <section class="notebook-panel hidden" id="notebookPanel" aria-label="TOEFL notebook">
+    <div class="tool-panel-head">
+      <div>
+        <div class="card-kicker">Notebook</div>
+        <h2>My notes</h2>
+      </div>
+      <button class="tool-panel-close" id="notebookClose" type="button" aria-label="Close notebook">Close</button>
+    </div>
+    <div class="notebook-panel-body">
+      <div class="note-input-row">
+        <input class="text-input" id="noteTitleInput" type="text" placeholder="Rule or phrase title" />
+        <button class="btn-primary" id="addNoteBtn" type="button">Add note</button>
+      </div>
+      <textarea class="text-input note-textarea" id="noteContentInput" placeholder="Write a phrase, mistake pattern, template, or personal TOEFL rule."></textarea>
+      <div class="notebook-list" id="notebookList"></div>
+    </div>
+  </section>
+
   <section class="coach-chat-panel hidden" id="coachChatPanel" aria-label="AI TOEFL Coach chat">
     <div class="coach-chat-head">
       <div>
