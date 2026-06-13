@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="src/styles/main.css?v=20260613-coach-dialog-ui" />
+  <link rel="stylesheet" href="src/styles/main.css?v=20260613-avatar" />
 </head>
 <body>
 <a class="skip-link" href="#mainContent" data-i18n="common.skip">Skip to content</a>
@@ -467,7 +467,10 @@
             <span class="summary-pill" id="accountPlan">Free</span>
           </div>
           <div class="profile-summary-head">
-            <span class="avatar avatar-lg" id="profilePreviewAvatar"></span>
+            <div class="avatar-edit-shell">
+              <span class="avatar avatar-lg" id="profilePreviewAvatar"></span>
+              <button class="avatar-edit-btn" id="profileAvatarEditBtn" type="button" aria-label="Change avatar" data-i18n-aria="avatar.change">✎</button>
+            </div>
             <div>
               <strong id="profilePreviewName">Alex Carter</strong>
               <span id="profilePreviewGoal">Study Abroad</span>
@@ -682,6 +685,37 @@
 
 </main>
 
+<!-- ═══════════════════════ AVATAR PICKER ═══════════════════════ -->
+<section class="avatar-modal hidden" id="avatarModal" aria-labelledby="avatarModalTitle" aria-modal="true" role="dialog">
+  <div class="avatar-modal-card">
+    <div class="avatar-modal-head">
+      <div>
+        <div class="card-kicker" data-i18n="avatar.kicker">Avatar</div>
+        <h2 id="avatarModalTitle" data-i18n="avatar.title">Choose your profile avatar</h2>
+        <p data-i18n="avatar.copy">Pick a bright zoo-style avatar or upload your own image.</p>
+      </div>
+      <button class="tool-panel-close" id="avatarModalClose" type="button" aria-label="Close" data-i18n="common.close" data-i18n-aria="common.close">Close</button>
+    </div>
+    <div class="avatar-modal-body">
+      <div>
+        <div class="avatar-section-title" data-i18n="avatar.choosePreset">Generated animal avatars</div>
+        <div class="avatar-preset-grid" id="avatarPresetGrid"></div>
+      </div>
+      <div class="avatar-upload-panel">
+        <div>
+          <div class="avatar-section-title" data-i18n="avatar.uploadTitle">Your own image</div>
+          <p data-i18n="avatar.uploadCopy">Upload a square photo or picture. It will be saved with your profile.</p>
+        </div>
+        <input id="avatarUploadInput" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+        <div class="avatar-upload-actions">
+          <button class="btn-primary" id="avatarUploadBtn" type="button" data-i18n="avatar.upload">Upload from device</button>
+          <button class="btn-secondary" id="avatarInitialsBtn" type="button" data-i18n="avatar.useInitials">Use initials</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ═══════════════════════ TOAST NOTIFICATION ═══════════════════════ -->
 <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
 
@@ -746,7 +780,7 @@
 <script src="src/scripts/profile.js?v=20260613-authgate"></script>
 <script src="src/scripts/aiPlan.js?v=20260613-authgate"></script>
 <script src="src/scripts/calendar.js?v=20260613-authgate"></script>
-<script src="src/scripts/app.js?v=20260613-subscription2"></script>
+<script src="src/scripts/app.js?v=20260613-avatar"></script>
 
 </body>
 </html>
