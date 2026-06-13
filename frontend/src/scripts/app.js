@@ -7,8 +7,12 @@ let authGateMode = "register";
 let onboardingStepIndex = 0;
 const onboardingAnswers = {};
 let coachChatHistory = [];
+let subscriptionPanelOpen = false;
 const THEME_STORAGE_KEY = "toefl_coach_theme";
 const LANGUAGE_STORAGE_KEY = "toefl_coach_language";
+const SUBSCRIPTION_PROMO_CODE = "Egor_Eagle_228";
+const SUBSCRIPTION_TRIAL_DAYS = 3;
+const SUBSCRIPTION_WEEK_DAYS = 7;
 
 const AVATAR_TONES = ["teal", "blue", "violet", "rose", "amber", "mint", "indigo", "sky", "green", "pink", "slate", "cyan"];
 
@@ -219,6 +223,36 @@ const I18N = {
     "account.failedTitle": "Sync failed. Open Profile to try again.",
     "account.savingTitle": "Saving your profile.",
     "account.syncedTitle": "Your progress is saved.",
+    "subscription.topbar": "Subscription",
+    "subscription.kicker": "TOEFL access",
+    "subscription.title": "Start your study access",
+    "subscription.copy": "Open the full workspace with a 3-day trial, then keep studying with a weekly plan.",
+    "subscription.benefit.ai": "AI coach",
+    "subscription.benefit.plan": "Study plan",
+    "subscription.benefit.analytics": "Analytics",
+    "subscription.trialBadge": "Best start",
+    "subscription.trialTitle": "3-day free trial",
+    "subscription.trialCopy": "Try dashboard, practice, calendar, notes, and AI coach before the paid period.",
+    "subscription.trialPrice": "0 RUB",
+    "subscription.startTrial": "Start free trial",
+    "subscription.weekBadge": "Weekly access",
+    "subscription.weekTitle": "7 days of TOEFL Coach",
+    "subscription.weekCopy": "Demo paid access for a study sprint with all product sections unlocked.",
+    "subscription.activateWeek": "Activate 7 days",
+    "subscription.promoLabel": "Promo code",
+    "subscription.promoPlaceholder": "Enter promo code",
+    "subscription.applyPromo": "Apply",
+    "subscription.status.locked": "Access required",
+    "subscription.status.trial": "Trial: {days}d",
+    "subscription.status.week": "7 days: {days}d",
+    "subscription.status.promo": "Lifetime",
+    "subscription.message.required": "Choose a trial, weekly access, or enter a promo code to open the workspace.",
+    "subscription.message.trialStarted": "Trial started. Full access is open for 3 days.",
+    "subscription.message.weekStarted": "7-day access is active. This is a demo activation without payment.",
+    "subscription.message.promoSuccess": "Promo accepted. Lifetime access is active.",
+    "subscription.message.promoInvalid": "Promo code was not found.",
+    "subscription.message.active": "Access is active. You can keep studying.",
+    "toast.subscriptionRequired": "Activate access to open this section.",
     "skill.reading": "Reading",
     "skill.listening": "Listening",
     "skill.speaking": "Speaking",
@@ -439,6 +473,36 @@ const I18N = {
     "account.failedTitle": "Синхронизация не удалась. Открой профиль и попробуй снова.",
     "account.savingTitle": "Сохраняем профиль.",
     "account.syncedTitle": "Прогресс сохранён.",
+    "subscription.topbar": "Подписка",
+    "subscription.kicker": "Доступ TOEFL",
+    "subscription.title": "Открой доступ к подготовке",
+    "subscription.copy": "Полный кабинет открывается с 3-дневного триала, дальше можно продолжить недельным тарифом.",
+    "subscription.benefit.ai": "AI-коуч",
+    "subscription.benefit.plan": "План занятий",
+    "subscription.benefit.analytics": "Аналитика",
+    "subscription.trialBadge": "Лучший старт",
+    "subscription.trialTitle": "3 дня бесплатно",
+    "subscription.trialCopy": "Попробуй дашборд, практику, календарь, заметки и AI-коуча до платного периода.",
+    "subscription.trialPrice": "0 RUB",
+    "subscription.startTrial": "Начать триал",
+    "subscription.weekBadge": "Недельный доступ",
+    "subscription.weekTitle": "7 дней TOEFL Coach",
+    "subscription.weekCopy": "Демо-активация платного доступа для учебного спринта со всеми разделами.",
+    "subscription.activateWeek": "Активировать 7 дней",
+    "subscription.promoLabel": "Промокод",
+    "subscription.promoPlaceholder": "Введите промокод",
+    "subscription.applyPromo": "Применить",
+    "subscription.status.locked": "Нужен доступ",
+    "subscription.status.trial": "Триал: {days} дн.",
+    "subscription.status.week": "7 дней: {days} дн.",
+    "subscription.status.promo": "Навсегда",
+    "subscription.message.required": "Выбери триал, недельный доступ или введи промокод, чтобы открыть кабинет.",
+    "subscription.message.trialStarted": "Триал начался. Полный доступ открыт на 3 дня.",
+    "subscription.message.weekStarted": "Доступ на 7 дней активен. Это демо-активация без оплаты.",
+    "subscription.message.promoSuccess": "Промокод принят. Вечный доступ активен.",
+    "subscription.message.promoInvalid": "Промокод не найден.",
+    "subscription.message.active": "Доступ активен. Можно продолжать подготовку.",
+    "toast.subscriptionRequired": "Активируй доступ, чтобы открыть этот раздел.",
     "skill.reading": "Reading",
     "skill.listening": "Listening",
     "skill.speaking": "Speaking",
@@ -655,6 +719,36 @@ const I18N = {
     "account.synced": "Synchronisé",
     "account.saving": "Enregistrement",
     "account.syncFailed": "Échec sync",
+    "subscription.topbar": "Abonnement",
+    "subscription.kicker": "Accès TOEFL",
+    "subscription.title": "Active ton accès d'étude",
+    "subscription.copy": "Ouvre tout l'espace avec un essai de 3 jours, puis continue avec un plan hebdomadaire.",
+    "subscription.benefit.ai": "Coach AI",
+    "subscription.benefit.plan": "Plan d'étude",
+    "subscription.benefit.analytics": "Analytique",
+    "subscription.trialBadge": "Meilleur départ",
+    "subscription.trialTitle": "Essai gratuit 3 jours",
+    "subscription.trialCopy": "Teste tableau de bord, pratique, calendrier, notes et coach AI avant la période payante.",
+    "subscription.trialPrice": "0 RUB",
+    "subscription.startTrial": "Démarrer l'essai",
+    "subscription.weekBadge": "Accès semaine",
+    "subscription.weekTitle": "7 jours de TOEFL Coach",
+    "subscription.weekCopy": "Activation démo payante pour un sprint d'étude avec toutes les sections.",
+    "subscription.activateWeek": "Activer 7 jours",
+    "subscription.promoLabel": "Code promo",
+    "subscription.promoPlaceholder": "Entrer le code promo",
+    "subscription.applyPromo": "Appliquer",
+    "subscription.status.locked": "Accès requis",
+    "subscription.status.trial": "Essai : {days} j",
+    "subscription.status.week": "7 jours : {days} j",
+    "subscription.status.promo": "À vie",
+    "subscription.message.required": "Choisis l'essai, l'accès semaine ou saisis un code promo pour ouvrir l'espace.",
+    "subscription.message.trialStarted": "Essai lancé. L'accès complet est ouvert pour 3 jours.",
+    "subscription.message.weekStarted": "Accès 7 jours actif. C'est une activation démo sans paiement.",
+    "subscription.message.promoSuccess": "Code accepté. Accès à vie activé.",
+    "subscription.message.promoInvalid": "Code promo introuvable.",
+    "subscription.message.active": "Accès actif. Tu peux continuer.",
+    "toast.subscriptionRequired": "Active l'accès pour ouvrir cette section.",
     "skill.reading": "Reading",
     "skill.listening": "Listening",
     "skill.speaking": "Speaking",
@@ -871,6 +965,36 @@ const I18N = {
     "account.synced": "Sincronizado",
     "account.saving": "Guardando",
     "account.syncFailed": "Error de sync",
+    "subscription.topbar": "Suscripción",
+    "subscription.kicker": "Acceso TOEFL",
+    "subscription.title": "Activa tu acceso de estudio",
+    "subscription.copy": "Abre todo el espacio con una prueba de 3 días y continúa con un plan semanal.",
+    "subscription.benefit.ai": "Coach AI",
+    "subscription.benefit.plan": "Plan de estudio",
+    "subscription.benefit.analytics": "Analítica",
+    "subscription.trialBadge": "Mejor inicio",
+    "subscription.trialTitle": "Prueba gratis 3 días",
+    "subscription.trialCopy": "Prueba panel, práctica, calendario, notas y coach AI antes del periodo pagado.",
+    "subscription.trialPrice": "0 RUB",
+    "subscription.startTrial": "Iniciar prueba",
+    "subscription.weekBadge": "Acceso semanal",
+    "subscription.weekTitle": "7 días de TOEFL Coach",
+    "subscription.weekCopy": "Activación demo de pago para un sprint de estudio con todas las secciones.",
+    "subscription.activateWeek": "Activar 7 días",
+    "subscription.promoLabel": "Código promo",
+    "subscription.promoPlaceholder": "Introduce el código",
+    "subscription.applyPromo": "Aplicar",
+    "subscription.status.locked": "Acceso requerido",
+    "subscription.status.trial": "Prueba: {days} d",
+    "subscription.status.week": "7 días: {days} d",
+    "subscription.status.promo": "De por vida",
+    "subscription.message.required": "Elige prueba, acceso semanal o introduce un código para abrir el espacio.",
+    "subscription.message.trialStarted": "Prueba iniciada. Acceso completo abierto por 3 días.",
+    "subscription.message.weekStarted": "Acceso de 7 días activo. Es una activación demo sin pago.",
+    "subscription.message.promoSuccess": "Código aceptado. Acceso de por vida activo.",
+    "subscription.message.promoInvalid": "Código promo no encontrado.",
+    "subscription.message.active": "Acceso activo. Puedes seguir estudiando.",
+    "toast.subscriptionRequired": "Activa el acceso para abrir esta sección.",
     "skill.reading": "Reading",
     "skill.listening": "Listening",
     "skill.speaking": "Speaking",
@@ -983,6 +1107,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initAccountSync();
   initAuthGate();
   initOnboarding();
+  initSubscriptionGate();
   initLearning();
   initDashboard();
   initPracticeSection("vocabulary");
@@ -1001,20 +1126,27 @@ document.addEventListener("DOMContentLoaded", () => {
   if (authLocked) {
     setAuthGateMode("register");
     renderAuthGate();
+    renderSubscriptionGate();
   } else {
     // Start on dashboard unless no goal set
     if (!profile.startDate) {
-      navigateTo("goal");
-      showToast("Set your TOEFL goal to get started.", "info");
+      navigateTo("goal", { bypassSubscription: true });
+      if (!shouldBlockWorkspaceAccess()) showToast("Set your TOEFL goal to get started.", "info");
     } else {
-      navigateTo("dashboard");
+      navigateTo("dashboard", { bypassSubscription: true });
     }
+    renderSubscriptionGate();
     hydrateProfileFromBackend();
   }
 
   document.getElementById("resetBtn").addEventListener("click", () => {
     if (confirm(t("toast.confirmReset"))) {
+      const preservedSubscription = loadProfile().subscription || null;
       profile = resetProfile();
+      if (preservedSubscription) {
+        profile.subscription = preservedSubscription;
+        saveProfile(profile);
+      }
       practiceState.vocabulary.idx = 0;
       practiceState.reading.idx    = 0;
       practiceState.listening.idx  = 0;
@@ -1022,7 +1154,8 @@ document.addEventListener("DOMContentLoaded", () => {
       practiceState.writing.idx    = 0;
       initDashboard();
       renderAppShell();
-      navigateTo("dashboard");
+      navigateTo("dashboard", { bypassSubscription: true });
+      renderSubscriptionGate();
       showToast(t("toast.reset"), "info");
     }
   });
@@ -1134,11 +1267,13 @@ function applyLanguage(lang, options = {}) {
     renderAppShell();
     renderCurrentSection();
     renderAccountSync();
+    renderSubscriptionGate();
   }
 
   translateStaticInterface();
   updateCurrentPageTitle();
   applyTheme(document.documentElement.dataset.theme || "dark");
+  renderSubscriptionGate();
 }
 
 function translateStaticInterface() {
@@ -1165,6 +1300,11 @@ function initNavigation() {
     const trigger = e.target.closest("[data-section]");
     if (!trigger) return;
     e.preventDefault();
+    if (shouldBlockWorkspaceAccess()) {
+      openSubscriptionGate();
+      showToast(t("toast.subscriptionRequired"), "info");
+      return;
+    }
     if (trigger.dataset.section === "minitest") {
       practiceState.minitest.mode = "full";
       practiceState.minitest.moduleId = null;
@@ -1188,7 +1328,13 @@ function getNavSection(section) {
   return section;
 }
 
-function navigateTo(section) {
+function navigateTo(section, options = {}) {
+  if (!options.bypassSubscription && shouldBlockWorkspaceAccess()) {
+    openSubscriptionGate();
+    showToast(t("toast.subscriptionRequired"), "info");
+    return;
+  }
+
   stopListeningSpeech();
 
   // Update sidebar
@@ -1247,16 +1393,23 @@ async function hydrateProfileFromBackend() {
   renderAccountSync();
   if (typeof isAuthenticated !== "function" || !isAuthenticated()) return;
 
+  const localSubscription = loadProfile().subscription || null;
   const syncedProfile = await syncProfileFromBackend();
   if (!syncedProfile) {
     renderAccountSync();
     return;
   }
 
+  if (isSubscriptionActive(localSubscription) && !isSubscriptionActive(syncedProfile.subscription)) {
+    syncedProfile.subscription = localSubscription;
+    saveProfile(syncedProfile);
+  }
+
   profile = syncedProfile;
   renderAppShell();
   renderCurrentSection();
   renderAccountSync();
+  renderSubscriptionGate();
 }
 
 function renderCurrentSection() {
@@ -1274,6 +1427,206 @@ function renderCurrentSection() {
   if (["vocabulary","reading","listening","speaking","writing"].includes(section)) {
     renderQuestion(section);
   }
+}
+
+// ─── SUBSCRIPTION ACCESS ─────────────────────────
+function initSubscriptionGate() {
+  document.getElementById("subscriptionStatusBtn")?.addEventListener("click", () => {
+    openSubscriptionGate({ force: true });
+  });
+
+  document.getElementById("subscriptionCloseBtn")?.addEventListener("click", () => {
+    closeSubscriptionGate();
+  });
+
+  ["pointerdown", "click"].forEach(eventName => document.addEventListener(eventName, event => {
+    if (!event.target.closest("#subscriptionCloseBtn")) return;
+    event.preventDefault();
+    event.stopPropagation();
+    closeSubscriptionGate();
+  }));
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeSubscriptionGate();
+  });
+
+  document.getElementById("startTrialBtn")?.addEventListener("click", () => {
+    activateSubscription("trial");
+  });
+
+  document.getElementById("activateTariffBtn")?.addEventListener("click", () => {
+    activateSubscription("week");
+  });
+
+  document.getElementById("applyPromoBtn")?.addEventListener("click", () => {
+    applyPromoCode();
+  });
+
+  document.getElementById("promoCodeInput")?.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      applyPromoCode();
+    }
+  });
+
+  renderSubscriptionGate();
+}
+
+function isUserSignedIn() {
+  return typeof isAuthenticated === "function" && isAuthenticated();
+}
+
+function isOnboardingOpen() {
+  const modal = document.getElementById("onboardingModal");
+  return Boolean(modal && !modal.classList.contains("hidden"));
+}
+
+function getSubscription() {
+  return profile?.subscription || null;
+}
+
+function getSubscriptionRemainingDays(subscription = getSubscription()) {
+  if (!subscription?.expiresAt) return null;
+  const expires = new Date(subscription.expiresAt).getTime();
+  if (!Number.isFinite(expires)) return 0;
+  return Math.max(0, Math.ceil((expires - Date.now()) / 86400000));
+}
+
+function isSubscriptionActive(subscription = getSubscription()) {
+  if (!subscription || subscription.status !== "active") return false;
+  if (!subscription.expiresAt) return true;
+  const expires = new Date(subscription.expiresAt).getTime();
+  return Number.isFinite(expires) && expires > Date.now();
+}
+
+function shouldBlockWorkspaceAccess() {
+  return isUserSignedIn()
+    && !shouldShowAuthGate()
+    && !isOnboardingOpen()
+    && !isSubscriptionActive();
+}
+
+function addDaysIso(days) {
+  return new Date(Date.now() + days * 86400000).toISOString();
+}
+
+function subscriptionStatusLabel() {
+  const subscription = getSubscription();
+  if (!isSubscriptionActive(subscription)) return t("subscription.status.locked");
+  if (subscription.type === "promo") return t("subscription.status.promo");
+  const days = getSubscriptionRemainingDays(subscription) || 1;
+  if (subscription.type === "week") return t("subscription.status.week", { days });
+  return t("subscription.status.trial", { days });
+}
+
+function renderSubscriptionGate(options = {}) {
+  const gate = document.getElementById("subscriptionGate");
+  const statusBtn = document.getElementById("subscriptionStatusBtn");
+  const closeBtn = document.getElementById("subscriptionCloseBtn");
+  if (!gate) return;
+
+  profile = loadProfile();
+  const signedIn = isUserSignedIn();
+  const active = isSubscriptionActive();
+  const blocking = shouldBlockWorkspaceAccess();
+  if (options.force === true) subscriptionPanelOpen = true;
+  if (!signedIn || blocking) subscriptionPanelOpen = false;
+  const visible = signedIn && (blocking || subscriptionPanelOpen);
+
+  gate.classList.toggle("hidden", !visible);
+  document.body.classList.toggle("subscription-required", blocking);
+  document.body.classList.toggle("subscription-gate-open", visible);
+  if (closeBtn) closeBtn.hidden = blocking || !active;
+
+  if (statusBtn) {
+    statusBtn.textContent = signedIn ? subscriptionStatusLabel() : t("subscription.topbar");
+    statusBtn.className = `subscription-status-btn ${active ? "active" : ""} ${signedIn && !active ? "locked" : ""}`.trim();
+    statusBtn.title = active ? t("subscription.message.active") : t("subscription.message.required");
+  }
+
+  if (!signedIn) {
+    setSubscriptionMessage("");
+    return;
+  }
+
+  if (options.message) {
+    setSubscriptionMessage(options.message, options.type || "info");
+  } else if (blocking) {
+    setSubscriptionMessage(t("subscription.message.required"), "info");
+  } else if (visible) {
+    setSubscriptionMessage(t("subscription.message.active"), "success");
+  }
+}
+
+function openSubscriptionGate(options = {}) {
+  if (!isUserSignedIn()) {
+    openAuthGate("login");
+    return;
+  }
+  renderSubscriptionGate({ ...options, force: true });
+}
+
+function closeSubscriptionGate() {
+  if (shouldBlockWorkspaceAccess()) {
+    renderSubscriptionGate();
+    return;
+  }
+  subscriptionPanelOpen = false;
+  renderSubscriptionGate();
+}
+
+function setSubscriptionMessage(message = "", type = "info") {
+  const messageEl = document.getElementById("subscriptionMessage");
+  if (!messageEl) return;
+  messageEl.textContent = message;
+  messageEl.className = `subscription-message ${message ? "" : "hidden"} ${type}`;
+}
+
+function activateSubscription(type) {
+  profile = loadProfile();
+  const now = new Date().toISOString();
+  const subscription = type === "promo"
+    ? {
+        type: "promo",
+        status: "active",
+        startedAt: now,
+        expiresAt: null,
+        promoCode: SUBSCRIPTION_PROMO_CODE
+      }
+    : {
+        type,
+        status: "active",
+        startedAt: now,
+        expiresAt: addDaysIso(type === "week" ? SUBSCRIPTION_WEEK_DAYS : SUBSCRIPTION_TRIAL_DAYS),
+        priceRub: type === "week" ? 2999 : 0
+      };
+
+  profile.subscription = subscription;
+  subscriptionPanelOpen = false;
+  saveProfile(profile);
+  renderAppShell();
+  renderAccountSync();
+  renderCurrentSection();
+  renderSubscriptionGate();
+
+  const message = type === "promo"
+    ? t("subscription.message.promoSuccess")
+    : type === "week"
+      ? t("subscription.message.weekStarted")
+      : t("subscription.message.trialStarted");
+  showToast(message, "success");
+  navigateTo(profile.startDate ? "dashboard" : "goal");
+}
+
+function applyPromoCode() {
+  const input = document.getElementById("promoCodeInput");
+  const code = (input?.value || "").trim();
+  if (code === SUBSCRIPTION_PROMO_CODE) {
+    activateSubscription("promo");
+    if (input) input.value = "";
+    return;
+  }
+  setSubscriptionMessage(t("subscription.message.promoInvalid"), "error");
 }
 
 function setAvatar(id, name) {
@@ -2357,7 +2710,8 @@ function finishOnboardingFlow() {
     renderProfileScreen();
     renderAccountSync();
     showToast("Personal plan is ready.", "success");
-    navigateTo("dashboard");
+    navigateTo("dashboard", { bypassSubscription: true });
+    renderSubscriptionGate();
   }, 900);
 }
 
@@ -2366,6 +2720,7 @@ function initAccountSync() {
     accountSyncState = event.detail || accountSyncState;
     renderAccountSync();
     renderAuthGate();
+    renderSubscriptionGate();
   });
 
   document.getElementById("createAccountBtn")?.addEventListener("click", async () => {
@@ -2391,6 +2746,7 @@ function initAccountSync() {
     renderAccountSync();
     setAuthGateMode("register");
     renderAuthGate();
+    renderSubscriptionGate();
   });
 
   renderAccountSync();
@@ -2513,6 +2869,10 @@ async function handleAuthSubmit(mode, source = "profile") {
     renderAuthGate();
     if (mode === "register" || !profile.startDate) {
       startOnboardingFlow();
+      renderSubscriptionGate();
+    } else {
+      navigateTo("dashboard", { bypassSubscription: true });
+      renderSubscriptionGate();
     }
   } catch (err) {
     const message = err.message || "Sign in failed.";
@@ -2539,6 +2899,7 @@ async function handleManualSync() {
     showToast(t("toast.synced"), "success");
     renderAppShell();
     renderCurrentSection();
+    renderSubscriptionGate();
   } catch (err) {
     console.warn("Manual sync failed:", err);
     showToast(t("toast.syncFailed"), "error");
@@ -2565,7 +2926,7 @@ function renderAccountSync() {
   const user = getCurrentUser() || {};
   setText("accountName", user.name || profile.name || "Student");
   setText("accountEmail", user.email || "");
-  setText("accountPlan", titleCase(user.plan || "free"));
+  setText("accountPlan", subscriptionStatusLabel());
   setAvatar("accountAvatar", user.name || profile.name);
 
   const statusCopy = getSyncStatusCopy(accountSyncState);

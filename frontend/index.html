@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="src/styles/main.css?v=20260613-authgate" />
+  <link rel="stylesheet" href="src/styles/main.css?v=20260613-subscription2" />
 </head>
 <body>
 <a class="skip-link" href="#mainContent" data-i18n="common.skip">Skip to content</a>
@@ -77,6 +77,52 @@
     <div class="onboarding-actions">
       <button class="btn-secondary" id="onboardingBackBtn" type="button">Back</button>
       <button class="btn-primary" id="onboardingNextBtn" type="button">Next</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ SUBSCRIPTION GATE ═══════════════════════ -->
+<section class="subscription-gate hidden" id="subscriptionGate" aria-labelledby="subscriptionTitle" aria-modal="true" role="dialog">
+  <div class="subscription-card">
+    <button class="subscription-close" id="subscriptionCloseBtn" type="button" aria-label="Close" data-i18n-aria="common.close">×</button>
+    <div class="subscription-hero">
+      <span class="subscription-kicker" data-i18n="subscription.kicker">TOEFL access</span>
+      <h2 id="subscriptionTitle" data-i18n="subscription.title">Start your study access</h2>
+      <p data-i18n="subscription.copy">Open the full workspace with a 3-day trial, then keep studying with a weekly plan.</p>
+      <div class="subscription-benefits" aria-label="Access benefits">
+        <span data-i18n="subscription.benefit.ai">AI coach</span>
+        <span data-i18n="subscription.benefit.plan">Study plan</span>
+        <span data-i18n="subscription.benefit.analytics">Analytics</span>
+      </div>
+    </div>
+
+    <div class="subscription-options">
+      <div class="subscription-plan subscription-plan-trial">
+        <span class="subscription-plan-badge" data-i18n="subscription.trialBadge">Best start</span>
+        <h3 data-i18n="subscription.trialTitle">3-day free trial</h3>
+        <p data-i18n="subscription.trialCopy">Try dashboard, practice, calendar, notes, and AI coach before the paid period.</p>
+        <strong class="subscription-price" data-i18n="subscription.trialPrice">0 RUB</strong>
+        <button class="btn-primary btn-full" id="startTrialBtn" type="button" data-i18n="subscription.startTrial">Start free trial</button>
+      </div>
+
+      <div class="subscription-plan">
+        <span class="subscription-plan-badge muted" data-i18n="subscription.weekBadge">Weekly access</span>
+        <h3 data-i18n="subscription.weekTitle">7 days of TOEFL Coach</h3>
+        <p data-i18n="subscription.weekCopy">Demo paid access for a study sprint with all product sections unlocked.</p>
+        <strong class="subscription-price">2999 RUB</strong>
+        <button class="btn-secondary btn-full" id="activateTariffBtn" type="button" data-i18n="subscription.activateWeek">Activate 7 days</button>
+      </div>
+    </div>
+
+    <div class="subscription-promo">
+      <label>
+        <span data-i18n="subscription.promoLabel">Promo code</span>
+        <div class="subscription-promo-row">
+          <input class="text-input" id="promoCodeInput" type="text" autocomplete="off" placeholder="Enter promo code" data-i18n-placeholder="subscription.promoPlaceholder" />
+          <button class="btn-secondary" id="applyPromoBtn" type="button" data-i18n="subscription.applyPromo">Apply</button>
+        </div>
+      </label>
+      <div class="subscription-message hidden" id="subscriptionMessage" role="status" aria-live="polite"></div>
     </div>
   </div>
 </section>
@@ -145,6 +191,7 @@
           <button type="button" role="menuitem" data-lang-option="es"><span>🇪🇸</span><strong>Español</strong></button>
         </div>
       </div>
+      <button class="subscription-status-btn" id="subscriptionStatusBtn" type="button" data-i18n="subscription.topbar">Subscription</button>
       <button class="sync-topbar-status sync-topbar-local" id="topbarSyncStatus" data-section="goal" data-i18n="account.local">Sign in</button>
       <span class="score-badge" id="topbarScore">TOEFL: <strong id="topScore">--</strong></span>
     </div>
@@ -699,7 +746,7 @@
 <script src="src/scripts/profile.js?v=20260613-authgate"></script>
 <script src="src/scripts/aiPlan.js?v=20260613-authgate"></script>
 <script src="src/scripts/calendar.js?v=20260613-authgate"></script>
-<script src="src/scripts/app.js?v=20260613-authgate"></script>
+<script src="src/scripts/app.js?v=20260613-subscription2"></script>
 
 </body>
 </html>
