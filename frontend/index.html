@@ -17,7 +17,7 @@
   <div class="auth-gate-panel">
     <div class="auth-gate-copy">
       <span class="auth-product-mark">AI TOEFL Coach</span>
-      <h1 id="authGateTitle">Sign in to start your TOEFL workspace</h1>
+      <h1 id="authGateTitle">Create your TOEFL workspace</h1>
       <p>Create an account once, then keep your TOEFL goal, progress, mistakes, notes, and AI study plan ready when you return.</p>
       <div class="auth-benefit-grid" aria-label="Account benefits">
         <div><strong>Profile</strong><span>Target score and deadline</span></div>
@@ -40,8 +40,7 @@
 
       <button class="btn-primary btn-full" id="authGateSubmitBtn" type="button">Create account</button>
       <div class="auth-message hidden" id="authGateMessage" role="status" aria-live="polite"></div>
-      <button class="auth-local-link" id="continueLocalBtn" type="button">Continue locally for demo</button>
-      <p class="auth-gate-note">Your account saves the study setup and progress you build here.</p>
+      <p class="auth-gate-note">Account registration is required before the study workspace opens.</p>
     </div>
   </div>
 </section>
@@ -332,25 +331,23 @@
   <section class="section" id="section-goal">
     <div class="profile-layout">
       <div class="card form-card">
-        <div class="card-kicker">Profile</div>
-        <h2 class="profile-title">Your study profile</h2>
-        <p class="form-desc">Keep the key TOEFL choices visible here. New accounts set them during the first setup.</p>
+        <div class="profile-form-head">
+          <div>
+            <div class="card-kicker">Profile settings</div>
+            <h2 class="profile-title">Your TOEFL setup</h2>
+            <p class="form-desc">Change your name, target score, timeline, level, or study goal. The dashboard and AI plan update from these settings.</p>
+          </div>
+          <span class="sync-status sync-status-synced" id="accountSyncStatus">Synced</span>
+        </div>
 
-        <div class="profile-display hidden" id="profileDisplayPanel">
-          <div class="profile-display-head">
-            <span class="avatar avatar-lg" id="profileDisplayAvatar"></span>
-            <div>
-              <strong id="profileDisplayName">Alex Carter</strong>
-              <span id="profileDisplayEmail">alex@example.com</span>
-            </div>
+        <div class="profile-account-strip">
+          <span class="avatar avatar-sm" id="accountAvatar"></span>
+          <div>
+            <strong id="accountName">Alex Carter</strong>
+            <span id="accountEmail">alex@example.com</span>
           </div>
-          <div class="profile-display-grid">
-            <div><span>Target score</span><strong id="profileDisplayTarget">95</strong></div>
-            <div><span>Timeline</span><strong id="profileDisplayDays">60 days</strong></div>
-            <div><span>Current level</span><strong id="profileDisplayLevel">Intermediate</strong></div>
-            <div><span>Main goal</span><strong id="profileDisplayGoal">Study Abroad</strong></div>
-          </div>
-          <p>Your personal cabinet keeps these choices visible while Dashboard and Study Plan turn them into daily work.</p>
+          <button class="btn-secondary btn-compact" id="syncNowBtn" type="button">Sync</button>
+          <button class="btn-secondary btn-compact" id="logoutBtn" type="button">Log out</button>
         </div>
 
         <div id="profileEditPanel">
@@ -404,59 +401,20 @@
             </div>
           </div>
 
-          <button class="btn-primary btn-full" id="saveGoalBtn">Save & Start Preparation</button>
-          <div class="success-msg hidden" id="goalSaved">Profile saved. Go to Dashboard to start.</div>
+          <button class="btn-primary btn-full" id="saveGoalBtn">Save profile settings</button>
+          <div class="success-msg hidden" id="goalSaved">Profile saved. Dashboard and study plan are updated.</div>
         </div>
       </div>
 
       <aside class="profile-side">
-        <div class="card account-sync-card account-sync-card-primary">
-          <div class="account-sync-head">
-            <div>
-              <div class="card-kicker">Account</div>
-              <h2 class="card-title">Personal cabinet</h2>
-            </div>
-            <span class="sync-status sync-status-local" id="accountSyncStatus">Local mode</span>
-          </div>
-
-          <div id="accountSignedOut">
-            <p class="sync-copy">Sign in to keep TOEFL progress, notes, mistakes, and AI plans ready when you return.</p>
-            <div class="sync-form">
-              <label>Name<input class="text-input" id="authNameInput" type="text" autocomplete="name" placeholder="Gosha" /></label>
-              <label>Email<input class="text-input" id="authEmailInput" type="email" autocomplete="email" placeholder="gosha@example.com" /></label>
-              <label>Password<input class="text-input" id="authPasswordInput" type="password" autocomplete="current-password" placeholder="At least 6 characters" /></label>
-            </div>
-            <div class="sync-actions">
-              <button class="btn-primary" id="createAccountBtn">Create account</button>
-              <button class="btn-secondary" id="signInBtn">Sign in</button>
-            </div>
-            <div class="auth-message hidden" id="authProfileMessage" role="status" aria-live="polite"></div>
-            <button class="auth-local-link auth-open-link" id="openAuthGateBtn" type="button">Open full sign-in screen</button>
-          </div>
-
-          <div id="accountSignedIn" class="hidden">
-            <div class="account-user-line">
-              <span class="avatar avatar-sm" id="accountAvatar"></span>
-              <div>
-                <strong id="accountName">Alex Carter</strong>
-                <span id="accountEmail">alex@example.com</span>
-              </div>
-            </div>
-            <div class="account-plan-grid">
-              <div><span>Plan</span><strong id="accountPlan">Free</strong></div>
-              <div><span>Billing</span><strong id="accountBilling">Not connected</strong></div>
-            </div>
-            <p class="sync-copy">Progress is saved. Your study setup, notes, and practice history stay connected to this account.</p>
-            <div class="sync-actions">
-              <button class="btn-primary" id="syncNowBtn">Sync now</button>
-              <button class="btn-secondary" id="logoutBtn">Log out</button>
-            </div>
-          </div>
-        </div>
-
         <div class="card setup-preview-card">
-          <div class="card-kicker">Personal summary</div>
-          <h2 class="card-title">Your study setup</h2>
+          <div class="summary-topline">
+            <div>
+              <div class="card-kicker">Personal summary</div>
+              <h2 class="card-title">Your study setup</h2>
+            </div>
+            <span class="summary-pill" id="accountPlan">Free</span>
+          </div>
           <div class="profile-summary-head">
             <span class="avatar avatar-lg" id="profilePreviewAvatar"></span>
             <div>
@@ -477,7 +435,7 @@
           <div class="setup-mini-chart" aria-hidden="true">
             <span></span><span></span><span></span><span></span><span></span>
           </div>
-          <p class="setup-note">The dashboard will turn this setup into weak zones, daily focus, and score movement after practice.</p>
+          <p class="setup-note">Dashboard, lessons, practice, and the Groq study plan use these settings as the student baseline.</p>
         </div>
       </aside>
     </div>

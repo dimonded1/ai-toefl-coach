@@ -48,6 +48,11 @@ body.auth-gate-open {
   overflow: hidden;
 }
 
+body.auth-gate-open .coach-chat,
+body.auth-gate-open .toast {
+  display: none;
+}
+
 button,
 input,
 textarea {
@@ -93,7 +98,7 @@ a {
   place-items: center;
   padding: 28px;
   background:
-    radial-gradient(circle at 18% 16%, rgba(40,84,232,.16), transparent 18rem),
+    linear-gradient(135deg, rgba(15,138,122,.16), rgba(40,84,232,.08) 38%, rgba(255,255,255,.94) 100%),
     linear-gradient(180deg, #f8fbff 0%, #edf3f9 100%);
 }
 
@@ -112,7 +117,7 @@ a {
 .auth-gate-copy,
 .auth-gate-card {
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 14px;
   background: #fff;
   box-shadow: var(--shadow-soft);
 }
@@ -122,14 +127,18 @@ a {
   align-content: center;
   gap: 22px;
   padding: 42px;
+  background:
+    linear-gradient(135deg, rgba(8,21,49,.96), rgba(25,39,69,.94)),
+    #101827;
+  color: #fff;
 }
 
 .auth-product-mark {
   width: fit-content;
   padding: 7px 10px;
   border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: rgba(255,255,255,.12);
+  color: #9df2da;
   font-size: .76rem;
   font-weight: 900;
 }
@@ -144,7 +153,7 @@ a {
 
 .auth-gate-copy p {
   max-width: 620px;
-  color: var(--muted);
+  color: rgba(255,255,255,.72);
   font-size: 1.03rem;
   line-height: 1.65;
 }
@@ -162,18 +171,18 @@ a {
   gap: 7px;
   min-height: 116px;
   padding: 18px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255,255,255,.14);
   border-radius: 10px;
-  background: var(--bg4);
+  background: rgba(255,255,255,.08);
 }
 
 .auth-benefit-grid strong {
-  color: var(--text);
+  color: #fff;
   font-size: 1rem;
 }
 
 .auth-benefit-grid span {
-  color: var(--muted);
+  color: rgba(255,255,255,.66);
   font-size: .88rem;
   line-height: 1.42;
 }
@@ -182,7 +191,7 @@ a {
   display: grid;
   align-content: start;
   gap: 16px;
-  padding: 24px;
+  padding: 28px;
 }
 
 .auth-tabs {
@@ -1828,6 +1837,45 @@ a {
   padding: 32px;
 }
 
+.profile-form-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 22px;
+}
+
+.profile-account-strip {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(40,84,232,.12);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(40,84,232,.08), rgba(15,138,122,.08)),
+    #fff;
+}
+
+.profile-account-strip strong,
+.profile-account-strip span {
+  display: block;
+}
+
+.profile-account-strip strong {
+  color: var(--text);
+  font-size: .98rem;
+  font-weight: 900;
+}
+
+.profile-account-strip span {
+  color: var(--muted);
+  font-size: .82rem;
+  word-break: break-word;
+}
+
 .profile-side {
   display: grid;
   gap: 16px;
@@ -1957,16 +2005,37 @@ a {
   display: grid;
   gap: 18px;
   background:
-    radial-gradient(circle at 88% 10%, rgba(15,138,122,.16), transparent 12rem),
+    linear-gradient(135deg, rgba(15,138,122,.14), rgba(40,84,232,.11) 42%, rgba(255,255,255,.96)),
     linear-gradient(180deg, #ffffff, #f7faff);
+  border-color: rgba(15,138,122,.2);
+}
+
+.summary-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.summary-pill {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: var(--sidebar);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .05em;
 }
 
 .setup-score {
   display: grid;
   gap: 2px;
   padding: 22px;
-  border-radius: 22px;
-  background: var(--sidebar);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 84% 16%, rgba(255,255,255,.16), transparent 7rem),
+    linear-gradient(135deg, var(--sidebar), #2854e8);
   color: #fff;
 }
 
@@ -4505,6 +4574,12 @@ a {
   .main-content { margin-left: 0; }
   .hamburger { display: block; }
   .profile-layout { grid-template-columns: 1fr; }
+  .profile-account-strip {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .profile-account-strip .btn-compact {
+    grid-column: span 1;
+  }
   .learn-toolbar,
   .learn-overview-grid,
   .learn-content-grid,
@@ -4575,9 +4650,17 @@ a {
   }
   .auth-benefit-grid,
   .profile-display-grid,
+  .profile-form-head,
   .onboarding-actions,
   .account-plan-grid {
     grid-template-columns: 1fr;
+  }
+  .profile-form-head {
+    display: grid;
+  }
+  .profile-account-strip {
+    grid-template-columns: 1fr;
+    justify-items: start;
   }
   .onboarding-modal {
     padding: 14px;

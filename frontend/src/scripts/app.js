@@ -93,6 +93,7 @@ const listeningSpeechState = {
 
 // ─── INIT ────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
+  localStorage.removeItem(AUTH_GATE_DISMISSED_KEY);
   initNavigation();
   initGoalForm();
   initAccountSync();
@@ -115,7 +116,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Start on dashboard unless no goal set
   if (!profile.startDate) {
     navigateTo("goal");
-    showToast("Set your TOEFL goal to get started.", "info");
+    if (typeof isAuthenticated !== "function" || isAuthenticated()) {
+      showToast("Set your TOEFL goal to get started.", "info");
+    }
   } else {
     navigateTo("dashboard");
   }
@@ -1345,7 +1348,6 @@ function initAccountSync() {
   });
   document.getElementById("logoutBtn")?.addEventListener("click", () => {
     logoutUser();
-    localStorage.removeItem(AUTH_GATE_DISMISSED_KEY);
     renderAccountSync();
     renderAuthGate();
     showToast("Signed out.", "info");
@@ -1356,7 +1358,6 @@ function initAccountSync() {
 
 function openAuthGate(mode = "login") {
   if (typeof isAuthenticated === "function" && isAuthenticated()) return;
-  localStorage.removeItem(AUTH_GATE_DISMISSED_KEY);
   setAuthGateMode(mode);
   renderAuthGate();
 }
@@ -1368,12 +1369,6 @@ function initAuthGate() {
 
   document.getElementById("authGateSubmitBtn")?.addEventListener("click", async () => {
     await handleAuthSubmit(authGateMode, "gate");
-  });
-
-  document.getElementById("continueLocalBtn")?.addEventListener("click", () => {
-    localStorage.setItem(AUTH_GATE_DISMISSED_KEY, "1");
-    renderAuthGate();
-    showToast("Local demo mode is active.", "info");
   });
 
   setAuthGateMode(authGateMode);
@@ -1392,8 +1387,7 @@ function setAuthGateMode(mode) {
 
 function shouldShowAuthGate() {
   return typeof isAuthenticated === "function"
-    && !isAuthenticated()
-    && localStorage.getItem(AUTH_GATE_DISMISSED_KEY) !== "1";
+    && !isAuthenticated();
 }
 
 function renderAuthGate() {
@@ -1423,7 +1417,7 @@ function getAuthFormValues(source = "profile") {
 
 function setAuthButtonsDisabled(source, disabled) {
   const ids = source === "gate"
-    ? ["authGateSubmitBtn", "continueLocalBtn", "authGateCreateTab", "authGateSignInTab"]
+    ? ["authGateSubmitBtn", "authGateCreateTab", "authGateSignInTab"]
     : ["createAccountBtn", "signInBtn"];
   ids.forEach(id => {
     const button = document.getElementById(id);
@@ -1470,7 +1464,6 @@ async function handleAuthSubmit(mode, source = "profile") {
       if (syncedProfile) profile = syncedProfile;
       showToast("Signed in.", "success");
     }
-    localStorage.removeItem(AUTH_GATE_DISMISSED_KEY);
     if (passwordInput) passwordInput.value = "";
     setAuthMessage(source, mode === "register" ? "Account created. Preparing setup..." : "Signed in.", "success");
     renderAppShell();
@@ -1519,17 +1512,15 @@ function renderAccountSync() {
   const signedOutPanel = document.getElementById("accountSignedOut");
   const signedInPanel = document.getElementById("accountSignedIn");
   const status = document.getElementById("accountSyncStatus");
-  if (!signedOutPanel || !signedInPanel || !status) {
-    renderTopbarSyncStatus(signedIn);
-    return;
-  }
 
-  signedOutPanel.classList.toggle("hidden", signedIn);
-  signedInPanel.classList.toggle("hidden", !signedIn);
+  signedOutPanel?.classList.toggle("hidden", signedIn);
+  signedInPanel?.classList.toggle("hidden", !signedIn);
 
   if (!signedIn) {
-    status.textContent = "Local mode";
-    status.className = "sync-status sync-status-local";
+    if (status) {
+      status.textContent = "Sign-in required";
+      status.className = "sync-status sync-status-local";
+    }
     const nameInput = document.getElementById("authNameInput");
     if (nameInput && !nameInput.value) nameInput.value = document.getElementById("profileNameInput")?.value || profile.name || "";
     renderTopbarSyncStatus(false);
@@ -1540,12 +1531,13 @@ function renderAccountSync() {
   setText("accountName", user.name || profile.name || "Student");
   setText("accountEmail", user.email || "");
   setText("accountPlan", titleCase(user.plan || "free"));
-  setText("accountBilling", user.subscriptionStatus === "active" ? "Active" : "Not connected");
   setAvatar("accountAvatar", user.name || profile.name);
 
   const statusCopy = getSyncStatusCopy(accountSyncState);
-  status.textContent = statusCopy.label;
-  status.className = `sync-status ${statusCopy.className}`;
+  if (status) {
+    status.textContent = statusCopy.label;
+    status.className = `sync-status ${statusCopy.className}`;
+  }
   renderTopbarSyncStatus(true);
 }
 
@@ -1592,25 +1584,7 @@ function renderProfileScreen() {
   setActiveBtn("prepDaysGroup", String(profile.preparationDays || 60));
   setActiveBtn("levelGroup", profile.level || "intermediate");
   setActiveBtn("goalGroup", profile.goal || "study abroad");
-  const signedIn = typeof isAuthenticated === "function" && isAuthenticated();
-  const showDisplay = signedIn && Boolean(profile.startDate);
-  const displayPanel = document.getElementById("profileDisplayPanel");
-  const editPanel = document.getElementById("profileEditPanel");
-  const user = typeof getCurrentUser === "function" ? getCurrentUser() || {} : {};
-
-  displayPanel?.classList.toggle("hidden", !showDisplay);
-  editPanel?.classList.toggle("hidden", showDisplay);
-
-  if (showDisplay) {
-    setText("profileDisplayName", profile.name || user.name || "Student");
-    setText("profileDisplayEmail", user.email || "Signed in");
-    setText("profileDisplayTarget", profile.targetScore || 95);
-    setText("profileDisplayDays", `${profile.preparationDays || 60} days`);
-    setText("profileDisplayLevel", titleCase(profile.level || "intermediate"));
-    setText("profileDisplayGoal", titleCase(profile.goal || "study abroad"));
-    setAvatar("profileDisplayAvatar", profile.name || user.name || "Student");
-  }
-
+  renderAccountSync();
   updateSetupPreview();
 }
 
