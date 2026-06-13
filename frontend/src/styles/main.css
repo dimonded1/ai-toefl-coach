@@ -4854,6 +4854,7 @@ a {
 .coach-followups {
   padding: 10px 0 0;
   border-top: 0;
+  background: transparent;
 }
 .coach-chat-suggestions button,
 .coach-followups button {
@@ -5956,6 +5957,8 @@ html[data-theme="dark"] .theme-toggle-dot {
   display: grid;
   gap: 8px;
   justify-items: end;
+  position: relative;
+  z-index: 1;
 }
 
 .side-tool-btn {
@@ -5999,8 +6002,10 @@ html[data-theme="dark"] .theme-toggle-dot {
 .notebook-panel {
   position: absolute;
   top: 0;
-  right: 58px;
-  width: min(392px, calc(100vw - 92px));
+  right: calc(100% + 12px);
+  bottom: auto;
+  width: min(420px, calc(100vw - 148px));
+  height: min(640px, calc(100vh - var(--topbar-h) - 32px));
   max-height: calc(100vh - var(--topbar-h) - 32px);
   background: var(--bg2);
   border: 1px solid var(--border);
@@ -6008,10 +6013,11 @@ html[data-theme="dark"] .theme-toggle-dot {
   box-shadow: var(--shadow-lg);
   overflow: hidden;
   display: grid;
+  z-index: 2;
 }
 
 .coach-chat-panel {
-  grid-template-rows: auto minmax(220px, 1fr) auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
 }
 
 .notebook-panel {
@@ -6088,14 +6094,23 @@ html[data-theme="dark"] .theme-toggle-dot {
 
 .coach-chat-form {
   padding: 10px 12px 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  gap: 10px;
+  align-items: end;
 }
 
 .coach-chat-form textarea {
+  min-width: 0;
+  width: 100%;
   min-height: 42px;
+  max-height: 112px;
+  resize: vertical;
 }
 
 .coach-chat-form .btn-primary {
   min-height: 42px;
+  white-space: nowrap;
 }
 
 .toast {
@@ -6263,6 +6278,21 @@ html[data-theme="dark"] .coach-message-user {
   color: #071120;
 }
 
+html[data-theme="dark"] .coach-followups {
+  background: transparent;
+}
+
+html[data-theme="dark"] .coach-chat-suggestions {
+  background: var(--bg2);
+}
+
+html[data-theme="dark"] .coach-chat-suggestions button,
+html[data-theme="dark"] .coach-followups button {
+  background: rgba(85, 214, 194, .12);
+  border-color: rgba(85, 214, 194, .34);
+  color: #7ce7d9;
+}
+
 html[data-theme="dark"] .toast.success,
 html[data-theme="dark"] .success-msg,
 html[data-theme="dark"] .feedback-box.correct {
@@ -6368,7 +6398,16 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb {
     top: auto;
     bottom: 54px;
     width: min(430px, calc(100vw - 24px));
+    height: min(620px, calc(100vh - 94px));
     max-height: calc(100vh - 94px);
+  }
+
+  .coach-chat-form {
+    grid-template-columns: 1fr;
+  }
+
+  .coach-chat-form .btn-primary {
+    width: 100%;
   }
 
   .topic-library-card,
