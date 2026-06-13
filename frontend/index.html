@@ -7,8 +7,10 @@
   <script>
     try {
       document.documentElement.dataset.theme = localStorage.getItem("toefl_coach_theme") || "dark";
+      document.documentElement.dataset.lang = localStorage.getItem("toefl_coach_language") || "en";
     } catch {
       document.documentElement.dataset.theme = "dark";
+      document.documentElement.dataset.lang = "en";
     }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,18 +19,18 @@
   <link rel="stylesheet" href="src/styles/main.css" />
 </head>
 <body>
-<a class="skip-link" href="#mainContent">Skip to content</a>
+<a class="skip-link" href="#mainContent" data-i18n="common.skip">Skip to content</a>
 
 <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
-<nav class="sidebar" id="sidebar" aria-label="Primary navigation">
-  <button class="sidebar-logo" type="button" data-section="dashboard" aria-label="Open dashboard">
+<nav class="sidebar" id="sidebar" aria-label="Primary navigation" data-i18n-aria="nav.primary">
+  <button class="sidebar-logo" type="button" data-section="dashboard" aria-label="Open dashboard" data-i18n-aria="nav.openDashboard">
     <span class="logo-icon" aria-hidden="true">
       <span class="logo-orbit"></span>
       <span class="logo-core">AI</span>
     </span>
     <span class="logo-mark">
       <span class="logo-text">AI TOEFL Coach</span>
-      <span class="logo-subtext">Score cockpit</span>
+      <span class="logo-subtext" data-i18n="brand.subtitle">Score cockpit</span>
     </span>
   </button>
   <div class="sidebar-user" data-section="goal">
@@ -39,23 +41,23 @@
     </span>
   </div>
   <div class="sidebar-study-meta">
-    <div><span>Target</span><strong id="sidebarTarget">95</strong></div>
-    <div><span>Day</span><strong id="sidebarDay">1 / 60</strong></div>
+    <div><span data-i18n="common.target">Target</span><strong id="sidebarTarget">95</strong></div>
+    <div><span data-i18n="common.day">Day</span><strong id="sidebarDay">1 / 60</strong></div>
   </div>
   <ul class="sidebar-nav">
-    <li><a href="#" class="nav-link active" data-section="dashboard" aria-current="page"><span class="nav-icon">D</span><span>Dashboard</span></a></li>
-    <li><a href="#" class="nav-link" data-section="learn"><span class="nav-icon">L</span><span>Learn</span></a></li>
-    <li><a href="#" class="nav-link" data-section="practice"><span class="nav-icon">P</span><span>Practice</span></a></li>
-    <li><a href="#" class="nav-link" data-section="aiplan"><span class="nav-icon">S</span><span>Study Plan</span></a></li>
-    <li><a href="#" class="nav-link" data-section="analytics"><span class="nav-icon">A</span><span>Analytics</span></a></li>
-    <li><a href="#" class="nav-link" data-section="goal"><span class="nav-icon">Me</span><span>Profile</span></a></li>
+    <li><a href="#" class="nav-link active" data-section="dashboard" aria-current="page"><span class="nav-icon">D</span><span data-i18n="page.dashboard">Dashboard</span></a></li>
+    <li><a href="#" class="nav-link" data-section="learn"><span class="nav-icon">L</span><span data-i18n="page.learn">Learn</span></a></li>
+    <li><a href="#" class="nav-link" data-section="practice"><span class="nav-icon">P</span><span data-i18n="page.practice">Practice</span></a></li>
+    <li><a href="#" class="nav-link" data-section="aiplan"><span class="nav-icon">S</span><span data-i18n="page.aiplan">Study Plan</span></a></li>
+    <li><a href="#" class="nav-link" data-section="analytics"><span class="nav-icon">A</span><span data-i18n="page.analytics">Analytics</span></a></li>
+    <li><a href="#" class="nav-link" data-section="goal"><span class="nav-icon">Me</span><span data-i18n="page.goal">Profile</span></a></li>
   </ul>
   <div class="sidebar-footer">
     <div class="sidebar-progress">
-      <span>Study streak</span>
+      <span data-i18n="sidebar.studyStreak">Study streak</span>
       <strong id="sidebarStreak">0 days</strong>
     </div>
-    <button class="btn-reset" id="resetBtn">Reset Progress</button>
+    <button class="btn-reset" id="resetBtn" data-i18n="sidebar.reset">Reset Progress</button>
   </div>
 </nav>
 
@@ -67,10 +69,22 @@
     <button class="hamburger" id="hamburger" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">☰</button>
     <h1 class="page-title" id="pageTitle">Dashboard</h1>
     <div class="topbar-right">
-      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle color theme">
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle color theme" data-i18n-aria="theme.toggle">
         <span class="theme-toggle-dot" aria-hidden="true"></span>
         <span id="themeToggleLabel">Dark</span>
       </button>
+      <div class="language-switcher" id="languageSwitcher">
+        <button class="language-toggle" id="languageToggle" type="button" aria-label="Select language" aria-expanded="false" aria-controls="languageMenu" data-i18n-aria="language.select">
+          <span id="languageFlag">🇬🇧</span>
+          <span data-i18n="language.button">Language</span>
+        </button>
+        <div class="language-menu hidden" id="languageMenu" role="menu" aria-label="Language options" data-i18n-aria="language.options">
+          <button type="button" role="menuitem" data-lang-option="en"><span>🇬🇧</span><strong>English</strong></button>
+          <button type="button" role="menuitem" data-lang-option="ru"><span>🇷🇺</span><strong>Русский</strong></button>
+          <button type="button" role="menuitem" data-lang-option="fr"><span>🇫🇷</span><strong>Français</strong></button>
+          <button type="button" role="menuitem" data-lang-option="es"><span>🇪🇸</span><strong>Español</strong></button>
+        </div>
+      </div>
       <button class="sync-topbar-status sync-topbar-local" id="topbarSyncStatus" data-section="goal">Local mode</button>
       <span class="score-badge" id="topbarScore">TOEFL: <strong id="topScore">--</strong></span>
     </div>
@@ -82,25 +96,25 @@
       <div class="dashboard-hero-row">
         <div class="card dashboard-hero">
           <div class="hero-copy">
-            <div class="card-kicker">Dashboard</div>
-            <h2>What should I do right now?</h2>
+            <div class="card-kicker" data-i18n="page.dashboard">Dashboard</div>
+            <h2 data-i18n="dashboard.heroTitle">What should I do right now?</h2>
             <p id="dashboardInsight">Run one focused action, then let the coach update your next step.</p>
           </div>
           <div class="hero-score-strip">
-            <div><span>Current</span><strong id="dashCurrent">--</strong></div>
-            <div><span>Target</span><strong id="dashTarget">--</strong></div>
-            <div><span>Gap</span><strong id="dashGap">--</strong></div>
-            <div><span>Days left</span><strong id="dashDays">--</strong></div>
+            <div><span data-i18n="common.current">Current</span><strong id="dashCurrent">--</strong></div>
+            <div><span data-i18n="common.target">Target</span><strong id="dashTarget">--</strong></div>
+            <div><span data-i18n="common.gap">Gap</span><strong id="dashGap">--</strong></div>
+            <div><span data-i18n="common.daysLeft">Days left</span><strong id="dashDays">--</strong></div>
           </div>
         </div>
 
         <div class="card next-action-card">
-          <div class="card-kicker">Next best action</div>
+          <div class="card-kicker" data-i18n="dashboard.nextBestAction">Next best action</div>
           <h2 class="focus-title" id="primaryFocusTitle">Run Diagnostic</h2>
           <p class="focus-reason" id="primaryFocusReason">Complete practice to reveal your weak zones.</p>
           <div class="focus-meta" id="primaryFocusMeta"></div>
-          <button class="btn-primary btn-full" id="startFocusBtn">Start focus session</button>
-          <button class="btn-secondary btn-full" id="refreshAIBtn">Refresh AI Plan</button>
+          <button class="btn-primary btn-full" id="startFocusBtn" data-i18n="dashboard.startFocus">Start focus session</button>
+          <button class="btn-secondary btn-full" id="refreshAIBtn" data-i18n="dashboard.refreshAI">Refresh AI Plan</button>
         </div>
       </div>
 
@@ -108,8 +122,8 @@
         <div class="card today-focus-card">
           <div class="section-heading">
             <div>
-              <div class="card-kicker">Today's focus</div>
-              <h2 class="card-title">Two actions for today</h2>
+              <div class="card-kicker" data-i18n="dashboard.todayFocus">Today's focus</div>
+              <h2 class="card-title" data-i18n="dashboard.twoActions">Two actions for today</h2>
             </div>
             <span class="action-badge" id="dashTasks">0 tasks</span>
           </div>
@@ -119,8 +133,8 @@
         <div class="card dashboard-skills-card">
           <div class="section-heading">
             <div>
-              <div class="card-kicker">Skills snapshot</div>
-              <h2 class="card-title">Where to spend effort</h2>
+              <div class="card-kicker" data-i18n="dashboard.skillsSnapshot">Skills snapshot</div>
+              <h2 class="card-title" data-i18n="dashboard.effortTitle">Where to spend effort</h2>
             </div>
           </div>
           <div class="skill-bars" id="skillBars"></div>
@@ -130,10 +144,10 @@
       <div class="card dashboard-weak-card">
         <div class="section-heading">
           <div>
-            <div class="card-kicker">Weak zones preview</div>
-            <h2 class="card-title">Top repair areas</h2>
+            <div class="card-kicker" data-i18n="dashboard.weakPreview">Weak zones preview</div>
+            <h2 class="card-title" data-i18n="dashboard.repairAreas">Top repair areas</h2>
           </div>
-          <button class="btn-secondary btn-compact" data-section="analytics">Full analysis</button>
+          <button class="btn-secondary btn-compact" data-section="analytics" data-i18n="dashboard.fullAnalysis">Full analysis</button>
         </div>
         <div class="weak-list" id="weakList"></div>
       </div>
@@ -144,23 +158,23 @@
   <section class="section" id="section-learn">
     <div class="learn-workspace">
       <div class="hub-header">
-        <h2>What should I learn next?</h2>
-        <p>Short TOEFL lessons, modules, study path, vocabulary, and personal notes.</p>
+        <h2 data-i18n="learn.title">What should I learn next?</h2>
+        <p data-i18n="learn.copy">Short TOEFL lessons, modules, study path, vocabulary, and personal notes.</p>
       </div>
 
       <div class="learn-toolbar">
         <label class="learn-search">
-          <span>Search topics</span>
-          <input class="text-input" id="learnSearchInput" type="search" placeholder="inference, lecture notes, academic discussion" />
+          <span data-i18n="learn.search">Search topics</span>
+          <input class="text-input" id="learnSearchInput" type="search" placeholder="inference, lecture notes, academic discussion" data-i18n-placeholder="learn.searchPlaceholder" />
         </label>
         <div class="learn-filter-row" id="learnSkillFilters">
-          <button class="btn-option selected" data-learn-filter="all">All</button>
-          <button class="btn-option" data-learn-filter="reading">Reading</button>
-          <button class="btn-option" data-learn-filter="listening">Listening</button>
-          <button class="btn-option" data-learn-filter="speaking">Speaking</button>
-          <button class="btn-option" data-learn-filter="writing">Writing</button>
-          <button class="btn-option" data-learn-filter="vocabulary">Vocabulary</button>
-          <button class="btn-option" data-learn-filter="strategy">Strategy</button>
+          <button class="btn-option selected" data-learn-filter="all" data-i18n="learn.filter.all">All</button>
+          <button class="btn-option" data-learn-filter="reading" data-i18n="skill.reading">Reading</button>
+          <button class="btn-option" data-learn-filter="listening" data-i18n="skill.listening">Listening</button>
+          <button class="btn-option" data-learn-filter="speaking" data-i18n="skill.speaking">Speaking</button>
+          <button class="btn-option" data-learn-filter="writing" data-i18n="skill.writing">Writing</button>
+          <button class="btn-option" data-learn-filter="vocabulary" data-i18n="skill.vocabulary">Vocabulary</button>
+          <button class="btn-option" data-learn-filter="strategy" data-i18n="skill.strategy">Strategy</button>
         </div>
       </div>
 
@@ -168,8 +182,8 @@
         <div class="card study-path-card">
           <div class="section-heading">
             <div>
-              <div class="card-kicker">Study path</div>
-              <h2 class="card-title">8-week preparation map</h2>
+              <div class="card-kicker" data-i18n="learn.studyPath">Study path</div>
+              <h2 class="card-title" data-i18n="learn.map">8-week preparation map</h2>
             </div>
             <span class="action-badge" id="learnPathProgress">0%</span>
           </div>
@@ -179,8 +193,8 @@
         <div class="card mistake-lessons-card">
           <div class="section-heading">
             <div>
-              <div class="card-kicker">Mistake lessons</div>
-              <h2 class="card-title">Repair repeated errors</h2>
+              <div class="card-kicker" data-i18n="learn.mistakeLessons">Mistake lessons</div>
+              <h2 class="card-title" data-i18n="learn.repairErrors">Repair repeated errors</h2>
             </div>
           </div>
           <div class="mistake-lesson-list" id="mistakeLessonList"></div>
@@ -191,8 +205,8 @@
         <div class="card modules-card">
           <div class="section-heading">
             <div>
-              <div class="card-kicker">Modules</div>
-              <h2 class="card-title">Preparation courses</h2>
+              <div class="card-kicker" data-i18n="learn.modules">Modules</div>
+              <h2 class="card-title" data-i18n="learn.courses">Preparation courses</h2>
             </div>
           </div>
           <div class="module-grid" id="moduleGrid"></div>
@@ -201,8 +215,8 @@
         <div class="card topic-library-card">
           <div class="section-heading">
             <div>
-              <div class="card-kicker">Topic library</div>
-              <h2 class="card-title">Short lessons</h2>
+              <div class="card-kicker" data-i18n="learn.topicLibrary">Topic library</div>
+              <h2 class="card-title" data-i18n="learn.shortLessons">Short lessons</h2>
             </div>
             <span class="action-badge" id="lessonCountBadge">0 lessons</span>
           </div>
@@ -212,8 +226,8 @@
         <div class="card vocabulary-system-card">
           <div class="section-heading">
             <div>
-              <div class="card-kicker">Vocabulary system</div>
-              <h2 class="card-title">Academic words</h2>
+              <div class="card-kicker" data-i18n="learn.vocabSystem">Vocabulary system</div>
+              <h2 class="card-title" data-i18n="learn.academicWords">Academic words</h2>
             </div>
           </div>
           <div class="vocab-card-list" id="vocabCardList"></div>
@@ -231,8 +245,8 @@
   <section class="section" id="section-practice">
     <div class="practice-workspace">
       <div class="hub-header">
-        <h2>What should I train?</h2>
-        <p>Pick a skill based on readiness, recent accuracy, and mistakes.</p>
+        <h2 data-i18n="practice.title">What should I train?</h2>
+        <p data-i18n="practice.copy">Pick a skill based on readiness, recent accuracy, and mistakes.</p>
       </div>
       <div class="practice-layout" id="practiceHub"></div>
     </div>
@@ -242,24 +256,24 @@
   <section class="section" id="section-goal">
     <div class="profile-layout">
       <div class="card form-card">
-        <div class="card-kicker">Profile</div>
-        <h2 class="profile-title">Who is preparing?</h2>
-        <p class="form-desc">Keep your name and TOEFL goal accurate. Your avatar is generated automatically.</p>
+        <div class="card-kicker" data-i18n="page.goal">Profile</div>
+        <h2 class="profile-title" data-i18n="profile.title">Who is preparing?</h2>
+        <p class="form-desc" data-i18n="profile.copy">Keep your name and TOEFL goal accurate. Your avatar is generated automatically.</p>
 
         <div class="form-group">
-          <label>Your Name</label>
+          <label data-i18n="profile.name">Your Name</label>
           <input class="text-input" id="profileNameInput" type="text" value="Alex Carter" />
         </div>
 
         <div class="form-group">
-          <label>Exam Type</label>
+          <label data-i18n="profile.examType">Exam Type</label>
           <div class="radio-group">
             <label class="radio-option selected"><input type="radio" name="exam" value="TOEFL iBT" checked /> TOEFL iBT</label>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Target Score</label>
+          <label data-i18n="profile.targetScore">Target Score</label>
           <div class="btn-group" id="targetScoreGroup">
             <button class="btn-option" data-val="70">70</button>
             <button class="btn-option" data-val="80">80</button>
@@ -270,56 +284,56 @@
         </div>
 
         <div class="form-group">
-          <label>Preparation Time</label>
+          <label data-i18n="profile.prepTime">Preparation Time</label>
           <div class="btn-group" id="prepDaysGroup">
-            <button class="btn-option" data-val="30">30 days</button>
-            <button class="btn-option selected" data-val="60">60 days</button>
-            <button class="btn-option" data-val="90">90 days</button>
+            <button class="btn-option" data-val="30" data-i18n="profile.days30">30 days</button>
+            <button class="btn-option selected" data-val="60" data-i18n="profile.days60">60 days</button>
+            <button class="btn-option" data-val="90" data-i18n="profile.days90">90 days</button>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Current Level</label>
+          <label data-i18n="profile.currentLevel">Current Level</label>
           <div class="btn-group" id="levelGroup">
-            <button class="btn-option" data-val="beginner">Beginner</button>
-            <button class="btn-option selected" data-val="intermediate">Intermediate</button>
-            <button class="btn-option" data-val="advanced">Advanced</button>
+            <button class="btn-option" data-val="beginner" data-i18n="level.beginner">Beginner</button>
+            <button class="btn-option selected" data-val="intermediate" data-i18n="level.intermediate">Intermediate</button>
+            <button class="btn-option" data-val="advanced" data-i18n="level.advanced">Advanced</button>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Study Goal</label>
+          <label data-i18n="profile.studyGoal">Study Goal</label>
           <div class="btn-group" id="goalGroup">
-            <button class="btn-option selected" data-val="study abroad">Study Abroad</button>
-            <button class="btn-option" data-val="work">Work</button>
-            <button class="btn-option" data-val="immigration">Immigration</button>
+            <button class="btn-option selected" data-val="study abroad" data-i18n="goal.studyAbroad">Study Abroad</button>
+            <button class="btn-option" data-val="work" data-i18n="goal.work">Work</button>
+            <button class="btn-option" data-val="immigration" data-i18n="goal.immigration">Immigration</button>
           </div>
         </div>
 
-        <button class="btn-primary btn-full" id="saveGoalBtn">Save & Start Preparation</button>
-        <div class="success-msg hidden" id="goalSaved">Profile saved. Go to Dashboard to start.</div>
+        <button class="btn-primary btn-full" id="saveGoalBtn" data-i18n="profile.saveStart">Save & Start Preparation</button>
+        <div class="success-msg hidden" id="goalSaved" data-i18n="profile.saved">Profile saved. Go to Dashboard to start.</div>
       </div>
 
       <aside class="profile-side">
         <div class="card account-sync-card account-sync-card-primary">
           <div class="account-sync-head">
             <div>
-              <div class="card-kicker">Account Sync</div>
-              <h2 class="card-title">Save progress</h2>
+              <div class="card-kicker" data-i18n="account.kicker">Account Sync</div>
+              <h2 class="card-title" data-i18n="account.saveProgress">Save progress</h2>
             </div>
             <span class="sync-status sync-status-local" id="accountSyncStatus">Local mode</span>
           </div>
 
           <div id="accountSignedOut">
-            <p class="sync-copy">Use local mode for quick practice, or create an account to save your progress in SQLite.</p>
+            <p class="sync-copy" data-i18n="account.copy">Use local mode for quick practice, or create an account to save your progress in SQLite.</p>
             <div class="sync-form">
-              <label>Name<input class="text-input" id="authNameInput" type="text" autocomplete="name" placeholder="Gosha" /></label>
-              <label>Email<input class="text-input" id="authEmailInput" type="email" autocomplete="email" placeholder="gosha@example.com" /></label>
-              <label>Password<input class="text-input" id="authPasswordInput" type="password" autocomplete="current-password" placeholder="At least 6 characters" /></label>
+              <label><span data-i18n="account.name">Name</span><input class="text-input" id="authNameInput" type="text" autocomplete="name" placeholder="Gosha" /></label>
+              <label><span data-i18n="account.email">Email</span><input class="text-input" id="authEmailInput" type="email" autocomplete="email" placeholder="gosha@example.com" /></label>
+              <label><span data-i18n="account.password">Password</span><input class="text-input" id="authPasswordInput" type="password" autocomplete="current-password" placeholder="At least 6 characters" data-i18n-placeholder="account.passwordPlaceholder" /></label>
             </div>
             <div class="sync-actions">
-              <button class="btn-primary" id="createAccountBtn">Create account</button>
-              <button class="btn-secondary" id="signInBtn">Sign in</button>
+              <button class="btn-primary" id="createAccountBtn" data-i18n="account.create">Create account</button>
+              <button class="btn-secondary" id="signInBtn" data-i18n="account.signIn">Sign in</button>
             </div>
           </div>
 
@@ -331,17 +345,17 @@
                 <span id="accountEmail">alex@example.com</span>
               </div>
             </div>
-            <p class="sync-copy">Progress is synced.</p>
+            <p class="sync-copy" data-i18n="account.syncedCopy">Progress is synced.</p>
             <div class="sync-actions">
-              <button class="btn-primary" id="syncNowBtn">Sync now</button>
-              <button class="btn-secondary" id="logoutBtn">Log out</button>
+              <button class="btn-primary" id="syncNowBtn" data-i18n="account.syncNow">Sync now</button>
+              <button class="btn-secondary" id="logoutBtn" data-i18n="account.logout">Log out</button>
             </div>
           </div>
         </div>
 
         <div class="card setup-preview-card">
-          <div class="card-kicker">Personal summary</div>
-          <h2 class="card-title">Your study setup</h2>
+          <div class="card-kicker" data-i18n="profile.summary">Personal summary</div>
+          <h2 class="card-title" data-i18n="profile.setup">Your study setup</h2>
           <div class="profile-summary-head">
             <span class="avatar avatar-lg" id="profilePreviewAvatar"></span>
             <div>
@@ -351,13 +365,13 @@
           </div>
           <div class="setup-score">
             <span id="setupCurrent">56</span>
-            <small>current TOEFL</small>
+            <small data-i18n="profile.currentToefl">current TOEFL</small>
           </div>
           <div class="setup-path">
-            <div><span>Target</span><strong id="setupTarget">95</strong></div>
-            <div><span>Timeline</span><strong id="setupDays">60 days</strong></div>
-            <div><span>Level</span><strong id="setupLevel">Intermediate</strong></div>
-            <div><span>Goal</span><strong id="setupGoal">Study Abroad</strong></div>
+            <div><span data-i18n="common.target">Target</span><strong id="setupTarget">95</strong></div>
+            <div><span data-i18n="profile.timeline">Timeline</span><strong id="setupDays">60 days</strong></div>
+            <div><span data-i18n="common.level">Level</span><strong id="setupLevel">Intermediate</strong></div>
+            <div><span data-i18n="common.goal">Goal</span><strong id="setupGoal">Study Abroad</strong></div>
           </div>
           <div class="setup-mini-chart" aria-hidden="true">
             <span></span><span></span><span></span><span></span><span></span>
@@ -373,7 +387,7 @@
     <div class="practice-container">
       <div class="card practice-card">
         <div class="practice-header">
-          <h2>Vocabulary Practice</h2>
+          <h2 data-i18n="practice.vocabulary">Vocabulary Practice</h2>
           <div class="practice-stats">
             <span class="stat-badge" id="vocabProgress">0 / 0</span>
             <span class="stat-badge weak-badge" id="vocabMistakes">Mistakes: 0</span>
@@ -389,7 +403,7 @@
     <div class="practice-container">
       <div class="card practice-card">
         <div class="practice-header">
-          <h2>Reading Practice</h2>
+          <h2 data-i18n="practice.reading">Reading Practice</h2>
           <div class="practice-stats">
             <span class="stat-badge" id="readProgress">0 / 0</span>
             <span class="stat-badge weak-badge" id="readMistakes">Mistakes: 0</span>
@@ -405,7 +419,7 @@
     <div class="practice-container">
       <div class="card practice-card">
         <div class="practice-header">
-          <h2>Listening Practice</h2>
+          <h2 data-i18n="practice.listening">Listening Practice</h2>
           <div class="practice-stats">
             <span class="stat-badge" id="listenProgress">0 / 0</span>
             <span class="stat-badge weak-badge" id="listenMistakes">Mistakes: 0</span>
@@ -421,7 +435,7 @@
     <div class="practice-container">
       <div class="card practice-card">
         <div class="practice-header">
-          <h2>Speaking Practice</h2>
+          <h2 data-i18n="practice.speaking">Speaking Practice</h2>
           <div class="practice-stats">
             <span class="stat-badge" id="speakProgress">0 / 0</span>
             <span class="stat-badge weak-badge" id="speakMistakes">Mistakes: 0</span>
@@ -437,7 +451,7 @@
     <div class="practice-container">
       <div class="card practice-card">
         <div class="practice-header">
-          <h2>Writing Practice</h2>
+          <h2 data-i18n="practice.writing">Writing Practice</h2>
           <div class="practice-stats">
             <span class="stat-badge" id="writeProgress">0 / 0</span>
             <span class="stat-badge weak-badge" id="writeMistakes">Mistakes: 0</span>
@@ -453,7 +467,7 @@
     <div class="practice-container">
       <div class="card practice-card" id="miniTestCard">
         <div class="practice-header">
-          <h2>Mini TOEFL Test</h2>
+          <h2 data-i18n="practice.miniTest">Mini TOEFL Test</h2>
           <div class="practice-stats">
             <span class="stat-badge" id="miniProgress">0 / 10</span>
           </div>
@@ -467,63 +481,63 @@
   <section class="section" id="section-aiplan">
     <div class="study-plan-workspace">
       <div class="hub-header">
-        <h2>How will I reach my goal?</h2>
-          <p>Calendar, weekly targets, and Groq-backed recommendations live here.</p>
+        <h2 data-i18n="plan.title">How will I reach my goal?</h2>
+          <p data-i18n="plan.copy">Calendar, weekly targets, and Groq-backed recommendations live here.</p>
       </div>
       <div class="study-plan-grid">
         <div class="card calendar-card">
           <div class="section-heading">
             <div>
-              <div class="card-kicker">Study calendar</div>
-              <h2 class="card-title">Countdown and roadmap</h2>
+              <div class="card-kicker" data-i18n="plan.calendar">Study calendar</div>
+              <h2 class="card-title" data-i18n="plan.countdown">Countdown and roadmap</h2>
             </div>
           </div>
           <div class="calendar-container">
             <div class="cal-countdown-card" id="calCountdown" aria-live="polite"></div>
             <div class="cal-month-card">
               <div class="cal-month-head">
-                <button class="cal-nav-btn" id="calPrev" type="button" aria-label="Previous month">‹</button>
+                <button class="cal-nav-btn" id="calPrev" type="button" aria-label="Previous month" data-i18n-aria="plan.prevMonth">‹</button>
                 <div class="cal-month-title" id="calMonthTitle"></div>
-                <button class="cal-nav-btn" id="calNext" type="button" aria-label="Next month">›</button>
-                <button class="cal-today-btn" id="calToday" type="button">Today</button>
+                <button class="cal-nav-btn" id="calNext" type="button" aria-label="Next month" data-i18n-aria="plan.nextMonth">›</button>
+                <button class="cal-today-btn" id="calToday" type="button" data-i18n="common.today">Today</button>
               </div>
               <div class="cal-weekdays" id="calWeekdays"></div>
               <div class="cal-grid" id="calGrid"></div>
               <div class="cal-legend" id="calLegend"></div>
             </div>
             <div class="cal-roadmap-card">
-              <div class="card-kicker">8-week roadmap</div>
+              <div class="card-kicker" data-i18n="plan.roadmap">8-week roadmap</div>
               <div class="cal-roadmap" id="calRoadmap"></div>
             </div>
           </div>
         </div>
         <div class="card plan-goal-card">
-          <div class="card-kicker">Goal overview</div>
+          <div class="card-kicker" data-i18n="plan.goalOverview">Goal overview</div>
           <div id="studyGoalOverview"></div>
         </div>
         <div class="card weekly-targets-card">
-          <div class="card-kicker">Weekly targets</div>
+          <div class="card-kicker" data-i18n="plan.weeklyTargets">Weekly targets</div>
           <div id="weeklyTargets"></div>
         </div>
         <div class="card ai-recommendations-card">
           <div class="section-heading">
             <div>
-              <div class="card-kicker">Groq recommendations</div>
-              <h2 class="card-title">Focus plan</h2>
+              <div class="card-kicker" data-i18n="plan.groq">Groq recommendations</div>
+              <h2 class="card-title" data-i18n="plan.focusPlan">Focus plan</h2>
             </div>
-            <button class="btn-primary" id="generatePlanBtn">Generate Study Plan</button>
+            <button class="btn-primary" id="generatePlanBtn" data-i18n="plan.generate">Generate Study Plan</button>
           </div>
           <div id="studyPlanContent" class="study-plan-content" aria-live="polite">
-            <p class="placeholder-text">Click "Generate Study Plan" to get your personalized recommendations.</p>
+            <p class="placeholder-text" data-i18n="plan.placeholder">Click "Generate Study Plan" to get your personalized recommendations.</p>
           </div>
         </div>
         <div class="card gap-analysis-card">
           <div class="section-heading">
             <div>
-              <div class="card-kicker">Gap analysis</div>
-              <h2 class="card-title">Current to target</h2>
+              <div class="card-kicker" data-i18n="plan.gapAnalysis">Gap analysis</div>
+              <h2 class="card-title" data-i18n="plan.currentToTarget">Current to target</h2>
             </div>
-            <button class="btn-secondary" id="analyzeGapBtn">Run AI Analysis</button>
+            <button class="btn-secondary" id="analyzeGapBtn" data-i18n="plan.runAnalysis">Run AI Analysis</button>
           </div>
           <div id="scoreGapContent" class="gap-analysis" aria-live="polite">
             <div class="gap-visual" id="gapVisual"></div>
@@ -537,8 +551,8 @@
   <section class="section" id="section-mistakes">
     <div class="hub-container">
       <div class="hub-header">
-        <h2>Mistakes</h2>
-        <p>Review missed tasks and decide what to repair first.</p>
+        <h2 data-i18n="mistakes.title">Mistakes</h2>
+        <p data-i18n="mistakes.copy">Review missed tasks and decide what to repair first.</p>
       </div>
       <div class="mistakes-hub" id="mistakesHub"></div>
     </div>
@@ -548,8 +562,8 @@
   <section class="section" id="section-analytics">
     <div class="analytics-workspace">
       <div class="hub-header">
-        <h2>Why is my score changing?</h2>
-        <p>Analytics explains movement, accuracy, weak areas, and mistakes.</p>
+        <h2 data-i18n="analytics.title">Why is my score changing?</h2>
+        <p data-i18n="analytics.copy">Analytics explains movement, accuracy, weak areas, and mistakes.</p>
       </div>
       <div id="analyticsWorkspace"></div>
     </div>
@@ -565,28 +579,28 @@
   <div class="side-tool-stack" aria-label="Quick tools">
     <button class="side-tool-btn coach-chat-toggle" id="coachChatToggle" type="button" aria-expanded="false" aria-controls="coachChatPanel">
       <span class="coach-chat-mark">AI</span>
-      <span>Coach</span>
+      <span data-i18n="tools.coach">Coach</span>
     </button>
     <button class="side-tool-btn notebook-toggle" id="notebookToggle" type="button" aria-expanded="false" aria-controls="notebookPanel">
       <span class="tool-mark">N</span>
-      <span>Notes</span>
+      <span data-i18n="tools.notes">Notes</span>
     </button>
   </div>
 
   <section class="notebook-panel hidden" id="notebookPanel" aria-label="TOEFL notebook">
     <div class="tool-panel-head">
       <div>
-        <div class="card-kicker">Notebook</div>
-        <h2>My notes</h2>
+        <div class="card-kicker" data-i18n="notebook.kicker">Notebook</div>
+        <h2 data-i18n="notebook.title">My notes</h2>
       </div>
-      <button class="tool-panel-close" id="notebookClose" type="button" aria-label="Close notebook">Close</button>
+      <button class="tool-panel-close" id="notebookClose" type="button" aria-label="Close notebook" data-i18n="common.close" data-i18n-aria="notebook.close">Close</button>
     </div>
     <div class="notebook-panel-body">
       <div class="note-input-row">
-        <input class="text-input" id="noteTitleInput" type="text" placeholder="Rule or phrase title" />
-        <button class="btn-primary" id="addNoteBtn" type="button">Add note</button>
+        <input class="text-input" id="noteTitleInput" type="text" placeholder="Rule or phrase title" data-i18n-placeholder="notebook.titlePlaceholder" />
+        <button class="btn-primary" id="addNoteBtn" type="button" data-i18n="notebook.add">Add note</button>
       </div>
-      <textarea class="text-input note-textarea" id="noteContentInput" placeholder="Write a phrase, mistake pattern, template, or personal TOEFL rule."></textarea>
+      <textarea class="text-input note-textarea" id="noteContentInput" placeholder="Write a phrase, mistake pattern, template, or personal TOEFL rule." data-i18n-placeholder="notebook.contentPlaceholder"></textarea>
       <div class="notebook-list" id="notebookList"></div>
     </div>
   </section>
@@ -594,20 +608,20 @@
   <section class="coach-chat-panel hidden" id="coachChatPanel" aria-label="AI TOEFL Coach chat">
     <div class="coach-chat-head">
       <div>
-        <div class="card-kicker">AI Coach</div>
-        <h2>Ask about your next step</h2>
+        <div class="card-kicker" data-i18n="coach.kicker">AI Coach</div>
+        <h2 data-i18n="coach.title">Ask about your next step</h2>
       </div>
-      <button class="coach-chat-close" id="coachChatClose" type="button" aria-label="Close chat">Close</button>
+      <button class="coach-chat-close" id="coachChatClose" type="button" aria-label="Close chat" data-i18n="common.close" data-i18n-aria="coach.close">Close</button>
     </div>
     <div class="coach-chat-messages" id="coachChatMessages" aria-live="polite"></div>
     <div class="coach-chat-suggestions" id="coachChatSuggestions">
-      <button type="button" data-chat-prompt="What should I practice today?">Today</button>
-      <button type="button" data-chat-prompt="Explain my weak zones in simple words.">Weak zones</button>
-      <button type="button" data-chat-prompt="How can I improve my TOEFL score this week?">This week</button>
+      <button type="button" data-chat-prompt="What should I practice today?" data-i18n="coach.today">Today</button>
+      <button type="button" data-chat-prompt="Explain my weak zones in simple words." data-i18n="coach.weakZones">Weak zones</button>
+      <button type="button" data-chat-prompt="How can I improve my TOEFL score this week?" data-i18n="coach.thisWeek">This week</button>
     </div>
     <form class="coach-chat-form" id="coachChatForm">
-      <textarea id="coachChatInput" class="text-input" rows="2" maxlength="1200" placeholder="Ask your TOEFL coach..."></textarea>
-      <button class="btn-primary" id="coachChatSend" type="submit">Send</button>
+      <textarea id="coachChatInput" class="text-input" rows="2" maxlength="1200" placeholder="Ask your TOEFL coach..." data-i18n-placeholder="coach.placeholder"></textarea>
+      <button class="btn-primary" id="coachChatSend" type="submit" data-i18n="coach.send">Send</button>
     </form>
   </section>
 </div>
