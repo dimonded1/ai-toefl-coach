@@ -23,7 +23,7 @@ router.post("/register", (req, res) => {
       VALUES (?, ?, ?, ?)
     `).run(name, email, passwordHash, now);
 
-    const user = db.prepare("SELECT id, name, email, created_at FROM users WHERE id = ?").get(result.lastInsertRowid);
+    const user = db.prepare("SELECT id, name, email, plan, subscription_status, created_at FROM users WHERE id = ?").get(result.lastInsertRowid);
     saveProfileForUser(user.id, { name: user.name });
     return user;
   });

@@ -12,6 +12,67 @@
 <body>
 <a class="skip-link" href="#mainContent">Skip to content</a>
 
+<!-- ═══════════════════════ AUTH ENTRY ═══════════════════════ -->
+<section class="auth-gate" id="authGate" hidden aria-labelledby="authGateTitle">
+  <div class="auth-gate-panel">
+    <div class="auth-gate-copy">
+      <span class="auth-product-mark">AI TOEFL Coach</span>
+      <h1 id="authGateTitle">Sign in to start your TOEFL workspace</h1>
+      <p>Create an account once, then keep your TOEFL goal, progress, mistakes, notes, and AI study plan ready when you return.</p>
+      <div class="auth-benefit-grid" aria-label="Account benefits">
+        <div><strong>Profile</strong><span>Target score and deadline</span></div>
+        <div><strong>Progress</strong><span>Practice history and weak zones</span></div>
+        <div><strong>Plan</strong><span>Free access for your study workspace</span></div>
+      </div>
+    </div>
+
+    <div class="auth-gate-card">
+      <div class="auth-tabs" role="tablist" aria-label="Authentication mode">
+        <button class="auth-tab active" id="authGateCreateTab" type="button" data-auth-gate-mode="register">Create account</button>
+        <button class="auth-tab" id="authGateSignInTab" type="button" data-auth-gate-mode="login">Sign in</button>
+      </div>
+
+      <div class="auth-gate-form">
+        <label id="authGateNameField">Name<input class="text-input" id="authGateNameInput" type="text" autocomplete="name" placeholder="Gosha" /></label>
+        <label>Email<input class="text-input" id="authGateEmailInput" type="email" autocomplete="email" placeholder="gosha@example.com" /></label>
+        <label>Password<input class="text-input" id="authGatePasswordInput" type="password" autocomplete="current-password" placeholder="At least 6 characters" /></label>
+      </div>
+
+      <button class="btn-primary btn-full" id="authGateSubmitBtn" type="button">Create account</button>
+      <div class="auth-message hidden" id="authGateMessage" role="status" aria-live="polite"></div>
+      <button class="auth-local-link" id="continueLocalBtn" type="button">Continue locally for demo</button>
+      <p class="auth-gate-note">Your account saves the study setup and progress you build here.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ FIRST SETUP MODAL ═══════════════════════ -->
+<section class="onboarding-modal hidden" id="onboardingModal" aria-labelledby="onboardingTitle" aria-modal="true" role="dialog">
+  <div class="onboarding-card">
+    <div class="onboarding-meta">
+      <span id="onboardingStepText">Step 1 of 4</span>
+      <div class="onboarding-dots" id="onboardingDots" aria-hidden="true"></div>
+    </div>
+    <div class="onboarding-progress" aria-hidden="true">
+      <span id="onboardingProgressFill"></span>
+    </div>
+    <h2 id="onboardingTitle">What score do you need?</h2>
+    <p id="onboardingCopy">Choose the TOEFL target you want the coach to plan around.</p>
+    <div class="onboarding-options" id="onboardingOptions"></div>
+    <div class="onboarding-building hidden" id="onboardingBuilding">
+      <span class="onboarding-spinner" aria-hidden="true"></span>
+      <div>
+        <strong>Forming your personal plan</strong>
+        <span>Preparing dashboard, weak zones, and first study focus.</span>
+      </div>
+    </div>
+    <div class="onboarding-actions">
+      <button class="btn-secondary" id="onboardingBackBtn" type="button">Back</button>
+      <button class="btn-primary" id="onboardingNextBtn" type="button">Next</button>
+    </div>
+  </div>
+</section>
+
 <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
 <nav class="sidebar" id="sidebar" aria-label="Primary navigation">
   <div class="sidebar-user" data-section="goal">
@@ -132,6 +193,23 @@
           <span>Search topics</span>
           <input class="text-input" id="learnSearchInput" type="search" placeholder="inference, lecture notes, academic discussion" />
         </label>
+        <label class="learn-select">
+          <span>Level</span>
+          <select class="text-input" id="learnLevelSelect">
+            <option value="all">All levels</option>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </label>
+        <label class="learn-select">
+          <span>Time</span>
+          <select class="text-input" id="learnTimeSelect">
+            <option value="all">Any time</option>
+            <option value="short">Under 5 min</option>
+            <option value="medium">5-6 min</option>
+          </select>
+        </label>
         <div class="learn-filter-row" id="learnSkillFilters">
           <button class="btn-option selected" data-learn-filter="all">All</button>
           <button class="btn-option" data-learn-filter="reading">Reading</button>
@@ -185,6 +263,7 @@
             </div>
             <span class="action-badge" id="lessonCountBadge">0 lessons</span>
           </div>
+          <div class="topic-chip-row" id="topicQuickFilters"></div>
           <div class="lesson-grid" id="lessonGrid"></div>
         </div>
 
@@ -207,9 +286,26 @@
           </div>
           <div class="note-input-row">
             <input class="text-input" id="noteTitleInput" type="text" placeholder="Rule or phrase title" />
+            <select class="text-input" id="noteTypeInput" aria-label="Note category">
+              <option value="personal">Personal</option>
+              <option value="lesson">Lesson</option>
+              <option value="mistake">Mistake</option>
+              <option value="template">Template</option>
+              <option value="phrase">Phrase</option>
+            </select>
             <button class="btn-primary" id="addNoteBtn" type="button">Add note</button>
           </div>
           <textarea class="text-input note-textarea" id="noteContentInput" placeholder="Write a phrase, mistake pattern, template, or personal TOEFL rule."></textarea>
+          <div class="notebook-toolbar">
+            <input class="text-input" id="noteSearchInput" type="search" placeholder="Search notes" />
+            <div class="note-filter-row" id="noteTypeFilters">
+              <button class="btn-option selected" data-note-filter="all">All</button>
+              <button class="btn-option" data-note-filter="lesson">Lessons</button>
+              <button class="btn-option" data-note-filter="mistake">Mistakes</button>
+              <button class="btn-option" data-note-filter="template">Templates</button>
+              <button class="btn-option" data-note-filter="phrase">Phrases</button>
+            </div>
+          </div>
           <div class="notebook-list" id="notebookList"></div>
         </div>
       </div>
@@ -237,75 +333,94 @@
     <div class="profile-layout">
       <div class="card form-card">
         <div class="card-kicker">Profile</div>
-        <h2 class="profile-title">Who is preparing?</h2>
-        <p class="form-desc">Keep your name and TOEFL goal accurate. Your avatar is generated automatically.</p>
+        <h2 class="profile-title">Your study profile</h2>
+        <p class="form-desc">Keep the key TOEFL choices visible here. New accounts set them during the first setup.</p>
 
-        <div class="form-group">
-          <label>Your Name</label>
-          <input class="text-input" id="profileNameInput" type="text" value="Alex Carter" />
-        </div>
-
-        <div class="form-group">
-          <label>Exam Type</label>
-          <div class="radio-group">
-            <label class="radio-option selected"><input type="radio" name="exam" value="TOEFL iBT" checked /> TOEFL iBT</label>
+        <div class="profile-display hidden" id="profileDisplayPanel">
+          <div class="profile-display-head">
+            <span class="avatar avatar-lg" id="profileDisplayAvatar"></span>
+            <div>
+              <strong id="profileDisplayName">Alex Carter</strong>
+              <span id="profileDisplayEmail">alex@example.com</span>
+            </div>
           </div>
-        </div>
-
-        <div class="form-group">
-          <label>Target Score</label>
-          <div class="btn-group" id="targetScoreGroup">
-            <button class="btn-option" data-val="70">70</button>
-            <button class="btn-option" data-val="80">80</button>
-            <button class="btn-option selected" data-val="95">95</button>
-            <button class="btn-option" data-val="100">100</button>
-            <button class="btn-option" data-val="110">110</button>
+          <div class="profile-display-grid">
+            <div><span>Target score</span><strong id="profileDisplayTarget">95</strong></div>
+            <div><span>Timeline</span><strong id="profileDisplayDays">60 days</strong></div>
+            <div><span>Current level</span><strong id="profileDisplayLevel">Intermediate</strong></div>
+            <div><span>Main goal</span><strong id="profileDisplayGoal">Study Abroad</strong></div>
           </div>
+          <p>Your personal cabinet keeps these choices visible while Dashboard and Study Plan turn them into daily work.</p>
         </div>
 
-        <div class="form-group">
-          <label>Preparation Time</label>
-          <div class="btn-group" id="prepDaysGroup">
-            <button class="btn-option" data-val="30">30 days</button>
-            <button class="btn-option selected" data-val="60">60 days</button>
-            <button class="btn-option" data-val="90">90 days</button>
+        <div id="profileEditPanel">
+          <div class="form-group">
+            <label>Your Name</label>
+            <input class="text-input" id="profileNameInput" type="text" value="Alex Carter" />
           </div>
-        </div>
 
-        <div class="form-group">
-          <label>Current Level</label>
-          <div class="btn-group" id="levelGroup">
-            <button class="btn-option" data-val="beginner">Beginner</button>
-            <button class="btn-option selected" data-val="intermediate">Intermediate</button>
-            <button class="btn-option" data-val="advanced">Advanced</button>
+          <div class="form-group">
+            <label>Exam Type</label>
+            <div class="radio-group">
+              <label class="radio-option selected"><input type="radio" name="exam" value="TOEFL iBT" checked /> TOEFL iBT</label>
+            </div>
           </div>
-        </div>
 
-        <div class="form-group">
-          <label>Study Goal</label>
-          <div class="btn-group" id="goalGroup">
-            <button class="btn-option selected" data-val="study abroad">Study Abroad</button>
-            <button class="btn-option" data-val="work">Work</button>
-            <button class="btn-option" data-val="immigration">Immigration</button>
+          <div class="form-group">
+            <label>Target Score</label>
+            <div class="btn-group" id="targetScoreGroup">
+              <button class="btn-option" data-val="70">70</button>
+              <button class="btn-option" data-val="80">80</button>
+              <button class="btn-option selected" data-val="95">95</button>
+              <button class="btn-option" data-val="100">100</button>
+              <button class="btn-option" data-val="110">110</button>
+            </div>
           </div>
-        </div>
 
-        <button class="btn-primary btn-full" id="saveGoalBtn">Save & Start Preparation</button>
-        <div class="success-msg hidden" id="goalSaved">Profile saved. Go to Dashboard to start.</div>
+          <div class="form-group">
+            <label>Preparation Time</label>
+            <div class="btn-group" id="prepDaysGroup">
+              <button class="btn-option" data-val="30">30 days</button>
+              <button class="btn-option selected" data-val="60">60 days</button>
+              <button class="btn-option" data-val="90">90 days</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Current Level</label>
+            <div class="btn-group" id="levelGroup">
+              <button class="btn-option" data-val="beginner">Beginner</button>
+              <button class="btn-option selected" data-val="intermediate">Intermediate</button>
+              <button class="btn-option" data-val="advanced">Advanced</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Study Goal</label>
+            <div class="btn-group" id="goalGroup">
+              <button class="btn-option selected" data-val="study abroad">Study Abroad</button>
+              <button class="btn-option" data-val="work">Work</button>
+              <button class="btn-option" data-val="immigration">Immigration</button>
+            </div>
+          </div>
+
+          <button class="btn-primary btn-full" id="saveGoalBtn">Save & Start Preparation</button>
+          <div class="success-msg hidden" id="goalSaved">Profile saved. Go to Dashboard to start.</div>
+        </div>
       </div>
 
       <aside class="profile-side">
         <div class="card account-sync-card account-sync-card-primary">
           <div class="account-sync-head">
             <div>
-              <div class="card-kicker">Account Sync</div>
-              <h2 class="card-title">Save progress</h2>
+              <div class="card-kicker">Account</div>
+              <h2 class="card-title">Personal cabinet</h2>
             </div>
             <span class="sync-status sync-status-local" id="accountSyncStatus">Local mode</span>
           </div>
 
           <div id="accountSignedOut">
-            <p class="sync-copy">Use local mode for quick practice, or create an account to save your progress in SQLite.</p>
+            <p class="sync-copy">Sign in to keep TOEFL progress, notes, mistakes, and AI plans ready when you return.</p>
             <div class="sync-form">
               <label>Name<input class="text-input" id="authNameInput" type="text" autocomplete="name" placeholder="Gosha" /></label>
               <label>Email<input class="text-input" id="authEmailInput" type="email" autocomplete="email" placeholder="gosha@example.com" /></label>
@@ -315,6 +430,8 @@
               <button class="btn-primary" id="createAccountBtn">Create account</button>
               <button class="btn-secondary" id="signInBtn">Sign in</button>
             </div>
+            <div class="auth-message hidden" id="authProfileMessage" role="status" aria-live="polite"></div>
+            <button class="auth-local-link auth-open-link" id="openAuthGateBtn" type="button">Open full sign-in screen</button>
           </div>
 
           <div id="accountSignedIn" class="hidden">
@@ -325,7 +442,11 @@
                 <span id="accountEmail">alex@example.com</span>
               </div>
             </div>
-            <p class="sync-copy">Progress is synced.</p>
+            <div class="account-plan-grid">
+              <div><span>Plan</span><strong id="accountPlan">Free</strong></div>
+              <div><span>Billing</span><strong id="accountBilling">Not connected</strong></div>
+            </div>
+            <p class="sync-copy">Progress is saved. Your study setup, notes, and practice history stay connected to this account.</p>
             <div class="sync-actions">
               <button class="btn-primary" id="syncNowBtn">Sync now</button>
               <button class="btn-secondary" id="logoutBtn">Log out</button>

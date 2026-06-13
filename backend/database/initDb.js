@@ -7,6 +7,8 @@ function initDb(db) {
       name TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
+      plan TEXT DEFAULT 'free',
+      subscription_status TEXT DEFAULT 'free',
       created_at TEXT NOT NULL
     );
 
@@ -60,6 +62,8 @@ function initDb(db) {
   ensureColumn(db, "profiles", "learning_progress_json", "TEXT");
   ensureColumn(db, "profiles", "vocabulary_progress_json", "TEXT");
   ensureColumn(db, "profiles", "notes_json", "TEXT");
+  ensureColumn(db, "users", "plan", "TEXT DEFAULT 'free'");
+  ensureColumn(db, "users", "subscription_status", "TEXT DEFAULT 'free'");
 }
 
 function ensureColumn(db, table, column, type) {
