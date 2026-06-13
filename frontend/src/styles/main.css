@@ -49,6 +49,7 @@ body.auth-gate-open {
 }
 
 body.auth-gate-open .coach-chat,
+body.auth-gate-open .side-tools,
 body.auth-gate-open .toast {
   display: none;
 }
@@ -222,7 +223,7 @@ a {
 
 .auth-tab.active {
   background: #fff;
-  color: var(--text);
+  color: #121827;
   box-shadow: 0 1px 2px rgba(25,39,69,.08);
 }
 

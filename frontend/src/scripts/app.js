@@ -165,6 +165,9 @@ const I18N = {
     "learn.academicWords": "Academic words",
     "profile.title": "Who is preparing?",
     "profile.copy": "Keep your name and TOEFL goal accurate. Your avatar is generated automatically.",
+    "profile.settings": "Profile settings",
+    "profile.setupTitle": "Your TOEFL setup",
+    "profile.settingsCopy": "Change your name, target score, timeline, level, or study goal. The dashboard and AI plan update from these settings.",
     "profile.name": "Your Name",
     "profile.examType": "Exam Type",
     "profile.targetScore": "Target Score",
@@ -176,7 +179,9 @@ const I18N = {
     "profile.currentLevel": "Current Level",
     "profile.studyGoal": "Study Goal",
     "profile.saveStart": "Save & Start Preparation",
+    "profile.saveSettings": "Save profile settings",
     "profile.saved": "Profile saved. Go to Dashboard to start.",
+    "profile.savedUpdated": "Profile saved. Dashboard and study plan are updated.",
     "profile.summary": "Personal summary",
     "profile.setup": "Your study setup",
     "profile.currentToefl": "current TOEFL",
@@ -189,7 +194,7 @@ const I18N = {
     "goal.immigration": "Immigration",
     "account.kicker": "Account Sync",
     "account.saveProgress": "Save progress",
-    "account.copy": "Use local mode for quick practice, or create an account to save your progress in SQLite.",
+    "account.copy": "Create an account to save your TOEFL progress and profile.",
     "account.name": "Name",
     "account.email": "Email",
     "account.password": "Password",
@@ -199,15 +204,15 @@ const I18N = {
     "account.syncedCopy": "Progress is synced.",
     "account.syncNow": "Sync now",
     "account.logout": "Log out",
-    "account.localMode": "Local mode",
-    "account.local": "Local",
+    "account.localMode": "Sign-in required",
+    "account.local": "Sign in",
     "account.synced": "Synced",
     "account.saving": "Saving",
     "account.syncFailed": "Sync failed",
-    "account.localTitle": "Local mode. Create an account to sync progress.",
+    "account.localTitle": "Open the sign-in screen.",
     "account.failedTitle": "Sync failed. Open Profile to try again.",
-    "account.savingTitle": "Saving profile to SQLite.",
-    "account.syncedTitle": "Progress is synced to SQLite.",
+    "account.savingTitle": "Saving your profile.",
+    "account.syncedTitle": "Your progress is saved.",
     "skill.reading": "Reading",
     "skill.listening": "Listening",
     "skill.speaking": "Speaking",
@@ -270,7 +275,7 @@ const I18N = {
     "toast.confirmReset": "Reset all progress? This cannot be undone.",
     "toast.reset": "Progress reset.",
     "toast.goalSaved": "Goal saved. Let's start preparing.",
-    "toast.signedOut": "Signed out. Local mode is active.",
+    "toast.signedOut": "Signed out.",
     "toast.signedInSynced": "Signed in. Progress is synced.",
     "toast.signedIn": "Signed in.",
     "toast.syncFailed": "Sync failed. Local changes are still saved.",
@@ -366,6 +371,9 @@ const I18N = {
     "learn.academicWords": "Академические слова",
     "profile.title": "Кто готовится?",
     "profile.copy": "Держи имя и TOEFL-цель актуальными. Аватар создаётся автоматически.",
+    "profile.settings": "Настройки профиля",
+    "profile.setupTitle": "Твоя настройка TOEFL",
+    "profile.settingsCopy": "Измени имя, целевой балл, срок, уровень или цель обучения. Дашборд и AI-план обновятся по этим настройкам.",
     "profile.name": "Имя",
     "profile.examType": "Тип экзамена",
     "profile.targetScore": "Целевой балл",
@@ -377,7 +385,9 @@ const I18N = {
     "profile.currentLevel": "Текущий уровень",
     "profile.studyGoal": "Цель обучения",
     "profile.saveStart": "Сохранить и начать",
+    "profile.saveSettings": "Сохранить настройки профиля",
     "profile.saved": "Профиль сохранён. Перейди в дашборд, чтобы начать.",
+    "profile.savedUpdated": "Профиль сохранён. Дашборд и учебный план обновлены.",
     "profile.summary": "Краткий профиль",
     "profile.setup": "Твои настройки подготовки",
     "profile.currentToefl": "текущий TOEFL",
@@ -390,7 +400,7 @@ const I18N = {
     "goal.immigration": "Иммиграция",
     "account.kicker": "Синхронизация",
     "account.saveProgress": "Сохранить прогресс",
-    "account.copy": "Можно быстро заниматься локально или создать аккаунт, чтобы сохранить прогресс в SQLite.",
+    "account.copy": "Создай аккаунт, чтобы сохранить прогресс TOEFL и профиль.",
     "account.name": "Имя",
     "account.email": "Email",
     "account.password": "Пароль",
@@ -400,15 +410,15 @@ const I18N = {
     "account.syncedCopy": "Прогресс синхронизирован.",
     "account.syncNow": "Синхронизировать",
     "account.logout": "Выйти",
-    "account.localMode": "Локальный режим",
-    "account.local": "Локально",
+    "account.localMode": "Нужен вход",
+    "account.local": "Войти",
     "account.synced": "Синхронизировано",
     "account.saving": "Сохранение",
     "account.syncFailed": "Ошибка синхронизации",
-    "account.localTitle": "Локальный режим. Создай аккаунт, чтобы синхронизировать прогресс.",
+    "account.localTitle": "Открыть экран входа.",
     "account.failedTitle": "Синхронизация не удалась. Открой профиль и попробуй снова.",
-    "account.savingTitle": "Сохраняем профиль в SQLite.",
-    "account.syncedTitle": "Прогресс синхронизирован с SQLite.",
+    "account.savingTitle": "Сохраняем профиль.",
+    "account.syncedTitle": "Прогресс сохранён.",
     "skill.reading": "Reading",
     "skill.listening": "Listening",
     "skill.speaking": "Speaking",
@@ -471,7 +481,7 @@ const I18N = {
     "toast.confirmReset": "Сбросить весь прогресс? Это действие нельзя отменить.",
     "toast.reset": "Прогресс сброшен.",
     "toast.goalSaved": "Цель сохранена. Начинаем подготовку.",
-    "toast.signedOut": "Вы вышли. Активен локальный режим.",
+    "toast.signedOut": "Вы вышли.",
     "toast.signedInSynced": "Вход выполнен. Прогресс синхронизирован.",
     "toast.signedIn": "Вход выполнен.",
     "toast.syncFailed": "Синхронизация не удалась. Локальные изменения сохранены.",
@@ -567,6 +577,9 @@ const I18N = {
     "learn.academicWords": "Mots académiques",
     "profile.title": "Qui se prépare ?",
     "profile.copy": "Garde ton nom et ton objectif TOEFL à jour. L'avatar est généré automatiquement.",
+    "profile.settings": "Paramètres du profil",
+    "profile.setupTitle": "Ta configuration TOEFL",
+    "profile.settingsCopy": "Modifie ton nom, ton score cible, ton calendrier, ton niveau ou ton objectif. Le tableau de bord et le plan IA se mettent à jour.",
     "profile.name": "Nom",
     "profile.examType": "Type d'examen",
     "profile.targetScore": "Score cible",
@@ -578,7 +591,9 @@ const I18N = {
     "profile.currentLevel": "Niveau actuel",
     "profile.studyGoal": "But d'étude",
     "profile.saveStart": "Enregistrer et commencer",
+    "profile.saveSettings": "Enregistrer le profil",
     "profile.saved": "Profil enregistré. Va au tableau pour commencer.",
+    "profile.savedUpdated": "Profil enregistré. Le tableau de bord et le plan d'étude sont mis à jour.",
     "profile.summary": "Résumé personnel",
     "profile.setup": "Configuration d'étude",
     "profile.currentToefl": "TOEFL actuel",
@@ -591,7 +606,7 @@ const I18N = {
     "goal.immigration": "Immigration",
     "account.kicker": "Synchronisation",
     "account.saveProgress": "Enregistrer la progression",
-    "account.copy": "Utilise le mode local ou crée un compte pour enregistrer ta progression dans SQLite.",
+    "account.copy": "Crée un compte pour enregistrer ta progression TOEFL et ton profil.",
     "account.name": "Nom",
     "account.email": "Email",
     "account.password": "Mot de passe",
@@ -601,8 +616,8 @@ const I18N = {
     "account.syncedCopy": "La progression est synchronisée.",
     "account.syncNow": "Synchroniser",
     "account.logout": "Déconnexion",
-    "account.localMode": "Mode local",
-    "account.local": "Local",
+    "account.localMode": "Connexion requise",
+    "account.local": "Se connecter",
     "account.synced": "Synchronisé",
     "account.saving": "Enregistrement",
     "account.syncFailed": "Échec sync",
@@ -668,7 +683,7 @@ const I18N = {
     "toast.confirmReset": "Réinitialiser toute la progression ? Cette action est définitive.",
     "toast.reset": "Progression réinitialisée.",
     "toast.goalSaved": "Objectif enregistré. La préparation commence.",
-    "toast.signedOut": "Déconnecté. Le mode local est actif.",
+    "toast.signedOut": "Déconnecté.",
     "toast.signedInSynced": "Connecté. La progression est synchronisée.",
     "toast.signedIn": "Connecté.",
     "toast.syncFailed": "Échec de synchronisation. Les changements locaux sont conservés.",
@@ -764,6 +779,9 @@ const I18N = {
     "learn.academicWords": "Palabras académicas",
     "profile.title": "¿Quién se prepara?",
     "profile.copy": "Mantén tu nombre y meta TOEFL actualizados. El avatar se genera automáticamente.",
+    "profile.settings": "Ajustes del perfil",
+    "profile.setupTitle": "Tu configuración TOEFL",
+    "profile.settingsCopy": "Cambia tu nombre, puntuación objetivo, calendario, nivel u objetivo. El panel y el plan IA se actualizan con estos ajustes.",
     "profile.name": "Nombre",
     "profile.examType": "Tipo de examen",
     "profile.targetScore": "Puntuación objetivo",
@@ -775,7 +793,9 @@ const I18N = {
     "profile.currentLevel": "Nivel actual",
     "profile.studyGoal": "Meta de estudio",
     "profile.saveStart": "Guardar y empezar",
+    "profile.saveSettings": "Guardar perfil",
     "profile.saved": "Perfil guardado. Ve al panel para empezar.",
+    "profile.savedUpdated": "Perfil guardado. El panel y el plan de estudio se actualizaron.",
     "profile.summary": "Resumen personal",
     "profile.setup": "Configuración de estudio",
     "profile.currentToefl": "TOEFL actual",
@@ -788,7 +808,7 @@ const I18N = {
     "goal.immigration": "Inmigración",
     "account.kicker": "Sincronización",
     "account.saveProgress": "Guardar progreso",
-    "account.copy": "Usa modo local o crea una cuenta para guardar progreso en SQLite.",
+    "account.copy": "Crea una cuenta para guardar tu progreso TOEFL y perfil.",
     "account.name": "Nombre",
     "account.email": "Email",
     "account.password": "Contraseña",
@@ -798,8 +818,8 @@ const I18N = {
     "account.syncedCopy": "El progreso está sincronizado.",
     "account.syncNow": "Sincronizar",
     "account.logout": "Salir",
-    "account.localMode": "Modo local",
-    "account.local": "Local",
+    "account.localMode": "Inicio requerido",
+    "account.local": "Entrar",
     "account.synced": "Sincronizado",
     "account.saving": "Guardando",
     "account.syncFailed": "Error de sync",
@@ -865,7 +885,7 @@ const I18N = {
     "toast.confirmReset": "¿Reiniciar todo el progreso? Esta acción no se puede deshacer.",
     "toast.reset": "Progreso reiniciado.",
     "toast.goalSaved": "Objetivo guardado. Empezamos la preparación.",
-    "toast.signedOut": "Sesión cerrada. El modo local está activo.",
+    "toast.signedOut": "Sesión cerrada.",
     "toast.signedInSynced": "Sesión iniciada. El progreso está sincronizado.",
     "toast.signedIn": "Sesión iniciada.",
     "toast.syncFailed": "Falló la sincronización. Los cambios locales siguen guardados.",
@@ -921,10 +941,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initAnalytics();
   renderAppShell();
 
-  // Start on dashboard unless no goal set
-  if (!profile.startDate) {
-    navigateTo("goal");
-      showToast(t("toast.setGoal"), "info");
   const authLocked = shouldShowAuthGate();
   if (authLocked) {
     setAuthGateMode("register");
@@ -2317,7 +2333,6 @@ function initAccountSync() {
   document.getElementById("logoutBtn")?.addEventListener("click", () => {
     logoutUser();
     renderAccountSync();
-    showToast(t("toast.signedOut"), "info");
     setAuthGateMode("register");
     renderAuthGate();
   });
@@ -2480,22 +2495,13 @@ async function handleManualSync() {
 
 function renderAccountSync() {
   const signedIn = typeof isAuthenticated === "function" && isAuthenticated();
-  const signedOutPanel = document.getElementById("accountSignedOut");
-  const signedInPanel = document.getElementById("accountSignedIn");
   const status = document.getElementById("accountSyncStatus");
 
-  signedOutPanel?.classList.toggle("hidden", signedIn);
-  signedInPanel?.classList.toggle("hidden", !signedIn);
-
   if (!signedIn) {
-    status.textContent = t("account.localMode");
-    status.className = "sync-status sync-status-local";
     if (status) {
-      status.textContent = "Sign-in required";
+      status.textContent = t("account.localMode");
       status.className = "sync-status sync-status-local";
     }
-    const nameInput = document.getElementById("authNameInput");
-    if (nameInput && !nameInput.value) nameInput.value = document.getElementById("profileNameInput")?.value || profile.name || "";
     renderTopbarSyncStatus(false);
     return;
   }
@@ -2528,9 +2534,6 @@ function renderTopbarSyncStatus(signedIn) {
     topbarStatus.textContent = t("account.local");
     topbarStatus.className = "sync-topbar-status sync-topbar-local";
     topbarStatus.title = t("account.localTitle");
-    topbarStatus.textContent = "Sign in";
-    topbarStatus.className = "sync-topbar-status sync-topbar-local";
-    topbarStatus.title = "Open the sign-in screen.";
     return;
   }
 
@@ -2545,14 +2548,12 @@ function renderTopbarSyncStatus(signedIn) {
     topbarStatus.textContent = t("account.saving");
     topbarStatus.className = "sync-topbar-status sync-topbar-saving";
     topbarStatus.title = t("account.savingTitle");
-    topbarStatus.title = "Saving your profile.";
     return;
   }
 
   topbarStatus.textContent = t("account.synced");
   topbarStatus.className = "sync-topbar-status sync-topbar-synced";
   topbarStatus.title = t("account.syncedTitle");
-  topbarStatus.title = "Your progress is saved.";
 }
 
 function renderProfileScreen() {

@@ -145,8 +145,7 @@
           <button type="button" role="menuitem" data-lang-option="es"><span>🇪🇸</span><strong>Español</strong></button>
         </div>
       </div>
-      <button class="sync-topbar-status sync-topbar-local" id="topbarSyncStatus" data-section="goal">Local mode</button>
-      <button class="sync-topbar-status sync-topbar-local" id="topbarSyncStatus" data-section="goal">Sign in</button>
+      <button class="sync-topbar-status sync-topbar-local" id="topbarSyncStatus" data-section="goal" data-i18n="account.local">Sign in</button>
       <span class="score-badge" id="topbarScore">TOEFL: <strong id="topScore">--</strong></span>
     </div>
   </header>
@@ -312,37 +311,6 @@
           <div class="vocab-card-list" id="vocabCardList"></div>
         </div>
 
-        <div class="card notebook-card">
-          <div class="section-heading">
-            <div>
-              <div class="card-kicker">Notebook</div>
-              <h2 class="card-title">My notes</h2>
-            </div>
-          </div>
-          <div class="note-input-row">
-            <input class="text-input" id="noteTitleInput" type="text" placeholder="Rule or phrase title" />
-            <select class="text-input" id="noteTypeInput" aria-label="Note category">
-              <option value="personal">Personal</option>
-              <option value="lesson">Lesson</option>
-              <option value="mistake">Mistake</option>
-              <option value="template">Template</option>
-              <option value="phrase">Phrase</option>
-            </select>
-            <button class="btn-primary" id="addNoteBtn" type="button">Add note</button>
-          </div>
-          <textarea class="text-input note-textarea" id="noteContentInput" placeholder="Write a phrase, mistake pattern, template, or personal TOEFL rule."></textarea>
-          <div class="notebook-toolbar">
-            <input class="text-input" id="noteSearchInput" type="search" placeholder="Search notes" />
-            <div class="note-filter-row" id="noteTypeFilters">
-              <button class="btn-option selected" data-note-filter="all">All</button>
-              <button class="btn-option" data-note-filter="lesson">Lessons</button>
-              <button class="btn-option" data-note-filter="mistake">Mistakes</button>
-              <button class="btn-option" data-note-filter="template">Templates</button>
-              <button class="btn-option" data-note-filter="phrase">Phrases</button>
-            </div>
-          </div>
-          <div class="notebook-list" id="notebookList"></div>
-        </div>
       </div>
     </div>
   </section>
@@ -367,92 +335,40 @@
   <section class="section" id="section-goal">
     <div class="profile-layout">
       <div class="card form-card">
-        <div class="card-kicker" data-i18n="page.goal">Profile</div>
-        <h2 class="profile-title" data-i18n="profile.title">Who is preparing?</h2>
-        <p class="form-desc" data-i18n="profile.copy">Keep your name and TOEFL goal accurate. Your avatar is generated automatically.</p>
-
-        <div class="form-group">
-          <label data-i18n="profile.name">Your Name</label>
-          <input class="text-input" id="profileNameInput" type="text" value="Alex Carter" />
-        </div>
-
-        <div class="form-group">
-          <label data-i18n="profile.examType">Exam Type</label>
-          <div class="radio-group">
-            <label class="radio-option selected"><input type="radio" name="exam" value="TOEFL iBT" checked /> TOEFL iBT</label>
         <div class="profile-form-head">
           <div>
-            <div class="card-kicker">Profile settings</div>
-            <h2 class="profile-title">Your TOEFL setup</h2>
-            <p class="form-desc">Change your name, target score, timeline, level, or study goal. The dashboard and AI plan update from these settings.</p>
+            <div class="card-kicker" data-i18n="profile.settings">Profile settings</div>
+            <h2 class="profile-title" data-i18n="profile.setupTitle">Your TOEFL setup</h2>
+            <p class="form-desc" data-i18n="profile.settingsCopy">Change your name, target score, timeline, level, or study goal. The dashboard and AI plan update from these settings.</p>
           </div>
           <span class="sync-status sync-status-synced" id="accountSyncStatus">Synced</span>
         </div>
 
-        <div class="form-group">
-          <label data-i18n="profile.targetScore">Target Score</label>
-          <div class="btn-group" id="targetScoreGroup">
-            <button class="btn-option" data-val="70">70</button>
-            <button class="btn-option" data-val="80">80</button>
-            <button class="btn-option selected" data-val="95">95</button>
-            <button class="btn-option" data-val="100">100</button>
-            <button class="btn-option" data-val="110">110</button>
         <div class="profile-account-strip">
           <span class="avatar avatar-sm" id="accountAvatar"></span>
           <div>
             <strong id="accountName">Alex Carter</strong>
             <span id="accountEmail">alex@example.com</span>
           </div>
-          <button class="btn-secondary btn-compact" id="syncNowBtn" type="button">Sync</button>
-          <button class="btn-secondary btn-compact" id="logoutBtn" type="button">Log out</button>
+          <button class="btn-secondary btn-compact" id="syncNowBtn" type="button" data-i18n="account.syncNow">Sync</button>
+          <button class="btn-secondary btn-compact" id="logoutBtn" type="button" data-i18n="account.logout">Log out</button>
         </div>
 
-        <div class="form-group">
-          <label data-i18n="profile.prepTime">Preparation Time</label>
-          <div class="btn-group" id="prepDaysGroup">
-            <button class="btn-option" data-val="30" data-i18n="profile.days30">30 days</button>
-            <button class="btn-option selected" data-val="60" data-i18n="profile.days60">60 days</button>
-            <button class="btn-option" data-val="90" data-i18n="profile.days90">90 days</button>
         <div id="profileEditPanel">
           <div class="form-group">
-            <label>Your Name</label>
+            <label data-i18n="profile.name">Your Name</label>
             <input class="text-input" id="profileNameInput" type="text" value="Alex Carter" />
           </div>
 
-        <div class="form-group">
-          <label data-i18n="profile.currentLevel">Current Level</label>
-          <div class="btn-group" id="levelGroup">
-            <button class="btn-option" data-val="beginner" data-i18n="level.beginner">Beginner</button>
-            <button class="btn-option selected" data-val="intermediate" data-i18n="level.intermediate">Intermediate</button>
-            <button class="btn-option" data-val="advanced" data-i18n="level.advanced">Advanced</button>
           <div class="form-group">
-            <label>Exam Type</label>
+            <label data-i18n="profile.examType">Exam Type</label>
             <div class="radio-group">
               <label class="radio-option selected"><input type="radio" name="exam" value="TOEFL iBT" checked /> TOEFL iBT</label>
             </div>
           </div>
 
-        <div class="form-group">
-          <label data-i18n="profile.studyGoal">Study Goal</label>
-          <div class="btn-group" id="goalGroup">
-            <button class="btn-option selected" data-val="study abroad" data-i18n="goal.studyAbroad">Study Abroad</button>
-            <button class="btn-option" data-val="work" data-i18n="goal.work">Work</button>
-            <button class="btn-option" data-val="immigration" data-i18n="goal.immigration">Immigration</button>
-          </div>
-        </div>
-
-        <button class="btn-primary btn-full" id="saveGoalBtn" data-i18n="profile.saveStart">Save & Start Preparation</button>
-        <div class="success-msg hidden" id="goalSaved" data-i18n="profile.saved">Profile saved. Go to Dashboard to start.</div>
-      </div>
-
-      <aside class="profile-side">
-        <div class="card account-sync-card account-sync-card-primary">
-          <div class="account-sync-head">
-            <div>
-              <div class="card-kicker" data-i18n="account.kicker">Account Sync</div>
-              <h2 class="card-title" data-i18n="account.saveProgress">Save progress</h2>
           <div class="form-group">
-            <label>Target Score</label>
+            <label data-i18n="profile.targetScore">Target Score</label>
             <div class="btn-group" id="targetScoreGroup">
               <button class="btn-option" data-val="70">70</button>
               <button class="btn-option" data-val="80">80</button>
@@ -463,70 +379,43 @@
           </div>
 
           <div class="form-group">
-            <label>Preparation Time</label>
+            <label data-i18n="profile.prepTime">Preparation Time</label>
             <div class="btn-group" id="prepDaysGroup">
-              <button class="btn-option" data-val="30">30 days</button>
-              <button class="btn-option selected" data-val="60">60 days</button>
-              <button class="btn-option" data-val="90">90 days</button>
+              <button class="btn-option" data-val="30" data-i18n="profile.days30">30 days</button>
+              <button class="btn-option selected" data-val="60" data-i18n="profile.days60">60 days</button>
+              <button class="btn-option" data-val="90" data-i18n="profile.days90">90 days</button>
             </div>
           </div>
 
-          <div id="accountSignedOut">
-            <p class="sync-copy" data-i18n="account.copy">Use local mode for quick practice, or create an account to save your progress in SQLite.</p>
-            <div class="sync-form">
-              <label><span data-i18n="account.name">Name</span><input class="text-input" id="authNameInput" type="text" autocomplete="name" placeholder="Gosha" /></label>
-              <label><span data-i18n="account.email">Email</span><input class="text-input" id="authEmailInput" type="email" autocomplete="email" placeholder="gosha@example.com" /></label>
-              <label><span data-i18n="account.password">Password</span><input class="text-input" id="authPasswordInput" type="password" autocomplete="current-password" placeholder="At least 6 characters" data-i18n-placeholder="account.passwordPlaceholder" /></label>
-            </div>
-            <div class="sync-actions">
-              <button class="btn-primary" id="createAccountBtn" data-i18n="account.create">Create account</button>
-              <button class="btn-secondary" id="signInBtn" data-i18n="account.signIn">Sign in</button>
-            </div>
-          </div>
-
-          <div id="accountSignedIn" class="hidden">
-            <div class="account-user-line">
-              <span class="avatar avatar-sm" id="accountAvatar"></span>
-              <div>
-                <strong id="accountName">Alex Carter</strong>
-                <span id="accountEmail">alex@example.com</span>
-              </div>
-            </div>
-            <p class="sync-copy" data-i18n="account.syncedCopy">Progress is synced.</p>
-            <div class="sync-actions">
-              <button class="btn-primary" id="syncNowBtn" data-i18n="account.syncNow">Sync now</button>
-              <button class="btn-secondary" id="logoutBtn" data-i18n="account.logout">Log out</button>
           <div class="form-group">
-            <label>Current Level</label>
+            <label data-i18n="profile.currentLevel">Current Level</label>
             <div class="btn-group" id="levelGroup">
-              <button class="btn-option" data-val="beginner">Beginner</button>
-              <button class="btn-option selected" data-val="intermediate">Intermediate</button>
-              <button class="btn-option" data-val="advanced">Advanced</button>
+              <button class="btn-option" data-val="beginner" data-i18n="level.beginner">Beginner</button>
+              <button class="btn-option selected" data-val="intermediate" data-i18n="level.intermediate">Intermediate</button>
+              <button class="btn-option" data-val="advanced" data-i18n="level.advanced">Advanced</button>
             </div>
           </div>
 
           <div class="form-group">
-            <label>Study Goal</label>
+            <label data-i18n="profile.studyGoal">Study Goal</label>
             <div class="btn-group" id="goalGroup">
-              <button class="btn-option selected" data-val="study abroad">Study Abroad</button>
-              <button class="btn-option" data-val="work">Work</button>
-              <button class="btn-option" data-val="immigration">Immigration</button>
+              <button class="btn-option selected" data-val="study abroad" data-i18n="goal.studyAbroad">Study Abroad</button>
+              <button class="btn-option" data-val="work" data-i18n="goal.work">Work</button>
+              <button class="btn-option" data-val="immigration" data-i18n="goal.immigration">Immigration</button>
             </div>
           </div>
 
-          <button class="btn-primary btn-full" id="saveGoalBtn">Save profile settings</button>
-          <div class="success-msg hidden" id="goalSaved">Profile saved. Dashboard and study plan are updated.</div>
+          <button class="btn-primary btn-full" id="saveGoalBtn" data-i18n="profile.saveSettings">Save profile settings</button>
+          <div class="success-msg hidden" id="goalSaved" data-i18n="profile.savedUpdated">Profile saved. Dashboard and study plan are updated.</div>
         </div>
       </div>
 
       <aside class="profile-side">
         <div class="card setup-preview-card">
-          <div class="card-kicker" data-i18n="profile.summary">Personal summary</div>
-          <h2 class="card-title" data-i18n="profile.setup">Your study setup</h2>
           <div class="summary-topline">
             <div>
-              <div class="card-kicker">Personal summary</div>
-              <h2 class="card-title">Your study setup</h2>
+              <div class="card-kicker" data-i18n="profile.summary">Personal summary</div>
+              <h2 class="card-title" data-i18n="profile.setup">Your study setup</h2>
             </div>
             <span class="summary-pill" id="accountPlan">Free</span>
           </div>
