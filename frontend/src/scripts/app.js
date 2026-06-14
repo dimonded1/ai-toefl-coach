@@ -15,6 +15,41 @@ const SUBSCRIPTION_TRIAL_DAYS = 3;
 const SUBSCRIPTION_WEEK_DAYS = 7;
 
 const AVATAR_TONES = ["teal", "blue", "violet", "rose", "amber", "mint", "indigo", "sky", "green", "pink", "slate", "cyan"];
+const AVATAR_UPLOAD_MAX_BYTES = 4 * 1024 * 1024;
+const AVATAR_IMAGE_SIZE = 256;
+
+const AVATAR_PRESETS = [
+  { id: "lion", name: "Lion", emoji: "🦁", bg1: "#ffb703", bg2: "#fb5607", face: "#ffe08a" },
+  { id: "elephant", name: "Elephant", emoji: "🐘", bg1: "#8ecae6", bg2: "#5e60ce", face: "#cbd5e1" },
+  { id: "monkey", name: "Monkey", emoji: "🐵", bg1: "#f59e0b", bg2: "#92400e", face: "#f8c471" },
+  { id: "tiger", name: "Tiger", emoji: "🐯", bg1: "#ff9f1c", bg2: "#ef476f", face: "#ffd166" },
+  { id: "panda", name: "Panda", emoji: "🐼", bg1: "#e0f2fe", bg2: "#111827", face: "#ffffff" },
+  { id: "giraffe", name: "Giraffe", emoji: "🦒", bg1: "#facc15", bg2: "#ea580c", face: "#fde68a" },
+  { id: "zebra", name: "Zebra", emoji: "🦓", bg1: "#f8fafc", bg2: "#334155", face: "#ffffff" },
+  { id: "rhino", name: "Rhino", emoji: "🦏", bg1: "#cbd5e1", bg2: "#64748b", face: "#d1d5db" },
+  { id: "hippo", name: "Hippo", emoji: "🦛", bg1: "#c4b5fd", bg2: "#7c3aed", face: "#d8b4fe" },
+  { id: "bear", name: "Bear", emoji: "🐻", bg1: "#fbbf24", bg2: "#78350f", face: "#d97706" },
+  { id: "koala", name: "Koala", emoji: "🐨", bg1: "#dbeafe", bg2: "#64748b", face: "#e2e8f0" },
+  { id: "fox", name: "Fox", emoji: "🦊", bg1: "#fb7185", bg2: "#f97316", face: "#fdba74" },
+  { id: "wolf", name: "Wolf", emoji: "🐺", bg1: "#93c5fd", bg2: "#1e3a8a", face: "#cbd5e1" },
+  { id: "kangaroo", name: "Kangaroo", emoji: "🦘", bg1: "#fca5a5", bg2: "#b45309", face: "#fed7aa" },
+  { id: "camel", name: "Camel", emoji: "🐫", bg1: "#fde68a", bg2: "#ca8a04", face: "#fcd34d" },
+  { id: "llama", name: "Llama", emoji: "🦙", bg1: "#f5d0fe", bg2: "#a21caf", face: "#fce7f3" },
+  { id: "sloth", name: "Sloth", emoji: "🦥", bg1: "#bbf7d0", bg2: "#15803d", face: "#d9f99d" },
+  { id: "otter", name: "Otter", emoji: "🦦", bg1: "#67e8f9", bg2: "#0e7490", face: "#a16207" },
+  { id: "penguin", name: "Penguin", emoji: "🐧", bg1: "#bae6fd", bg2: "#0f172a", face: "#f8fafc" },
+  { id: "flamingo", name: "Flamingo", emoji: "🦩", bg1: "#f9a8d4", bg2: "#db2777", face: "#fbcfe8" },
+  { id: "parrot", name: "Parrot", emoji: "🦜", bg1: "#86efac", bg2: "#2563eb", face: "#bbf7d0" },
+  { id: "crocodile", name: "Crocodile", emoji: "🐊", bg1: "#a7f3d0", bg2: "#047857", face: "#86efac" },
+  { id: "turtle", name: "Turtle", emoji: "🐢", bg1: "#bef264", bg2: "#166534", face: "#bbf7d0" },
+  { id: "snake", name: "Snake", emoji: "🐍", bg1: "#fde047", bg2: "#16a34a", face: "#d9f99d" },
+  { id: "frog", name: "Frog", emoji: "🐸", bg1: "#bbf7d0", bg2: "#22c55e", face: "#86efac" },
+  { id: "owl", name: "Owl", emoji: "🦉", bg1: "#fed7aa", bg2: "#7c2d12", face: "#fdba74" },
+  { id: "eagle", name: "Eagle", emoji: "🦅", bg1: "#bfdbfe", bg2: "#1d4ed8", face: "#fef3c7" },
+  { id: "peacock", name: "Peacock", emoji: "🦚", bg1: "#5eead4", bg2: "#4f46e5", face: "#99f6e4" },
+  { id: "horse", name: "Horse", emoji: "🐴", bg1: "#fdba74", bg2: "#92400e", face: "#fed7aa" },
+  { id: "deer", name: "Deer", emoji: "🦌", bg1: "#fef08a", bg2: "#854d0e", face: "#fde68a" }
+];
 
 const ONBOARDING_STEPS = [
   {
@@ -174,7 +209,7 @@ const I18N = {
     "learn.vocabSystem": "Vocabulary system",
     "learn.academicWords": "Academic words",
     "profile.title": "Who is preparing?",
-    "profile.copy": "Keep your name and TOEFL goal accurate. Your avatar is generated automatically.",
+    "profile.copy": "Keep your name, TOEFL goal, and avatar accurate.",
     "profile.settings": "Profile settings",
     "profile.setupTitle": "Your TOEFL setup",
     "profile.settingsCopy": "Change your name, target score, timeline, level, or study goal. The dashboard and AI plan update from these settings.",
@@ -196,6 +231,18 @@ const I18N = {
     "profile.setup": "Your study setup",
     "profile.currentToefl": "current TOEFL",
     "profile.timeline": "Timeline",
+    "avatar.change": "Change avatar",
+    "avatar.kicker": "Avatar",
+    "avatar.title": "Choose your profile avatar",
+    "avatar.copy": "Pick a bright zoo-style avatar or upload your own image.",
+    "avatar.choosePreset": "Generated animal avatars",
+    "avatar.uploadTitle": "Your own image",
+    "avatar.uploadCopy": "Upload a square photo or picture. It will be saved with your profile.",
+    "avatar.upload": "Upload from device",
+    "avatar.useInitials": "Use initials",
+    "avatar.saved": "Avatar saved.",
+    "avatar.uploadTooLarge": "Image is too large. Use a file up to 4 MB.",
+    "avatar.uploadFailed": "Could not read this image.",
     "level.beginner": "Beginner",
     "level.intermediate": "Intermediate",
     "level.advanced": "Advanced",
@@ -424,7 +471,7 @@ const I18N = {
     "learn.vocabSystem": "Словарная система",
     "learn.academicWords": "Академические слова",
     "profile.title": "Кто готовится?",
-    "profile.copy": "Держи имя и TOEFL-цель актуальными. Аватар создаётся автоматически.",
+    "profile.copy": "Держи имя, TOEFL-цель и аватар актуальными.",
     "profile.settings": "Настройки профиля",
     "profile.setupTitle": "Твоя настройка TOEFL",
     "profile.settingsCopy": "Измени имя, целевой балл, срок, уровень или цель обучения. Дашборд и AI-план обновятся по этим настройкам.",
@@ -446,6 +493,18 @@ const I18N = {
     "profile.setup": "Твои настройки подготовки",
     "profile.currentToefl": "текущий TOEFL",
     "profile.timeline": "Срок",
+    "avatar.change": "Изменить аватар",
+    "avatar.kicker": "Аватар",
+    "avatar.title": "Выбери аватар профиля",
+    "avatar.copy": "Выбери яркую аватарку в стиле зоопарка или загрузи своё изображение.",
+    "avatar.choosePreset": "Сгенерированные аватары животных",
+    "avatar.uploadTitle": "Своя картинка",
+    "avatar.uploadCopy": "Загрузи квадратное фото или картинку. Она сохранится в профиле.",
+    "avatar.upload": "Загрузить с устройства",
+    "avatar.useInitials": "Вернуть инициалы",
+    "avatar.saved": "Аватар сохранён.",
+    "avatar.uploadTooLarge": "Картинка слишком большая. Используй файл до 4 MB.",
+    "avatar.uploadFailed": "Не удалось прочитать это изображение.",
     "level.beginner": "Начальный",
     "level.intermediate": "Средний",
     "level.advanced": "Продвинутый",
@@ -674,7 +733,7 @@ const I18N = {
     "learn.vocabSystem": "Vocabulaire",
     "learn.academicWords": "Mots académiques",
     "profile.title": "Qui se prépare ?",
-    "profile.copy": "Garde ton nom et ton objectif TOEFL à jour. L'avatar est généré automatiquement.",
+    "profile.copy": "Garde ton nom, ton objectif TOEFL et ton avatar à jour.",
     "profile.settings": "Paramètres du profil",
     "profile.setupTitle": "Ta configuration TOEFL",
     "profile.settingsCopy": "Modifie ton nom, ton score cible, ton calendrier, ton niveau ou ton objectif. Le tableau de bord et le plan IA se mettent à jour.",
@@ -696,6 +755,18 @@ const I18N = {
     "profile.setup": "Configuration d'étude",
     "profile.currentToefl": "TOEFL actuel",
     "profile.timeline": "Calendrier",
+    "avatar.change": "Changer l'avatar",
+    "avatar.kicker": "Avatar",
+    "avatar.title": "Choisis ton avatar",
+    "avatar.copy": "Choisis un avatar animal coloré ou importe ta propre image.",
+    "avatar.choosePreset": "Avatars animaux générés",
+    "avatar.uploadTitle": "Ton image",
+    "avatar.uploadCopy": "Importe une photo ou image carrée. Elle sera enregistrée dans ton profil.",
+    "avatar.upload": "Importer depuis l'appareil",
+    "avatar.useInitials": "Utiliser les initiales",
+    "avatar.saved": "Avatar enregistré.",
+    "avatar.uploadTooLarge": "Image trop grande. Utilise un fichier jusqu'à 4 MB.",
+    "avatar.uploadFailed": "Impossible de lire cette image.",
     "level.beginner": "Débutant",
     "level.intermediate": "Intermédiaire",
     "level.advanced": "Avancé",
@@ -920,7 +991,7 @@ const I18N = {
     "learn.vocabSystem": "Sistema de vocabulario",
     "learn.academicWords": "Palabras académicas",
     "profile.title": "¿Quién se prepara?",
-    "profile.copy": "Mantén tu nombre y meta TOEFL actualizados. El avatar se genera automáticamente.",
+    "profile.copy": "Mantén tu nombre, meta TOEFL y avatar actualizados.",
     "profile.settings": "Ajustes del perfil",
     "profile.setupTitle": "Tu configuración TOEFL",
     "profile.settingsCopy": "Cambia tu nombre, puntuación objetivo, calendario, nivel u objetivo. El panel y el plan IA se actualizan con estos ajustes.",
@@ -942,6 +1013,18 @@ const I18N = {
     "profile.setup": "Configuración de estudio",
     "profile.currentToefl": "TOEFL actual",
     "profile.timeline": "Plazo",
+    "avatar.change": "Cambiar avatar",
+    "avatar.kicker": "Avatar",
+    "avatar.title": "Elige tu avatar",
+    "avatar.copy": "Elige un avatar animal colorido o sube tu propia imagen.",
+    "avatar.choosePreset": "Avatares animales generados",
+    "avatar.uploadTitle": "Tu imagen",
+    "avatar.uploadCopy": "Sube una foto o imagen cuadrada. Se guardará en tu perfil.",
+    "avatar.upload": "Subir desde el dispositivo",
+    "avatar.useInitials": "Usar iniciales",
+    "avatar.saved": "Avatar guardado.",
+    "avatar.uploadTooLarge": "La imagen es demasiado grande. Usa un archivo de hasta 4 MB.",
+    "avatar.uploadFailed": "No se pudo leer esta imagen.",
     "level.beginner": "Inicial",
     "level.intermediate": "Intermedio",
     "level.advanced": "Avanzado",
@@ -1104,6 +1187,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initLanguageControls();
   initNavigation();
   initGoalForm();
+  initAvatarPicker();
   initAccountSync();
   initAuthGate();
   initOnboarding();
@@ -1629,11 +1713,26 @@ function applyPromoCode() {
   setSubscriptionMessage(t("subscription.message.promoInvalid"), "error");
 }
 
-function setAvatar(id, name) {
+function setAvatar(id, name, avatar = profile.avatar) {
   const el = document.getElementById(id);
   if (!el) return;
+  const baseClasses = el.className
+    .split(" ")
+    .filter(cls => cls && !cls.startsWith("avatar-tone-") && cls !== "avatar-image")
+    .join(" ");
+  const avatarSource = getAvatarSource(avatar);
+  el.className = baseClasses;
+  el.style.removeProperty("background-image");
+
+  if (avatarSource) {
+    el.classList.add("avatar-image");
+    el.style.backgroundImage = `url("${avatarSource}")`;
+    el.textContent = "";
+    return;
+  }
+
   const tone = getAvatarTone(name);
-  el.className = `${el.className.split(" ").filter(cls => !cls.startsWith("avatar-tone-")).join(" ")} avatar-tone-${tone}`;
+  el.classList.add(`avatar-tone-${tone}`);
   el.textContent = getInitials(name);
 }
 
@@ -2601,6 +2700,176 @@ function applyStudySetup({ name, targetScore, preparationDays, level, goal }) {
   saveProfile(profile);
   renderAppShell();
   updateSetupPreview();
+}
+
+// ─── AVATAR PICKER ───────────────────────────────
+function initAvatarPicker() {
+  renderAvatarPresetGrid();
+
+  document.getElementById("profileAvatarEditBtn")?.addEventListener("click", () => {
+    openAvatarModal();
+  });
+
+  document.getElementById("avatarModalClose")?.addEventListener("click", () => {
+    closeAvatarModal();
+  });
+
+  document.getElementById("avatarModal")?.addEventListener("click", event => {
+    if (event.target.id === "avatarModal") closeAvatarModal();
+  });
+
+  document.getElementById("avatarUploadBtn")?.addEventListener("click", () => {
+    document.getElementById("avatarUploadInput")?.click();
+  });
+
+  document.getElementById("avatarUploadInput")?.addEventListener("change", async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await handleAvatarUpload(file);
+    event.target.value = "";
+  });
+
+  document.getElementById("avatarInitialsBtn")?.addEventListener("click", () => {
+    saveAvatarChoice(null);
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeAvatarModal();
+  });
+}
+
+function openAvatarModal() {
+  renderAvatarPresetGrid();
+  document.getElementById("avatarModal")?.classList.remove("hidden");
+  document.body.classList.add("avatar-modal-open");
+}
+
+function closeAvatarModal() {
+  document.getElementById("avatarModal")?.classList.add("hidden");
+  document.body.classList.remove("avatar-modal-open");
+}
+
+function renderAvatarPresetGrid() {
+  const grid = document.getElementById("avatarPresetGrid");
+  if (!grid) return;
+  const currentAvatar = loadProfile().avatar || null;
+  grid.innerHTML = AVATAR_PRESETS.map(preset => {
+    const selected = currentAvatar?.type === "preset" && currentAvatar.id === preset.id;
+    return `
+      <button class="avatar-preset-btn ${selected ? "selected" : ""}" type="button" data-avatar-preset="${preset.id}" aria-label="${preset.name}">
+        <span class="avatar-preset-img" style="background-image: url('${avatarPresetDataUrl(preset)}')"></span>
+        <span>${preset.name}</span>
+      </button>
+    `;
+  }).join("");
+
+  grid.querySelectorAll("[data-avatar-preset]").forEach(button => {
+    button.addEventListener("click", () => {
+      const preset = AVATAR_PRESETS.find(item => item.id === button.dataset.avatarPreset);
+      if (!preset) return;
+      saveAvatarChoice({ type: "preset", id: preset.id });
+    });
+  });
+}
+
+function avatarPresetDataUrl(preset) {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160">
+      <defs>
+        <linearGradient id="bg" x1="18" y1="12" x2="142" y2="148" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="${preset.bg1}"/>
+          <stop offset="1" stop-color="${preset.bg2}"/>
+        </linearGradient>
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#0f172a" flood-opacity=".20"/>
+        </filter>
+      </defs>
+      <rect width="160" height="160" rx="42" fill="url(#bg)"/>
+      <circle cx="80" cy="84" r="56" fill="${preset.face}" opacity=".9" filter="url(#shadow)"/>
+      <circle cx="54" cy="62" r="20" fill="rgba(255,255,255,.22)"/>
+      <circle cx="111" cy="65" r="18" fill="rgba(255,255,255,.16)"/>
+      <text x="80" y="92" text-anchor="middle" dominant-baseline="middle" font-size="72">${preset.emoji}</text>
+      <circle cx="35" cy="34" r="7" fill="#fff" opacity=".55"/>
+      <circle cx="125" cy="126" r="10" fill="#fff" opacity=".18"/>
+    </svg>
+  `;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg.replace(/\s+/g, " ").trim())}`;
+}
+
+function getAvatarSource(avatar) {
+  if (avatar?.type === "upload" && avatar.dataUrl) return avatar.dataUrl;
+  if (avatar?.type === "preset") {
+    const preset = AVATAR_PRESETS.find(item => item.id === avatar.id);
+    return preset ? avatarPresetDataUrl(preset) : "";
+  }
+  return "";
+}
+
+function saveAvatarChoice(avatar) {
+  profile = loadProfile();
+  if (avatar) {
+    profile.avatar = avatar;
+  } else {
+    delete profile.avatar;
+  }
+  saveProfile(profile);
+  renderAppShell();
+  renderAccountSync();
+  updateSetupPreview();
+  renderAvatarPresetGrid();
+  closeAvatarModal();
+  showToast(t("avatar.saved"), "success");
+}
+
+async function handleAvatarUpload(file) {
+  if (file.size > AVATAR_UPLOAD_MAX_BYTES) {
+    showToast(t("avatar.uploadTooLarge"), "error");
+    return;
+  }
+
+  try {
+    const dataUrl = await resizeAvatarImage(file);
+    saveAvatarChoice({
+      type: "upload",
+      dataUrl,
+      name: file.name || "custom-avatar",
+      updatedAt: new Date().toISOString()
+    });
+  } catch (err) {
+    console.warn("Avatar upload failed:", err);
+    showToast(t("avatar.uploadFailed"), "error");
+  }
+}
+
+function resizeAvatarImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = reject;
+      image.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = AVATAR_IMAGE_SIZE;
+        canvas.height = AVATAR_IMAGE_SIZE;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("Canvas is not supported"));
+          return;
+        }
+
+        const size = Math.min(image.width, image.height);
+        const sx = Math.max(0, (image.width - size) / 2);
+        const sy = Math.max(0, (image.height - size) / 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, AVATAR_IMAGE_SIZE, AVATAR_IMAGE_SIZE);
+        ctx.drawImage(image, sx, sy, size, size, 0, 0, AVATAR_IMAGE_SIZE, AVATAR_IMAGE_SIZE);
+        resolve(canvas.toDataURL("image/jpeg", 0.88));
+      };
+      image.src = String(reader.result || "");
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 function initOnboarding() {
