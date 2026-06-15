@@ -1178,10 +1178,11 @@ function navigateTo(section) {
 function renderAppShell() {
   profile = loadProfile();
   const predicted = calcPredictedScore(profile);
+  const displayScore = getDisplayScore(profile);
   const day = Math.min(profile.preparationDays || 60, Math.max(1, (profile.preparationDays || 60) - daysRemaining(profile) + 1));
-  setText("topScore", predicted);
+  setText("topScore", displayScore);
   setText("sidebarName", profile.name || "Alex Carter");
-  setText("sidebarScoreLine", t("sidebar.currentToGoal", { current: predicted, target: profile.targetScore }));
+  setText("sidebarScoreLine", t("sidebar.currentToGoal", { current: displayScore, target: profile.targetScore }));
   setText("sidebarTarget", profile.targetScore);
   setText("sidebarDay", t("sidebar.dayCount", { current: day, total: profile.preparationDays || 60 }));
   setAvatar("sidebarAvatar", profile.name);
@@ -1377,20 +1378,22 @@ function initDashboard() {
 function renderDashboard() {
   profile = loadProfile();
   const predicted = calcPredictedScore(profile);
-  const gap       = Math.max(0, profile.targetScore - predicted);
+  const hasEntranceScore = hasCompletedEntranceTest(profile);
+  const displayScore = getDisplayScore(profile);
+  const gap       = hasEntranceScore ? Math.max(0, profile.targetScore - predicted) : null;
   const days      = daysRemaining(profile);
 
-  const scoreProgress = Math.min(100, Math.round((predicted / Math.max(profile.targetScore, 1)) * 100));
+  const scoreProgress = hasEntranceScore ? Math.min(100, Math.round((predicted / Math.max(profile.targetScore, 1)) * 100)) : 0;
   const taskCount = totalCompletedTasks(profile);
 
   setText("dashTarget", profile.targetScore);
   setText("dashTargetStat", profile.targetScore);
-  setText("dashCurrent", predicted);
-  setText("dashCurrentStat", predicted);
-  setText("dashGap", gap);
-  setText("dashGapStat", gap);
+  setText("dashCurrent", displayScore);
+  setText("dashCurrentStat", displayScore);
+  setText("dashGap", hasEntranceScore ? gap : "?");
+  setText("dashGapStat", hasEntranceScore ? gap : "?");
   setText("dashDays", days);
-  setText("topScore", predicted);
+  setText("topScore", displayScore);
   setText("dashTasks", `${taskCount} ${t(taskCount === 1 ? "common.task" : "common.tasks")}`);
   setText("sidebarStreak", t("profile.daysLabel", { days: profile.streak?.current || 0 }));
   setText("dashboardInsight", buildDashboardInsight(predicted, gap, days));
@@ -1418,14 +1421,13 @@ function totalCompletedTasks(currentProfile) {
 }
 
 function buildDashboardInsight(predicted, gap, days) {
+  if (!hasCompletedEntranceTest(profile)) return t("dashboard.runDiagnosticInsight");
   if (gap <= 0) return t("dashboard.atTarget");
-  if (totalCompletedTasks(profile) === 0) return t("dashboard.runDiagnosticInsight");
   return t("dashboard.gapInsight", { gap, days });
 }
 
 function getPrimaryFocus(currentProfile) {
-  const totalTasks = totalCompletedTasks(currentProfile);
-  if (totalTasks === 0) {
+  if (!hasCompletedEntranceTest(currentProfile)) {
     return {
       section: "minitest",
       skill: "minitest",
@@ -1469,18 +1471,19 @@ function renderPrimaryFocus() {
 function renderSkillBars() {
   const container = document.getElementById("skillBars");
   const skills = ["reading","listening","speaking","writing"];
+  const hasEntranceScore = hasCompletedEntranceTest(profile);
   container.innerHTML = skills.map(skill => {
     const meta = SKILL_META[skill];
     const score = profile.scores[skill] || 0;
-    const pct = Math.round((score / 30) * 100);
+    const pct = hasEntranceScore ? Math.round((score / 30) * 100) : 0;
     const total = profile.totalTasks[skill] || 0;
-    const status = getSkillStatus(score);
+    const status = hasEntranceScore ? getSkillStatus(score) : { label: t("dashboard.diagnostic"), className: "needs" };
     return `
       <div class="skill-row-modern">
         <div class="skill-row-top">
           <span class="skill-dot fill-${skill}"></span>
           <span class="skill-bar-label">${skillLabel(skill)}</span>
-          <strong>${score}/30</strong>
+          <strong>${hasEntranceScore ? `${score}/30` : "?/30"}</strong>
         </div>
         <div class="skill-bar-track">
           <div class="skill-bar-fill ${meta.fillClass} ${percentClass("w", pct)}"></div>
@@ -1544,6 +1547,16 @@ function renderTrajectoryBars(container, predicted) {
   if (!container) return;
 
   const target = profile.targetScore || 95;
+  if (!hasCompletedEntranceTest(profile)) {
+    container.innerHTML = Array.from({ length: 8 }, (_, index) => `
+      <div class="trajectory-week">
+        <span class="trajectory-bar bar-h-20"></span>
+        <small>W${index + 1}</small>
+      </div>`).join("");
+    setText("trajectoryInsight", "Complete the mini diagnostic to start charting score movement.");
+    return;
+  }
+
   const start = Math.max(35, Math.min(predicted - 10, predicted));
   const history = profile.miniTestHistory || [];
   const lastScores = history.slice(-8).map(item => item.predictedScore || predicted);
@@ -2589,10 +2602,10 @@ function setActiveBtn(groupId, val) {
 }
 
 function updateSetupPreview() {
-  const current = calcPredictedScore(profile);
   const name = document.getElementById("profileNameInput")?.value.trim() || profile.name || "Alex Carter";
+  document.querySelector(".setup-score")?.classList.toggle("pending", !hasCompletedEntranceTest(profile));
   setText("setupTarget", getSelected("targetScoreGroup") || profile.targetScore || 95);
-  setText("setupCurrent", current);
+  setText("setupCurrent", getDisplayScore(profile));
   setText("setupDays", t("profile.daysLabel", { days: getSelected("prepDaysGroup") || profile.preparationDays || 60 }));
   setText("setupLevel", levelLabel(getSelected("levelGroup") || profile.level || "intermediate"));
   setText("setupGoal", goalLabel(getSelected("goalGroup") || profile.goal || "study abroad"));
@@ -3974,6 +3987,19 @@ function renderMiniResults() {
 
   const totalCorrect = answers.filter(a => a.correct).length;
   const predicted    = calcPredictedScore(profile);
+  profile.diagnosticCompleted = true;
+  profile.placementTestCompleted = true;
+  profile.miniTestHistory = Array.isArray(profile.miniTestHistory) ? profile.miniTestHistory : [];
+  profile.miniTestHistory.push({
+    date: new Date().toISOString(),
+    correct: totalCorrect,
+    total: answers.length,
+    predictedScore: predicted,
+    bySkill
+  });
+  profile.miniTestHistory = profile.miniTestHistory.slice(-20);
+  saveProfile(profile);
+  renderAppShell();
 
   // Find weakest
   let weakest = null, worstRate = -1;
@@ -4091,6 +4117,13 @@ function initAIPlan() {
 }
 
 function renderGapAnalysisHtml(raw, currentProfile) {
+  if (!hasCompletedEntranceTest(currentProfile)) {
+    return `
+      <div class="feedback-box info gap-fallback">
+        Complete the mini diagnostic first. The score gap analysis needs a real entrance-test result before it can compare current TOEFL to your target.
+      </div>`;
+  }
+
   const parsed = parseJsonFromAI(raw);
   const weak = calcWeaknessScores(currentProfile)[0];
   const fallback = {
@@ -4133,17 +4166,18 @@ function renderAIPlanSection() {
 
 function renderStudyGoalOverview() {
   const current = calcPredictedScore(profile);
-  const gap = Math.max(0, profile.targetScore - current);
+  const hasEntranceScore = hasCompletedEntranceTest(profile);
+  const gap = hasEntranceScore ? Math.max(0, profile.targetScore - current) : null;
   const days = daysRemaining(profile);
   const el = document.getElementById("studyGoalOverview");
   if (!el) return;
   el.innerHTML = `
     <div class="goal-overview">
-      <div><span>Current</span><strong>${current}</strong></div>
+      <div><span>Current</span><strong>${hasEntranceScore ? current : "?"}</strong></div>
       <div class="goal-arrow">to</div>
       <div><span>Target</span><strong>${profile.targetScore}</strong></div>
     </div>
-    <p>${gap} points to close over ${days} days.</p>`;
+    <p>${hasEntranceScore ? `${gap} points to close over ${days} days.` : "Complete the mini diagnostic to calculate your starting score."}</p>`;
 }
 
 function renderRoadmap() {
@@ -4186,6 +4220,7 @@ function renderAnalytics() {
   const correct = Object.values(profile.correct || {}).reduce((sum, value) => sum + (value || 0), 0);
   const accuracy = completed ? Math.round((correct / completed) * 100) : 0;
   const current = analytics.predictedScore;
+  const hasEntranceScore = hasCompletedEntranceTest(profile);
   const weak = analytics.weakZones.length
     ? analytics.weakZones
     : calcWeaknessScores(profile).filter(item => item.total > 0);
@@ -4195,7 +4230,7 @@ function renderAnalytics() {
   container.innerHTML = `
     ${renderAnalyticsInsight(analytics, accuracy, completed)}
     <div class="analytics-kpi-grid">
-      ${renderKpi("Current TOEFL", current, "Predicted score")}
+      ${renderKpi("Current TOEFL", hasEntranceScore ? current : "?", hasEntranceScore ? "Predicted score" : "Take the diagnostic first")}
       ${renderKpi("Accuracy", `${accuracy}%`, `${correct}/${completed} correct`)}
       ${renderKpi("Confidence", confidence.level, `${confidence.score}% model confidence`)}
       ${renderKpi("Readiness", readiness.level, `${readiness.overall}% exam readiness`)}
@@ -4241,6 +4276,20 @@ function renderKpi(label, value, note) {
 function renderAnalyticsInsight(analytics, accuracy, completed) {
   const confidence = analytics.confidence || { level: "none", score: 0 };
   const readiness = analytics.readiness || { level: "not-ready", overall: 0 };
+  if (!hasCompletedEntranceTest(profile)) {
+    return `
+      <div class="card analytics-insight">
+        <div>
+          <div class="card-kicker">Score evidence</div>
+          <h2 class="card-title">Take the mini diagnostic</h2>
+          <p>Current TOEFL will stay unknown until the entrance test gives the coach real answers to score.</p>
+        </div>
+        <div class="analytics-insight-tags">
+          <span>no score yet</span>
+          <span>${completed} tasks</span>
+        </div>
+      </div>`;
+  }
   const gap = Math.max(0, profile.targetScore - analytics.predictedScore);
   const weak = analytics.weakZones?.[0];
   const weakLabel = weak ? SKILL_META[weak.skill]?.label || weak.skill : "mixed practice";

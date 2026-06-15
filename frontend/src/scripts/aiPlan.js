@@ -119,8 +119,21 @@ function renderScoreGapVisual(profile) {
   const target  = profile.targetScore;
   const current = calcPredictedScore(profile);
   const skills  = ["reading","listening","speaking","writing"];
+  const hasEntranceScore = typeof hasCompletedEntranceTest === "function" ? hasCompletedEntranceTest(profile) : true;
 
   const targetPerSkill = Math.round(target / 4);
+
+  if (!hasEntranceScore) {
+    return `
+      <div class="gap-summary gap-summary-pending">
+        <span>Current: <strong class="text-accent">?</strong></span>
+        <span>Target: <strong class="text-success">${target}</strong></span>
+        <span>Gap: <strong class="text-warning">?</strong></span>
+      </div>
+      <div class="feedback-box info">
+        Complete the mini diagnostic first. After that, the coach will show your current TOEFL estimate and real score gap.
+      </div>`;
+  }
 
   let html = `
     <div class="gap-summary">
