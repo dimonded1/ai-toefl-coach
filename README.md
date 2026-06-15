@@ -59,6 +59,7 @@ Backend environment variables:
 NODE_ENV=production
 PORT=3001
 JWT_SECRET=replace_with_a_long_random_secret
+ADMIN_SYNC_TOKEN=replace_with_a_long_random_sync_token
 GROQ_API_KEY=your_actual_key_here
 GROQ_MODEL=llama-3.1-8b-instant
 AI_TIMEOUT_MS=15000
@@ -75,6 +76,27 @@ BACKEND_HOST=ai-toefl-backend.onrender.com
 ```
 
 For Render, set these in each service's Environment panel. Do not commit real secrets.
+
+### Pull deployed SQLite data into local DBeaver
+
+The deployed backend writes to its own SQLite file on Render. To view those deployed users in DBeaver, sync the remote snapshot into the local SQLite file first.
+
+1. Set the same secret value in Render backend and local `backend/.env`:
+```bash
+ADMIN_SYNC_TOKEN=your_long_secret_token
+REMOTE_SYNC_TOKEN=your_long_secret_token
+REMOTE_API_BASE=https://ai-toefl-backend.onrender.com/api
+```
+
+2. Pull the deployed tables into `backend/database/app.sqlite`:
+```bash
+cd backend
+npm run sync:remote
+```
+
+3. In DBeaver, refresh the local SQLite connection/table view.
+
+The sync command creates a local backup before replacing `users`, `profiles`, and `ai_plans`.
 
 ---
 

@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const authRouter = require("./routes/auth");
 const aiRouter = require("./routes/ai");
+const adminRouter = require("./routes/admin");
 const legacyGeminiRouter = require("./routes/gemini");
 const profileRouter = require("./routes/profile");
 require("./database/db");
@@ -29,13 +30,14 @@ app.use(cors({
     callback(null, !origin || isLocalDev || isAllowedServerOrigin);
   },
   methods: ["GET", "POST", "PUT"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization", "X-Admin-Token"]
 }));
 app.use(express.json({ limit: "1mb" }));
 
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/ai", aiRouter);
+app.use("/api/admin", adminRouter);
 app.use("/api/gemini", legacyGeminiRouter);
 app.use("/api/profile", profileRouter);
 
