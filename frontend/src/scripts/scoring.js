@@ -187,6 +187,18 @@ function calcPredictedScore(profile) {
   return TOEFL_SCORE_SKILLS.reduce((sum, skill) => sum + (scores[skill] || 0), 0);
 }
 
+function hasCompletedEntranceTest(profile) {
+  return Boolean(
+    profile?.diagnosticCompleted ||
+    profile?.placementTestCompleted ||
+    (Array.isArray(profile?.miniTestHistory) && profile.miniTestHistory.length > 0)
+  );
+}
+
+function getDisplayScore(profile) {
+  return hasCompletedEntranceTest(profile) ? String(calcPredictedScore(profile)) : "?";
+}
+
 function updateSkillScore(profile, skill) {
   if (!TOEFL_SCORE_SKILLS.includes(skill)) return profile;
 

@@ -6522,6 +6522,162 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb {
   background: #34445a;
 }
 
+/* Final product UI fixes: dark surfaces, chat panel, score pending states. */
+.avatar,
+.profile-account-strip .avatar,
+.profile-summary-head .avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.onboarding-modal {
+  background: rgba(7, 11, 17, .72);
+}
+
+.onboarding-card {
+  background: var(--bg2);
+  color: var(--text);
+}
+
+.onboarding-option {
+  background: var(--bg4);
+  color: var(--text);
+}
+
+.onboarding-option.selected {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 54%, var(--border));
+  color: var(--text);
+}
+
+.onboarding-option:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 34%, transparent);
+  outline-offset: 2px;
+}
+
+.profile-account-strip {
+  background:
+    linear-gradient(135deg, rgba(40,84,232,.08), rgba(15,138,122,.08)),
+    var(--bg2);
+  color: var(--text);
+}
+
+.profile-account-strip > div {
+  min-width: 0;
+}
+
+.setup-score.pending span,
+.score-badge strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.coach-chat-panel,
+.notebook-panel {
+  position: fixed;
+  top: calc(var(--topbar-h) + 16px);
+  right: 126px;
+  bottom: 16px;
+  width: min(420px, calc(100vw - 150px));
+  max-height: none;
+  z-index: calc(var(--z-toast) - 1);
+  background: var(--bg2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.coach-chat-panel {
+  grid-template-rows: auto minmax(180px, 1fr) auto auto;
+}
+
+.coach-chat-head,
+.tool-panel-head,
+.coach-chat-suggestions,
+.coach-chat-form {
+  background: var(--bg2);
+}
+
+.coach-chat-messages {
+  min-height: 0;
+  background: linear-gradient(180deg, var(--bg4), var(--bg3));
+}
+
+.coach-chat-form {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.coach-chat-form textarea {
+  min-height: 44px;
+  max-height: 112px;
+  resize: vertical;
+}
+
+.coach-chat-form .btn-primary {
+  white-space: nowrap;
+}
+
+.coach-chat-suggestions button,
+.coach-followups button {
+  background: var(--accent2-soft);
+  color: var(--accent-dark);
+  border-color: color-mix(in srgb, var(--accent2) 30%, var(--border));
+}
+
+html[data-theme="dark"] .onboarding-card,
+html[data-theme="dark"] .onboarding-option,
+html[data-theme="dark"] .profile-account-strip,
+html[data-theme="dark"] .profile-display-grid div,
+html[data-theme="dark"] .coach-chat-head,
+html[data-theme="dark"] .tool-panel-head,
+html[data-theme="dark"] .coach-chat-suggestions,
+html[data-theme="dark"] .coach-chat-form {
+  background-color: var(--bg2);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+html[data-theme="dark"] .onboarding-card {
+  background:
+    radial-gradient(circle at 92% 0%, rgba(85, 214, 194, .12), transparent 13rem),
+    linear-gradient(180deg, #111824, #0d1420);
+}
+
+html[data-theme="dark"] .onboarding-progress,
+html[data-theme="dark"] .onboarding-dots span {
+  background: #0a0f18;
+}
+
+html[data-theme="dark"] .onboarding-option {
+  background: var(--bg4);
+}
+
+html[data-theme="dark"] .onboarding-option.selected {
+  background: rgba(122, 162, 255, .16);
+  border-color: rgba(122, 162, 255, .52);
+}
+
+html[data-theme="dark"] .profile-account-strip {
+  background:
+    linear-gradient(135deg, rgba(122, 162, 255, .11), rgba(85, 214, 194, .10)),
+    var(--bg2);
+}
+
+html[data-theme="dark"] .coach-chat-messages {
+  background: linear-gradient(180deg, #151f2d, #0d1420);
+}
+
+html[data-theme="dark"] .coach-chat-suggestions button,
+html[data-theme="dark"] .coach-followups button {
+  background: rgba(85, 214, 194, .12);
+  color: var(--accent2);
+}
+
 @media (max-width: 900px) {
   .subscription-gate {
     left: 0;
